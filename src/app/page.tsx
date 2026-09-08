@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import Image from "next/image";
 
 export default function Home() {
@@ -65,5 +66,14 @@ export default function Home() {
         </div>
       </main>
     </div>
+=======
+
+
+export default function Home() {
+  return (
+   <div>
+    hellow project
+   </div>
+>>>>>>> 73d0b67595a4cdd0d9f291afff7142eb21b1becc
   );
 }
