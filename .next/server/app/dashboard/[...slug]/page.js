@@ -1,0 +1,464 @@
+(()=>{var a={};a.id=227,a.ids=[227],a.modules={261:a=>{"use strict";a.exports=require("next/dist/shared/lib/router/utils/app-paths")},408:(a,b,c)=>{"use strict";c.r(b),c.d(b,{default:()=>G});var d=c(93802),e=c(1297),f=c.n(e);let g=[{key:"project",label:"Project"},{key:"inventory",label:"Inventory"},{key:"accounts",label:"Accounts"},{key:"hrm",label:"HRM"},{key:"crm",label:"CRM"},{key:"cr",label:"Credit Realisation (CR)"},{key:"lams",label:"LAMS"},{key:"procurement",label:"Procurement"},{key:"all",label:"All"}],h={boq:"BOQ",kpi:"KPI",rfq:"RFQ",grn:"GRN",hrm:"HRM",crm:"CRM",zkteco:"ZKTeco",cr:"CR",lams:"LAMS",vs:"vs",and:"&"};function i(a){let b=a.split("\n").filter(a=>a.trim().length>0),c=[],d=[];for(let a of b){let b=(a.match(/^ */)?.[0].length??0)/2,e=a.trim();for(;d.length&&(d[d.length-1]?.depth??-1)>=b;)d.pop();let f=d[d.length-1]?.node,g=f?`${f.path}/${e}`:e,i={label:e.split("-").map(a=>h[a]??a.charAt(0).toUpperCase()+a.slice(1)).join(" "),slug:e,path:g};f?(f.children??=[]).push(i):c.push(i),d.push({depth:b,node:i})}return c}let j=`
+contracts
+  supplier-accounts
+products
+  categories
+  sub-categories
+  brands
+  units
+  item-entry
+purchase
+  add-purchase
+  purchase-list
+sales
+adjustment
+  material-usage
+  stock-transfer
+material-requisition
+reports
+  purchase-details
+  purchase-order-receive-details
+  stock-report
+  item-history-report
+  item-wise-supplier-ledger
+  material-usage-report
+  material-comparison-report
+`,k=`
+billing
+  configuration
+    category
+    sub-category
+    bill-item
+    service-work-name
+    boq-title
+  bill-invoice
+  contractor-bill
+  labour-work-bill
+  work-order
+  contractor-work-order
+  period-billing
+  adjustment-billing
+  quote
+  labour-worker-bill-report
+flat-land
+  flat
+  land
+    road
+    block
+    land-details
+  booking
+  sale-offer
+  flat-land-sale
+  flat-land-sale-report
+  sale-collection-report
+  plot-distribution-report
+  aging-report
+  installment-report
+`,l=`
+dashboard
+contract
+  customer-account
+  supplier-account
+  labour-worker-contractor
+employee
+  department
+  designation
+  shift
+  section
+  unit
+  employee-list
+  employee-hierarchy
+configuration
+  chart-of-group
+  chart-of-accounts
+voucher
+  expense
+  receipt-voucher
+  payment-voucher
+  journal-voucher
+  contra-voucher
+bank-reconciliation
+  bank-reconciliation-statement
+  list-of-cheque-range
+  list-of-cheque
+${k}
+assets
+  asset-list
+  item-empty
+reports
+  payable-report
+  expense-report
+  receipt-report
+  receivable-report
+  day-book
+  receive-payment-statement
+  receive-and-payment-summary
+  cash-bank-books
+  general-ledger
+`,m=`
+dashboard
+employee
+  department
+  designation
+  shift
+  shift-allocation
+  bonus
+  bonus-generate
+  section
+  unit
+  employee-list
+  employee-hierarchy
+configuration
+  month-configuration
+  deduction-rules
+  allowance-deduction
+  salary-grade
+  leave-type
+  holiday
+attendance
+  zkteco-device-configuration
+  attendance-log
+  pending-attendance
+  attendance-reconciliations
+pay-slip
+  pay-slip-process
+  pay-slip-details
+  bank-pay-slip
+leave-application
+reports
+  daily-attendance-report
+  daily-manpower-report
+  attendance-register
+  attendance-summary
+  attendance-details-report
+  job-card
+  leave-report
+  leave-details-report
+  salary-sheet
+  salary-due-report
+  deduction-report
+kpi
+  employee-call-report
+  employee-task-report
+  employee-kpi-setting
+  reports
+`,n=`
+dashboard
+receipt-voucher
+overdue-list
+reports
+  realization-summary-report
+  sale-collection-report
+  aging-report
+  installment-report
+`,o=`
+dashboard
+land-owners
+acquisition-leads
+negotiation-process
+legal-documents
+follow-up
+`,p=`
+dashboard
+configuration
+  communication-status
+  teams
+  lead-category
+  campaign
+  profession
+  lead-source
+  offers
+  area
+  lead-stage
+  project
+  price-range
+lead
+  lead-list
+  junk-lead
+  transfer-history
+call-center
+  follow-up
+  call-report
+  call-report-details
+  call-assign-history
+task-visit
+  task-visit-list
+  deal-negotiation-activity
+  task-visit-summary-report
+  task-visit-details-report
+property
+  flat
+  land
+  booking
+  sale-offer
+reports
+  user-wise-report
+  user-active-report
+  sales-pipeline-funnel-report
+  team-reports
+  interested-flat-land-requirements
+  sales-probability
+  flat-land-sale-report
+  missed-followup-visit-summary
+  deal-negotiation-reports
+kpi
+  employee-kpi-setting
+  reports
+`,q=`
+dashboard
+requisition
+  material-requisition
+  asset-requisition
+rfq
+  request-for-quotation
+  asset-request-for-quotation
+purchase-order
+  purchase-order-list
+  asset-purchase-order-list
+grn
+  goods-receipt-note
+  asset-goods-receipt-note
+purchase-bill
+  purchase-bill-invoice
+  asset-purchase-bill-invoice
+reports
+  grn-vs-invoice-report
+`,r=`
+project
+  project-type
+  project
+  agreement
+  party-list
+  site
+  flat-land
+  share-project
+  reports
+inventory
+  products
+    category
+    brand
+    unit
+    item-entry
+  add-purchase
+  purchase-list
+    material-usage
+    stock-transfer
+  purchase-order-list
+  adjustment
+  sales
+  reports
+    purchase-details
+    purchase-order-receive-details
+    stock-report
+    material-usage-report
+requisition
+  material-requisition
+  service-work-requested-requisition
+  fund-requisition
+  reports
+    fund-requisition-report
+accounts
+  dashboard
+  configuration
+    chart-of-group
+    chart-of-accounts
+  contact
+    customer-account
+    supplier-accounts
+    investors
+  billing
+    configuration
+      category
+      bill-item
+      service
+      boq-title
+    bill-invoice
+    contractor-bill
+    labor-worker-bill
+    work-orders
+    contractor-work-order
+    period-billing
+    adjustment-billing
+    quote
+  assets
+    assets-list
+  vouchers
+    expense
+    receipt-voucher
+    payment-vouchers
+    journal-voucher
+    contra-voucher
+  bank-reconciliation
+  reports
+    payable-report
+    expense-report
+    receive-payment-statement
+    cash-bank-books
+    general-ledger
+    income-statement
+    cash-flow-statement
+    trial-balance
+    balance-sheet
+hrm
+  dashboard
+  employee
+    department
+    designation
+    shift
+    section
+    unit
+    employee
+    increment
+  deduction-rules
+  allowance-deduction
+  salary-grade
+  attendance-log
+  attendance
+  pay-slip
+  bonus
+  bonus-generate
+  leave-type
+  leave-application
+  reports
+    daily-attendance-report
+    attendance-register
+    job-card
+    leave-reports
+    salary-sheet
+    salary-due-report
+crm
+  dashboard
+  configuration
+    common-communication-status
+    lead-category
+    campaign
+    profession
+    lead-source
+    offers
+    area
+    lead-stage
+  lead
+  call-center
+    follow-up
+    transfer
+    call-report
+  visits
+    visits-entry
+    visits-report
+  reports
+    user-wise-report
+`,s={project:i(`
+dashboard
+projects
+  project-type
+  project
+  site
+  report
+    project-summary
+    project-details
+contract
+  customer-accounts
+  supplier-accounts
+  labour-work-bank
+  contractor
+  report
+    at-a-glance
+    project-summary-report
+investments
+  investor
+  configuration
+  report
+    project-financial-report
+    project-progress-report
+share-project
+  assign-share
+  share-report
+  share-collection-report
+  penalty-report
+  share-holders-point-report
+  project-share-configuration
+  report
+    project-wise-income-statement
+    site-wise-income-statement
+requisition
+  material-requisition
+  service-work-requisition
+  fund-requisition
+  fund-requisition-report
+billing
+  configuration
+    category
+    sub-category
+    bill-item
+    service-work-name
+    boq-title
+  bill-invoice
+  contractor-bill
+  labour-work-bill
+  work-order
+  contractor-work-order
+  period-billing
+  adjustment-billing
+  quote
+  labour-work-bill-report
+flat-land
+  flat
+  land
+    road
+    block
+    land-details
+  booking
+  sale-offer
+  flat-land-sale
+  flat-land-sale-report
+  sale-collection-report
+  plot-distribution-report
+  aging-report
+  installment-report
+document
+`),inventory:i(j),accounts:i(l),hrm:i(m),crm:i(p),cr:i(n),lams:i(o),procurement:i(q),all:i(r)};function t(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Cash flow",value:"৳ 2.4M",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Receivables",value:"৳ 18.7M",tone:"bg-blue-500/10 text-blue-600"},{label:"Payables",value:"৳ 11.1M",tone:"bg-orange-500/10 text-orange-600"},{label:"Budget variance",value:"+6.8%",tone:"bg-violet-500/10 text-violet-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Updated today"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Recent accounting activity"}),(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-160 text-left text-sm",children:[(0,d.jsx)("thead",{className:"border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground",children:(0,d.jsxs)("tr",{children:[(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Voucher"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Type"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Project"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Date"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right font-semibold",children:"Amount"})]})}),(0,d.jsx)("tbody",{className:"divide-y divide-border",children:[["ACC-2048","Invoice","Riverside Horizon","03-Sept-2026","৳ 1.8M"],["ACC-2051","Payment","Meridian Tower","02-Sept-2026","৳ 2.4M"],["ACC-2057","Journal","Greenfield Court","01-Sept-2026","৳ 0.9M"]].map(([a,b,c,e,f])=>(0,d.jsxs)("tr",{className:"hover:bg-foreground/3",children:[(0,d.jsx)("td",{className:"px-3 py-3 font-medium text-foreground",children:a}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:b}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:c}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:e}),(0,d.jsx)("td",{className:"px-3 py-3 text-right font-mono text-foreground",children:f})]},a))})]})})]})]})}function u(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Projects",value:"38",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Inventory",value:"1,284",tone:"bg-blue-500/10 text-blue-600"},{label:"Accounts",value:"৳ 42.1M",tone:"bg-violet-500/10 text-violet-600"},{label:"People",value:"486",tone:"bg-amber-500/10 text-amber-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Consolidated view"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Business snapshot"}),(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-3",children:[["Pipeline","92","Active opportunities"],["Collections","84%","Realisation rate"],["Procurement","26","Open orders"]].map(([a,b,c])=>(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background p-4",children:[(0,d.jsx)("div",{className:"text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a}),(0,d.jsx)("div",{className:"mt-3 text-3xl font-display font-bold text-foreground",children:b}),(0,d.jsx)("div",{className:"mt-2 text-xs text-muted-foreground",children:c})]},a))})]})]})}function v(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Receipts",value:"৳ 18.4M",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Overdue",value:"14",tone:"bg-rose-500/10 text-rose-600"},{label:"Collections",value:"82%",tone:"bg-blue-500/10 text-blue-600"},{label:"Aging",value:"36 days",tone:"bg-violet-500/10 text-violet-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Updated today"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Realisation overview"}),(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-160 text-left text-sm",children:[(0,d.jsx)("thead",{className:"border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground",children:(0,d.jsxs)("tr",{children:[(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Customer"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Project"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Due"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Status"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right font-semibold",children:"Amount"})]})}),(0,d.jsx)("tbody",{className:"divide-y divide-border",children:[["Mr. Raju Raz","Sheba Eyecon Tower","03-Sept-2026","Pending","৳ 3.2M"],["Mr. Arif Hossain","Lake Garden","05-Sept-2026","Follow-up","৳ 1.7M"],["Mrs. Nabila","Meridian Yards","07-Sept-2026","On track","৳ 2.1M"]].map(([a,b,c,e,f])=>(0,d.jsxs)("tr",{className:"hover:bg-foreground/3",children:[(0,d.jsx)("td",{className:"px-3 py-3 font-medium text-foreground",children:a}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:b}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:c}),(0,d.jsx)("td",{className:"px-3 py-3",children:(0,d.jsx)("span",{className:"rounded px-2 py-0.5 text-xs font-bold bg-accent/20 text-foreground",children:e})}),(0,d.jsx)("td",{className:"px-3 py-3 text-right font-mono text-foreground",children:f})]},a))})]})})]})]})}function w(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Leads",value:"184",tone:"bg-sky-500/10 text-sky-600"},{label:"Deals",value:"41",tone:"bg-violet-500/10 text-violet-600"},{label:"Follow-ups",value:"26",tone:"bg-amber-500/10 text-amber-600"},{label:"Closed won",value:"12",tone:"bg-emerald-500/10 text-emerald-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"This month"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Pipeline overview"}),(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-3",children:[["Hot","9","2 new this week"],["Warm","17","5 revisits pending"],["Cold","15","4 require follow-up"]].map(([a,b,c])=>(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background p-4",children:[(0,d.jsx)("div",{className:"text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a}),(0,d.jsx)("div",{className:"mt-3 text-3xl font-display font-bold text-foreground",children:b}),(0,d.jsx)("div",{className:"mt-2 text-xs text-muted-foreground",children:c})]},a))})]})]})}function x(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Employees",value:"486",tone:"bg-blue-500/10 text-blue-600"},{label:"Open roles",value:"12",tone:"bg-violet-500/10 text-violet-600"},{label:"Attendance",value:"94.2%",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Leaves",value:"17",tone:"bg-orange-500/10 text-orange-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Live data"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"People activity"}),(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2",children:[["New hires","7","Across project teams"],["Training","18","Courses scheduled"]].map(([a,b,c])=>(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background p-4",children:[(0,d.jsx)("div",{className:"text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a}),(0,d.jsx)("div",{className:"mt-3 text-3xl font-display font-bold text-foreground",children:b}),(0,d.jsx)("div",{className:"mt-2 text-xs text-muted-foreground",children:c})]},a))})]})]})}var y=c(38460);function z(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Land owners",value:"126",tone:"bg-blue-500/10 text-blue-600"},{label:"Acquisition leads",value:"42",tone:"bg-violet-500/10 text-violet-600"},{label:"Negotiations",value:"19",tone:"bg-amber-500/10 text-amber-600"},{label:"Docs pending",value:"8",tone:"bg-rose-500/10 text-rose-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"This cycle"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"LAMS pipeline"}),(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-3",children:[["Acquired","71","New land tied up"],["In negotiation","29","Awaiting approvals"],["Legal review","12","Documents under review"]].map(([a,b,c])=>(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background p-4",children:[(0,d.jsx)("div",{className:"text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a}),(0,d.jsx)("div",{className:"mt-3 text-3xl font-display font-bold text-foreground",children:b}),(0,d.jsx)("div",{className:"mt-2 text-xs text-muted-foreground",children:c})]},a))})]})]})}function A(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"RFQs",value:"38",tone:"bg-sky-500/10 text-sky-600"},{label:"POs",value:"26",tone:"bg-violet-500/10 text-violet-600"},{label:"GRNs",value:"19",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Bills",value:"14",tone:"bg-orange-500/10 text-orange-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Live status"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Procurement pipeline"}),(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-160 text-left text-sm",children:[(0,d.jsx)("thead",{className:"border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground",children:(0,d.jsxs)("tr",{children:[(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Requisition"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Vendor"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Stage"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"ETA"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right font-semibold",children:"Value"})]})}),(0,d.jsx)("tbody",{className:"divide-y divide-border",children:[["MAT-2048","Urban Build Supply","PO approved","12-Sept-2026","৳ 4.8M"],["MAT-2051","Prime Structural Ltd.","GRN pending","15-Sept-2026","৳ 2.6M"],["MAT-2057","Metro Trade Co.","RFQ in review","18-Sept-2026","৳ 1.9M"]].map(([a,b,c,e,f])=>(0,d.jsxs)("tr",{className:"hover:bg-foreground/3",children:[(0,d.jsx)("td",{className:"px-3 py-3 font-medium text-foreground",children:a}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:b}),(0,d.jsx)("td",{className:"px-3 py-3",children:(0,d.jsx)("span",{className:"rounded px-2 py-0.5 text-xs font-bold bg-accent/20 text-foreground",children:c})}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:e}),(0,d.jsx)("td",{className:"px-3 py-3 text-right font-mono text-foreground",children:f})]},a))})]})})]})]})}function B(){return(0,d.jsxs)("div",{className:"space-y-5",children:[(0,d.jsx)("div",{className:"grid gap-4 md:grid-cols-2 xl:grid-cols-4",children:[{label:"Active projects",value:"38",tone:"bg-emerald-500/10 text-emerald-600"},{label:"Revenue YTD",value:"৳ 1.9B",tone:"bg-blue-500/10 text-blue-600"},{label:"Open work orders",value:"127",tone:"bg-violet-500/10 text-violet-600"},{label:"On-time delivery",value:"99.2%",tone:"bg-amber-500/10 text-amber-600"}].map(a=>(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground",children:a.label}),(0,d.jsx)("div",{className:"mt-3 text-2xl font-display font-bold tracking-tight text-foreground",children:a.value}),(0,d.jsx)("div",{className:`mt-3 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${a.tone}`,children:"Performance status"})]},a.label))}),(0,d.jsxs)("div",{className:"rounded-xl border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)("div",{className:"mb-4 text-sm font-semibold text-foreground",children:"Project status roll-up"}),(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-170 text-left text-sm",children:[(0,d.jsx)("thead",{className:"border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground",children:(0,d.jsxs)("tr",{children:[(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Project"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Type"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Progress"}),(0,d.jsx)("th",{className:"px-3 py-2 font-semibold",children:"Status"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right font-semibold",children:"Budget"})]})}),(0,d.jsx)("tbody",{className:"divide-y divide-border",children:[["Riverside Horizon","Residential","68%","On track","৳ 420M"],["Meridian Tower","Commercial","41%","In build","৳ 780M"],["Meridian Yards","Mixed-use","88%","Handover","৳ 315M"]].map(([a,b,c,e,f])=>(0,d.jsxs)("tr",{className:"hover:bg-foreground/3",children:[(0,d.jsx)("td",{className:"px-3 py-3 font-medium text-foreground",children:a}),(0,d.jsx)("td",{className:"px-3 py-3 text-muted-foreground",children:b}),(0,d.jsx)("td",{className:"px-3 py-3",children:(0,d.jsxs)("div",{className:"flex items-center gap-2",children:[(0,d.jsx)("div",{className:"h-1.5 w-28 rounded-full bg-foreground/10",children:(0,d.jsx)("div",{className:"h-1.5 rounded-full bg-accent",style:{width:c}})}),(0,d.jsx)("span",{className:"font-mono text-xs text-muted-foreground",children:c})]})}),(0,d.jsx)("td",{className:"px-3 py-3",children:(0,d.jsx)("span",{className:"rounded px-2 py-0.5 text-xs font-bold bg-accent/20 text-foreground",children:e})}),(0,d.jsx)("td",{className:"px-3 py-3 text-right font-mono text-foreground",children:f})]},a))})]})})]})]})}let C=[{label:"Active projects",value:"38",note:"▲ 4 this qtr",hot:!0},{label:"Revenue YTD",value:"৳ 1.9B",note:"of ৳ 2.6B target"},{label:"Open work orders",value:"127",note:"23 overdue"},{label:"On-time delivery",value:"99.2%",note:"rolling 90 days",lime:!0}],D=[{name:"Riverside Horizon",type:"Residential",pct:68,status:"On track",budget:"৳ 420M"},{name:"Meridian Tower",type:"Commercial",pct:41,status:"In build",budget:"৳ 780M"},{name:"Meridian Yards",type:"Mixed-use",pct:88,status:"Handover",budget:"৳ 315M"},{name:"Greenfield Court",type:"Residential",pct:12,status:"Planning",budget:"৳ 260M"}],E={"On track":"bg-accent/20 text-foreground","In build":"bg-primary text-primary-foreground",Handover:"bg-signal/15 text-signal",Planning:"bg-foreground/10 text-foreground/70"};function F({module:a,path:b}){let c=b?function(a,b){let c=a=>{for(let d of a){if(d.path===b)return d;let a=d.children&&c(d.children);if(a)return a}};return c(s[a])}(a,b):void 0;b.split("/").filter(Boolean);let e=c?.label??"Overview",g=!b||c?.slug==="dashboard",h=(()=>{if(!g)return null;switch(a){case"inventory":return(0,d.jsx)(y.default,{});case"accounts":return(0,d.jsx)(t,{});case"crm":return(0,d.jsx)(w,{});case"hrm":return(0,d.jsx)(x,{});case"project":return(0,d.jsx)(B,{});case"cr":return(0,d.jsx)(v,{});case"lams":return(0,d.jsx)(z,{});case"procurement":return(0,d.jsx)(A,{});case"all":return(0,d.jsx)(u,{});default:return null}})();return(0,d.jsx)("div",{className:"mx-auto max-w-[1600px] px-5 sm:px-8",children:h?(0,d.jsx)("div",{className:"mt-6",children:h}):c?.children?.length?(0,d.jsx)("div",{className:" grid gap-4 sm:grid-cols-2 lg:grid-cols-3",children:c.children.map(b=>(0,d.jsxs)(f(),{href:`/dashboard/${a}/${b.path}`,className:" group rounded-xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:shadow-lg ",children:[(0,d.jsx)("div",{className:"font-display text-lg font-semibold",children:b.label}),(0,d.jsx)("div",{className:"mt-1 text-sm text-muted-foreground",children:b.children?.length?`${b.children.length} sections`:"Open"}),(0,d.jsx)("div",{className:" mt-3 text-sm font-semibold text-foreground/70 transition group-hover:translate-x-1 ",children:"Open →"})]},b.path))}):(0,d.jsxs)(d.Fragment,{children:[(0,d.jsx)("div",{className:"mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4",children:C.map(a=>(0,d.jsxs)("div",{className:" rounded-xl border border-border bg-card p-5 ",children:[(0,d.jsx)("div",{className:" text-xs font-semibold uppercase tracking-wide text-muted-foreground ",children:a.label}),(0,d.jsx)("div",{className:`mt-2 font-display text-3xl font-bold ${a.lime?"text-accent":""}`,children:a.value}),a.hot?(0,d.jsx)("div",{className:" mt-1 inline-block -skew-x-6 bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground ",children:a.note}):(0,d.jsx)("div",{className:"mt-1 text-xs font-medium text-muted-foreground",children:a.note})]},a.label))}),(0,d.jsxs)("div",{className:"mt-6 overflow-hidden rounded-xl border border-border bg-card",children:[(0,d.jsxs)("div",{className:"flex items-center justify-between border-b border-border px-5 py-4",children:[(0,d.jsx)("h2",{className:"font-display text-lg font-semibold",children:g?"Projects":`${e} list`}),(0,d.jsx)("span",{className:"text-xs font-semibold text-muted-foreground",children:"Updated 2 min ago"})]}),(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-160 text-left text-sm",children:[(0,d.jsx)("thead",{className:"border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground",children:(0,d.jsxs)("tr",{children:[(0,d.jsx)("th",{className:"px-5 py-3 font-semibold",children:"Project"}),(0,d.jsx)("th",{className:"px-5 py-3 font-semibold",children:"Type"}),(0,d.jsx)("th",{className:"px-5 py-3 font-semibold",children:"Progress"}),(0,d.jsx)("th",{className:"px-5 py-3 font-semibold",children:"Status"}),(0,d.jsx)("th",{className:"px-5 py-3 text-right font-semibold",children:"Budget"})]})}),(0,d.jsx)("tbody",{className:"divide-y divide-border",children:D.map(a=>(0,d.jsxs)("tr",{className:"hover:bg-foreground/3",children:[(0,d.jsx)("td",{className:"px-5 py-3.5 font-semibold",children:a.name}),(0,d.jsx)("td",{className:"px-5 py-3.5 text-muted-foreground",children:a.type}),(0,d.jsx)("td",{className:"px-5 py-3.5",children:(0,d.jsxs)("div",{className:"flex items-center gap-2",children:[(0,d.jsx)("div",{className:"h-1.5 w-28 rounded-full bg-foreground/10",children:(0,d.jsx)("div",{className:"h-1.5 rounded-full bg-accent",style:{width:`${a.pct}%`}})}),(0,d.jsxs)("span",{className:"font-mono text-xs text-muted-foreground",children:[a.pct,"%"]})]})}),(0,d.jsx)("td",{className:"px-5 py-3.5",children:(0,d.jsx)("span",{className:`rounded px-2 py-0.5 text-xs font-bold ${E[a.status]}`,children:a.status})}),(0,d.jsx)("td",{className:"px-5 py-3.5 text-right font-mono",children:a.budget})]},a.name))})]})})]})]})})}async function G({params:a}){let{slug:b}=await a,[c="",...e]=(Array.isArray(b)?b.join("/"):"").split("/").filter(Boolean),f=g.some(a=>a.key===c)?c:"project";return(0,d.jsx)(F,{module:f,path:e.join("/")})}},2560:(a,b,c)=>{"use strict";c.r(b),c.d(b,{GlobalError:()=>D.a,__next_app__:()=>J,handler:()=>L,pages:()=>I,routeModule:()=>K,tree:()=>H});var d=c(97850),e=c(90973),f=c(7043),g=c(1092),h=c(75454),i=c(64208),j=c(40527),k=c(51628),l=c(23410),m=c(61528),n=c(37010),o=c(93277),p=c(84429),q=c(87030),r=c(261),s=c(75093),t=c(30554),u=c(26713),v=c(83836),w=c(28061),x=c(15297),y=c(86646),z=c(74634),A=c(98222),B=c(86439),C=c(32786),D=c.n(C),E=c(22954),F=c(42819),G={};for(let a in E)0>["default","tree","pages","GlobalError","__next_app__","routeModule","handler"].indexOf(a)&&(G[a]=()=>E[a]);c.d(b,G);let H={children:["",{children:["dashboard",{children:["[...slug]",{children:["__PAGE__",{},{page:[()=>Promise.resolve().then(c.bind(c,408)),"D:\\realbiz\\realbiz-unified-hub\\src\\app\\dashboard\\[...slug]\\page.tsx"]}]},{}]},{layout:[()=>Promise.resolve().then(c.bind(c,89319)),"D:\\realbiz\\realbiz-unified-hub\\src\\app\\dashboard\\layout.tsx"]}]},{layout:[()=>Promise.resolve().then(c.bind(c,54632)),"D:\\realbiz\\realbiz-unified-hub\\src\\app\\layout.tsx"],"global-error":[()=>Promise.resolve().then(c.t.bind(c,32786,23)),"next/dist/client/components/builtin/global-error.js"],"not-found":[()=>Promise.resolve().then(c.bind(c,88316)),"D:\\realbiz\\realbiz-unified-hub\\src\\app\\not-found.tsx"],forbidden:[()=>Promise.resolve().then(c.t.bind(c,11965,23)),"next/dist/client/components/builtin/forbidden.js"],unauthorized:[()=>Promise.resolve().then(c.t.bind(c,84384,23)),"next/dist/client/components/builtin/unauthorized.js"]}]}.children,I=["D:\\realbiz\\realbiz-unified-hub\\src\\app\\dashboard\\[...slug]\\page.tsx"],J={require:c,loadChunk:()=>Promise.resolve()},K=new d.AppPageRouteModule({definition:{kind:e.RouteKind.APP_PAGE,page:"/dashboard/[...slug]/page",pathname:"/dashboard/[...slug]",bundlePath:"",filename:"",appPaths:[]},userland:{loaderTree:H},distDir:".next",relativeProjectDir:""});async function L(a,b,d){var C;let G="/dashboard/[...slug]/page";"/index"===G&&(G="/");let M=(0,h.getRequestMeta)(a,"postponed"),N=(0,h.getRequestMeta)(a,"minimalMode"),O=await K.prepare(a,b,{srcPage:G,multiZoneDraftMode:!1});if(!O)return b.statusCode=400,b.end("Bad Request"),null==d.waitUntil||d.waitUntil.call(d,Promise.resolve()),null;let{buildId:P,query:Q,params:R,parsedUrl:S,pageIsDynamic:T,buildManifest:U,nextFontManifest:V,reactLoadableManifest:W,serverActionsManifest:X,clientReferenceManifest:Y,subresourceIntegrityManifest:Z,prerenderManifest:$,isDraftMode:_,resolvedPathname:aa,revalidateOnlyGenerated:ab,routerServerContext:ac,nextConfig:ad,interceptionRoutePatterns:ae}=O,af=S.pathname||"/",ag=(0,r.normalizeAppPath)(G),{isOnDemandRevalidate:ah}=O,ai=K.match(af,$),aj=!!$.routes[aa],ak=!!(ai||aj||$.routes[ag]),al=a.headers["user-agent"]||"",am=(0,u.getBotType)(al),an=(0,p.isHtmlBotRequest)(a),ao=(0,h.getRequestMeta)(a,"isPrefetchRSCRequest")??"1"===a.headers[t.NEXT_ROUTER_PREFETCH_HEADER],ap=(0,h.getRequestMeta)(a,"isRSCRequest")??!!a.headers[t.RSC_HEADER],aq=(0,s.getIsPossibleServerAction)(a),ar=(0,m.checkIsAppPPREnabled)(ad.experimental.ppr)&&(null==(C=$.routes[ag]??$.dynamicRoutes[ag])?void 0:C.renderingMode)==="PARTIALLY_STATIC",as=!1,at=!1,au=ar?M:void 0,av=ar&&ap&&!ao,aw=(0,h.getRequestMeta)(a,"segmentPrefetchRSCRequest"),ax=!al||(0,p.shouldServeStreamingMetadata)(al,ad.htmlLimitedBots);an&&ar&&(ak=!1,ax=!1);let ay=!0===K.isDev||!ak||"string"==typeof M||av,az=an&&ar,aA=null;_||!ak||ay||aq||au||av||(aA=aa);let aB=aA;!aB&&K.isDev&&(aB=aa),K.isDev||_||!ak||!ap||av||(0,k.d)(a.headers);let aC={...E,tree:H,pages:I,GlobalError:D(),handler:L,routeModule:K,__next_app__:J};X&&Y&&(0,o.setReferenceManifestsSingleton)({page:G,clientReferenceManifest:Y,serverActionsManifest:X,serverModuleMap:(0,q.createServerModuleMap)({serverActionsManifest:X})});let aD=a.method||"GET",aE=(0,g.getTracer)(),aF=aE.getActiveScopeSpan();try{let f=K.getVaryHeader(aa,ae);b.setHeader("Vary",f);let k=async(c,d)=>{let e=new l.NodeNextRequest(a),f=new l.NodeNextResponse(b);return K.render(e,f,d).finally(()=>{if(!c)return;c.setAttributes({"http.status_code":b.statusCode,"next.rsc":!1});let d=aE.getRootSpanAttributes();if(!d)return;if(d.get("next.span_type")!==i.BaseServerSpan.handleRequest)return void console.warn(`Unexpected root span type '${d.get("next.span_type")}'. Please report this Next.js issue https://github.com/vercel/next.js`);let e=d.get("next.route");if(e){let a=`${aD} ${e}`;c.setAttributes({"next.route":e,"http.route":e,"next.span_name":a}),c.updateName(a)}else c.updateName(`${aD} ${a.url}`)})},m=async({span:e,postponed:f,fallbackRouteParams:g})=>{let i={query:Q,params:R,page:ag,sharedContext:{buildId:P},serverComponentsHmrCache:(0,h.getRequestMeta)(a,"serverComponentsHmrCache"),fallbackRouteParams:g,renderOpts:{App:()=>null,Document:()=>null,pageConfig:{},ComponentMod:aC,Component:(0,j.T)(aC),params:R,routeModule:K,page:G,postponed:f,shouldWaitOnAllReady:az,serveStreamingMetadata:ax,supportsDynamicResponse:"string"==typeof f||ay,buildManifest:U,nextFontManifest:V,reactLoadableManifest:W,subresourceIntegrityManifest:Z,serverActionsManifest:X,clientReferenceManifest:Y,setIsrStatus:null==ac?void 0:ac.setIsrStatus,dir:c(33873).join(process.cwd(),K.relativeProjectDir),isDraftMode:_,isRevalidate:ak&&!f&&!av,botType:am,isOnDemandRevalidate:ah,isPossibleServerAction:aq,assetPrefix:ad.assetPrefix,nextConfigOutput:ad.output,crossOrigin:ad.crossOrigin,trailingSlash:ad.trailingSlash,previewProps:$.preview,deploymentId:ad.deploymentId,enableTainting:ad.experimental.taint,htmlLimitedBots:ad.htmlLimitedBots,devtoolSegmentExplorer:ad.experimental.devtoolSegmentExplorer,reactMaxHeadersLength:ad.reactMaxHeadersLength,multiZoneDraftMode:!1,incrementalCache:(0,h.getRequestMeta)(a,"incrementalCache"),cacheLifeProfiles:ad.experimental.cacheLife,basePath:ad.basePath,serverActions:ad.experimental.serverActions,...as?{nextExport:!0,supportsDynamicResponse:!1,isStaticGeneration:!0,isRevalidate:!0,isDebugDynamicAccesses:as}:{},experimental:{isRoutePPREnabled:ar,expireTime:ad.expireTime,staleTimes:ad.experimental.staleTimes,cacheComponents:!!ad.experimental.cacheComponents,clientSegmentCache:!!ad.experimental.clientSegmentCache,clientParamParsing:!!ad.experimental.clientParamParsing,dynamicOnHover:!!ad.experimental.dynamicOnHover,inlineCss:!!ad.experimental.inlineCss,authInterrupts:!!ad.experimental.authInterrupts,clientTraceMetadata:ad.experimental.clientTraceMetadata||[]},waitUntil:d.waitUntil,onClose:a=>{b.on("close",a)},onAfterTaskError:()=>{},onInstrumentationRequestError:(b,c,d)=>K.onRequestError(a,b,d,ac),err:(0,h.getRequestMeta)(a,"invokeError"),dev:K.isDev}},l=await k(e,i),{metadata:m}=l,{cacheControl:n,headers:o={},fetchTags:p}=m;if(p&&(o[y.NEXT_CACHE_TAGS_HEADER]=p),a.fetchMetrics=m.fetchMetrics,ak&&(null==n?void 0:n.revalidate)===0&&!K.isDev&&!ar){let a=m.staticBailoutInfo,b=Object.defineProperty(Error(`Page changed from static to dynamic at runtime ${aa}${(null==a?void 0:a.description)?`, reason: ${a.description}`:""}
+see more here https://nextjs.org/docs/messages/app-static-to-dynamic-error`),"__NEXT_ERROR_CODE",{value:"E132",enumerable:!1,configurable:!0});if(null==a?void 0:a.stack){let c=a.stack;b.stack=b.message+c.substring(c.indexOf("\n"))}throw b}return{value:{kind:v.CachedRouteKind.APP_PAGE,html:l,headers:o,rscData:m.flightData,postponed:m.postponed,status:m.statusCode,segmentData:m.segmentData},cacheControl:n}},o=async({hasResolved:c,previousCacheEntry:f,isRevalidating:g,span:i})=>{let j,k=!1===K.isDev,l=c||b.writableEnded;if(ah&&ab&&!f&&!N)return(null==ac?void 0:ac.render404)?await ac.render404(a,b):(b.statusCode=404,b.end("This page could not be found")),null;if(ai&&(j=(0,w.parseFallbackField)(ai.fallback)),j===w.FallbackMode.PRERENDER&&(0,u.isBot)(al)&&(!ar||an)&&(j=w.FallbackMode.BLOCKING_STATIC_RENDER),(null==f?void 0:f.isStale)===-1&&(ah=!0),ah&&(j!==w.FallbackMode.NOT_FOUND||f)&&(j=w.FallbackMode.BLOCKING_STATIC_RENDER),!N&&j!==w.FallbackMode.BLOCKING_STATIC_RENDER&&aB&&!l&&!_&&T&&(k||!aj)){let b;if((k||ai)&&j===w.FallbackMode.NOT_FOUND)throw new B.NoFallbackError;if(ar&&!ap){let c="string"==typeof(null==ai?void 0:ai.fallback)?ai.fallback:k?ag:null;if(b=await K.handleResponse({cacheKey:c,req:a,nextConfig:ad,routeKind:e.RouteKind.APP_PAGE,isFallback:!0,prerenderManifest:$,isRoutePPREnabled:ar,responseGenerator:async()=>m({span:i,postponed:void 0,fallbackRouteParams:k||at?(0,n.u)(ag):null}),waitUntil:d.waitUntil}),null===b)return null;if(b)return delete b.cacheControl,b}}let o=ah||g||!au?void 0:au;if(as&&void 0!==o)return{cacheControl:{revalidate:1,expire:void 0},value:{kind:v.CachedRouteKind.PAGES,html:x.default.EMPTY,pageData:{},headers:void 0,status:void 0}};let p=T&&ar&&((0,h.getRequestMeta)(a,"renderFallbackShell")||at)?(0,n.u)(af):null;return m({span:i,postponed:o,fallbackRouteParams:p})},p=async c=>{var f,g,i,j,k;let l,n=await K.handleResponse({cacheKey:aA,responseGenerator:a=>o({span:c,...a}),routeKind:e.RouteKind.APP_PAGE,isOnDemandRevalidate:ah,isRoutePPREnabled:ar,req:a,nextConfig:ad,prerenderManifest:$,waitUntil:d.waitUntil});if(_&&b.setHeader("Cache-Control","private, no-cache, no-store, max-age=0, must-revalidate"),K.isDev&&b.setHeader("Cache-Control","no-store, must-revalidate"),!n){if(aA)throw Object.defineProperty(Error("invariant: cache entry required but not generated"),"__NEXT_ERROR_CODE",{value:"E62",enumerable:!1,configurable:!0});return null}if((null==(f=n.value)?void 0:f.kind)!==v.CachedRouteKind.APP_PAGE)throw Object.defineProperty(Error(`Invariant app-page handler received invalid cache entry ${null==(i=n.value)?void 0:i.kind}`),"__NEXT_ERROR_CODE",{value:"E707",enumerable:!1,configurable:!0});let p="string"==typeof n.value.postponed;ak&&!av&&(!p||ao)&&(N||b.setHeader("x-nextjs-cache",ah?"REVALIDATED":n.isMiss?"MISS":n.isStale?"STALE":"HIT"),b.setHeader(t.NEXT_IS_PRERENDER_HEADER,"1"));let{value:q}=n;if(au)l={revalidate:0,expire:void 0};else if(N&&ap&&!ao&&ar)l={revalidate:0,expire:void 0};else if(!K.isDev)if(_)l={revalidate:0,expire:void 0};else if(ak){if(n.cacheControl)if("number"==typeof n.cacheControl.revalidate){if(n.cacheControl.revalidate<1)throw Object.defineProperty(Error(`Invalid revalidate configuration provided: ${n.cacheControl.revalidate} < 1`),"__NEXT_ERROR_CODE",{value:"E22",enumerable:!1,configurable:!0});l={revalidate:n.cacheControl.revalidate,expire:(null==(j=n.cacheControl)?void 0:j.expire)??ad.expireTime}}else l={revalidate:y.CACHE_ONE_YEAR,expire:void 0}}else b.getHeader("Cache-Control")||(l={revalidate:0,expire:void 0});if(n.cacheControl=l,"string"==typeof aw&&(null==q?void 0:q.kind)===v.CachedRouteKind.APP_PAGE&&q.segmentData){b.setHeader(t.NEXT_DID_POSTPONE_HEADER,"2");let c=null==(k=q.headers)?void 0:k[y.NEXT_CACHE_TAGS_HEADER];N&&ak&&c&&"string"==typeof c&&b.setHeader(y.NEXT_CACHE_TAGS_HEADER,c);let d=q.segmentData.get(aw);return void 0!==d?(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:x.default.fromStatic(d,t.RSC_CONTENT_TYPE_HEADER),cacheControl:n.cacheControl}):(b.statusCode=204,(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:x.default.EMPTY,cacheControl:n.cacheControl}))}let r=(0,h.getRequestMeta)(a,"onCacheEntry");if(r&&await r({...n,value:{...n.value,kind:"PAGE"}},{url:(0,h.getRequestMeta)(a,"initURL")}))return null;if(p&&au)throw Object.defineProperty(Error("Invariant: postponed state should not be present on a resume request"),"__NEXT_ERROR_CODE",{value:"E396",enumerable:!1,configurable:!0});if(q.headers){let a={...q.headers};for(let[c,d]of(N&&ak||delete a[y.NEXT_CACHE_TAGS_HEADER],Object.entries(a)))if(void 0!==d)if(Array.isArray(d))for(let a of d)b.appendHeader(c,a);else"number"==typeof d&&(d=d.toString()),b.appendHeader(c,d)}let s=null==(g=q.headers)?void 0:g[y.NEXT_CACHE_TAGS_HEADER];if(N&&ak&&s&&"string"==typeof s&&b.setHeader(y.NEXT_CACHE_TAGS_HEADER,s),!q.status||ap&&ar||(b.statusCode=q.status),!N&&q.status&&F.RedirectStatusCode[q.status]&&ap&&(b.statusCode=200),p&&b.setHeader(t.NEXT_DID_POSTPONE_HEADER,"1"),ap&&!_){if(void 0===q.rscData){if(q.postponed)throw Object.defineProperty(Error("Invariant: Expected postponed to be undefined"),"__NEXT_ERROR_CODE",{value:"E372",enumerable:!1,configurable:!0});return(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:q.html,cacheControl:av?{revalidate:0,expire:void 0}:n.cacheControl})}return(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:x.default.fromStatic(q.rscData,t.RSC_CONTENT_TYPE_HEADER),cacheControl:n.cacheControl})}let u=q.html;if(!p||N||ap)return(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:u,cacheControl:n.cacheControl});if(as)return u.push(new ReadableStream({start(a){a.enqueue(z.ENCODED_TAGS.CLOSED.BODY_AND_HTML),a.close()}})),(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:u,cacheControl:{revalidate:0,expire:void 0}});let w=new TransformStream;return u.push(w.readable),m({span:c,postponed:q.postponed,fallbackRouteParams:null}).then(async a=>{var b,c;if(!a)throw Object.defineProperty(Error("Invariant: expected a result to be returned"),"__NEXT_ERROR_CODE",{value:"E463",enumerable:!1,configurable:!0});if((null==(b=a.value)?void 0:b.kind)!==v.CachedRouteKind.APP_PAGE)throw Object.defineProperty(Error(`Invariant: expected a page response, got ${null==(c=a.value)?void 0:c.kind}`),"__NEXT_ERROR_CODE",{value:"E305",enumerable:!1,configurable:!0});await a.value.html.pipeTo(w.writable)}).catch(a=>{w.writable.abort(a).catch(a=>{console.error("couldn't abort transformer",a)})}),(0,A.sendRenderResult)({req:a,res:b,generateEtags:ad.generateEtags,poweredByHeader:ad.poweredByHeader,result:u,cacheControl:{revalidate:0,expire:void 0}})};if(!aF)return await aE.withPropagatedContext(a.headers,()=>aE.trace(i.BaseServerSpan.handleRequest,{spanName:`${aD} ${a.url}`,kind:g.SpanKind.SERVER,attributes:{"http.method":aD,"http.target":a.url}},p));await p(aF)}catch(b){throw aF||b instanceof B.NoFallbackError||await K.onRequestError(a,b,{routerKind:"App Router",routePath:G,routeType:"render",revalidateReason:(0,f.c)({isRevalidate:ak,isOnDemandRevalidate:ah})},ac),b}}},3295:a=>{"use strict";a.exports=require("next/dist/server/app-render/after-task-async-storage.external.js")},10846:a=>{"use strict";a.exports=require("next/dist/compiled/next-server/app-page.runtime.prod.js")},19121:a=>{"use strict";a.exports=require("next/dist/server/app-render/action-async-storage.external.js")},26713:a=>{"use strict";a.exports=require("next/dist/shared/lib/router/utils/is-bot")},28354:a=>{"use strict";a.exports=require("util")},29294:a=>{"use strict";a.exports=require("next/dist/server/app-render/work-async-storage.external.js")},33873:a=>{"use strict";a.exports=require("path")},38460:(a,b,c)=>{"use strict";c.d(b,{default:()=>d});let d=(0,c(60866).registerClientReference)(function(){throw Error("Attempted to call the default export of \"D:\\\\realbiz\\\\realbiz-unified-hub\\\\src\\\\components\\\\dashboard\\\\InventoryDashboard.tsx\" from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.")},"D:\\realbiz\\realbiz-unified-hub\\src\\components\\dashboard\\InventoryDashboard.tsx","default")},41025:a=>{"use strict";a.exports=require("next/dist/server/app-render/dynamic-access-async-storage.external.js")},49776:(a,b,c)=>{"use strict";c.d(b,{default:()=>R});var d=c(71668),e=c(98134);let f=(0,e.A)("users",[["path",{d:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",key:"1yyitq"}],["path",{d:"M16 3.128a4 4 0 0 1 0 7.744",key:"16gr8j"}],["path",{d:"M22 21v-2a4 4 0 0 0-3-3.87",key:"kshegd"}],["circle",{cx:"9",cy:"7",r:"4",key:"nufk8"}]]),g=(0,e.A)("truck",[["path",{d:"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2",key:"wrbu53"}],["path",{d:"M15 18H9",key:"1lyqi6"}],["path",{d:"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14",key:"lysw3i"}],["circle",{cx:"17",cy:"18",r:"2",key:"332jqn"}],["circle",{cx:"7",cy:"18",r:"2",key:"19iecd"}]]),h=(0,e.A)("boxes",[["path",{d:"M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z",key:"lc1i9w"}],["path",{d:"m7 16.5-4.74-2.85",key:"1o9zyk"}],["path",{d:"m7 16.5 5-3",key:"va8pkn"}],["path",{d:"M7 16.5v5.17",key:"jnp8gn"}],["path",{d:"M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z",key:"8zsnat"}],["path",{d:"m17 16.5-5-3",key:"8arw3v"}],["path",{d:"m17 16.5 4.74-2.85",key:"8rfmw"}],["path",{d:"M17 16.5v5.17",key:"k6z78m"}],["path",{d:"M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z",key:"1xygjf"}],["path",{d:"M12 8 7.26 5.15",key:"1vbdud"}],["path",{d:"m12 8 4.74-2.85",key:"3rx089"}],["path",{d:"M12 13.5V8",key:"1io7kd"}]]),i=(0,e.A)("clipboard-list",[["rect",{width:"8",height:"4",x:"8",y:"2",rx:"1",ry:"1",key:"tgr4d6"}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2",key:"116196"}],["path",{d:"M12 11h4",key:"1jrz19"}],["path",{d:"M12 16h4",key:"n85exb"}],["path",{d:"M8 11h.01",key:"1dfujw"}],["path",{d:"M8 16h.01",key:"18s6g9"}]]),j=(0,e.A)("shopping-cart",[["circle",{cx:"8",cy:"21",r:"1",key:"jimo8o"}],["circle",{cx:"19",cy:"21",r:"1",key:"13723u"}],["path",{d:"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12",key:"9zh506"}]]),k=(0,e.A)("chart-column",[["path",{d:"M3 3v16a2 2 0 0 0 2 2h16",key:"c24i48"}],["path",{d:"M18 17V9",key:"2bz60n"}],["path",{d:"M13 17V5",key:"1frdt8"}],["path",{d:"M8 17v-3",key:"17ska0"}]]),l=(0,e.A)("ellipsis-vertical",[["circle",{cx:"12",cy:"12",r:"1",key:"41hilf"}],["circle",{cx:"12",cy:"5",r:"1",key:"gxeob9"}],["circle",{cx:"12",cy:"19",r:"1",key:"lyex9k"}]]),m=(0,e.A)("arrow-up-right",[["path",{d:"M7 7h10v10",key:"1tivn9"}],["path",{d:"M7 17 17 7",key:"1vkiza"}]]),n=(0,e.A)("arrow-down-right",[["path",{d:"m7 7 10 10",key:"1fmybs"}],["path",{d:"M17 7v10H7",key:"6fjiku"}]]),o=(0,e.A)("eye",[["path",{d:"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",key:"1nclc0"}],["circle",{cx:"12",cy:"12",r:"3",key:"1v7zrd"}]]),p=(0,e.A)("pencil",[["path",{d:"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",key:"1a8usu"}],["path",{d:"m15 5 4 4",key:"1mk7zo"}]]),q=(0,e.A)("trash-2",[["path",{d:"M10 11v6",key:"nco0om"}],["path",{d:"M14 11v6",key:"outv1u"}],["path",{d:"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6",key:"miytrc"}],["path",{d:"M3 6h18",key:"d0wm0j"}],["path",{d:"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",key:"e791ji"}]]);var r=c(6110);let s=(0,e.A)("bell",[["path",{d:"M10.268 21a2 2 0 0 0 3.464 0",key:"vwvbt9"}],["path",{d:"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",key:"11g9vi"}]]);var t=c(60336);let u=(0,e.A)("layout-dashboard",[["rect",{width:"7",height:"9",x:"3",y:"3",rx:"1",key:"10lvy0"}],["rect",{width:"7",height:"5",x:"14",y:"3",rx:"1",key:"16une8"}],["rect",{width:"7",height:"9",x:"14",y:"12",rx:"1",key:"1hutg5"}],["rect",{width:"7",height:"5",x:"3",y:"16",rx:"1",key:"ldoo1y"}]]),v=(0,e.A)("chart-pie",[["path",{d:"M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z",key:"pzmjnu"}],["path",{d:"M21.21 15.89A10 10 0 1 1 8 2.83",key:"k2fpak"}]]);var w=c(78893),x=c(54522);let y=["customers","suppliers","materialReq","serviceReq","purchases","sales"],z=["Today","Weekly","Monthly","Yearly","All"],A={customers:{value:128,changePercent:12,trend:[40,45,42,50,55,52,60,58,65,70,68,75]},suppliers:{value:54,changePercent:6,trend:[30,32,35,33,38,40,42,41,45,48,47,50]},materialReq:{value:342,changePercent:-4,trend:[70,68,65,66,60,58,55,57,52,50,48,45]},serviceReq:{value:76,changePercent:15,trend:[20,25,24,30,32,35,33,40,42,45,48,52]},purchases:{value:883342,changePercent:18,trend:[30,35,32,40,45,42,50,55,52,60,58,65]},sales:{value:153310,changePercent:24,trend:[25,28,30,35,33,40,45,43,50,55,58,62]}},B=[{sl:1,description:"Cement (OPC 52.5N)",budgetQty:500,budgetAmount:275e3,issueQty:560,issueAmount:308e3,status:"Issued"},{sl:2,description:"MS Rod 20mm",budgetQty:1200,budgetAmount:912e3,issueQty:1340,issueAmount:1018400,status:"Approved"},{sl:3,description:"Bricks (1st Class)",budgetQty:2e4,budgetAmount:24e4,issueQty:21500,issueAmount:258e3,status:"Pending"},{sl:4,description:"Sand (Coarse)",budgetQty:800,budgetAmount:96e3,issueQty:850,issueAmount:102e3,status:"Issued"}],C=[{project:"Sheba Eyecon Tower",contact:"Mr. Raju raz",addedBy:"Admin",date:"03-Sept-2026",reference:"SaleOffer-5154844",type:"Offer"},{project:"Lake Garden",contact:"Mr. Raju raz",addedBy:"Admin",date:"03-Sept-2026",reference:"SaleOffer-4181717",type:"Offer"},{project:"Sheba Eyecon Tower",contact:"Mr. Raju raz",addedBy:"Admin",date:"03-Sept-2026",reference:"SaleOffer-5669922",type:"Offer"},{project:"Sheba Eyecon Tower",contact:"Mr. Raju raz",addedBy:"Admin",date:"03-Sept-2026",reference:"SaleOffer-8597937",type:"Offer"}],D=[{label:"Mar",purchase:42e4,consumption:18e4},{label:"Apr",purchase:51e4,consumption:24e4},{label:"May",purchase:38e4,consumption:3e5},{label:"Jun",purchase:62e4,consumption:26e4},{label:"Jul",purchase:54e4,consumption:32e4},{label:"Aug",purchase:7e5,consumption:41e4}];function E(){return{quickCards:y.reduce((a,b)=>(a[b]=A[b],a),{}),purchaseDonut:{currentLabel:"This Month",previousLabel:"Last Month",currentPercent:68},purchaseVsConsumption:D,pendingItems:C,overflowMaterial:B}}async function F(a,b){try{let d=await fetch(`/api/dashboard?period=${encodeURIComponent(a)}`,{signal:b,headers:{Accept:"application/json"}});if(!d.ok)throw Error(`Dashboard API returned status ${d.status}`);var c=await d.json();let e=E();return c?{quickCards:y.reduce((a,b)=>{let d=c.quickCards?.[b],f=e.quickCards[b];return a[b]={value:"number"==typeof d?.value?d.value:f.value,changePercent:"number"==typeof d?.changePercent?d.changePercent:f.changePercent,trend:Array.isArray(d?.trend)&&d.trend.length>0?d.trend.map(a=>"number"==typeof a?a:0):f.trend},a},{}),purchaseDonut:{currentLabel:c.purchaseDonut?.currentLabel??e.purchaseDonut.currentLabel,previousLabel:c.purchaseDonut?.previousLabel??e.purchaseDonut.previousLabel,currentPercent:"number"==typeof c.purchaseDonut?.currentPercent?c.purchaseDonut.currentPercent:e.purchaseDonut.currentPercent},purchaseVsConsumption:Array.isArray(c.purchaseVsConsumption)?c.purchaseVsConsumption.map(a=>({label:a?.label??"",purchase:"number"==typeof a?.purchase?a.purchase:0,consumption:"number"==typeof a?.consumption?a.consumption:0})):e.purchaseVsConsumption,pendingItems:Array.isArray(c.pendingItems)?c.pendingItems:e.pendingItems,overflowMaterial:Array.isArray(c.overflowMaterial)?c.overflowMaterial:e.overflowMaterial}:e}catch(a){if("AbortError"===a.name)throw a;return console.error("Failed to load dashboard data. Using fallback data.",a),E()}}let G={Today:{donutActive:"#3b82f6",donutRest:"#bfdbfe",barPurchase:"bg-blue-500",barConsumption:"bg-sky-300",dotPurchase:"bg-blue-500",dotConsumption:"bg-sky-300"},Weekly:{donutActive:"#10b981",donutRest:"#a7f3d0",barPurchase:"bg-emerald-500",barConsumption:"bg-teal-300",dotPurchase:"bg-emerald-500",dotConsumption:"bg-teal-300"},Monthly:{donutActive:"#f97316",donutRest:"#fed7aa",barPurchase:"bg-orange-400",barConsumption:"bg-blue-500",dotPurchase:"bg-orange-400",dotConsumption:"bg-blue-500"},Yearly:{donutActive:"#8b5cf6",donutRest:"#ddd6fe",barPurchase:"bg-violet-500",barConsumption:"bg-fuchsia-300",dotPurchase:"bg-violet-500",dotConsumption:"bg-fuchsia-300"},All:{donutActive:"#64748b",donutRest:"#e2e8f0",barPurchase:"bg-slate-500",barConsumption:"bg-slate-300",dotPurchase:"bg-slate-500",dotConsumption:"bg-slate-300"}},H={Today:"day",Weekly:"week",Monthly:"month",Yearly:"year",All:"period"},I=[{key:"customers",title:"Customer's",icon:f,cardBg:"bg-blue-50 dark:bg-blue-500/10",iconBg:"bg-blue-100 dark:bg-blue-500/20",iconColor:"text-blue-600 dark:text-blue-400",sparklineColor:"#2563eb",href:"/inventory/customers"},{key:"suppliers",title:"Supplier's",icon:g,cardBg:"bg-cyan-50 dark:bg-cyan-500/10",iconBg:"bg-cyan-100 dark:bg-cyan-500/20",iconColor:"text-cyan-600 dark:text-cyan-400",sparklineColor:"#0891b2",href:"/inventory/suppliers"},{key:"materialReq",title:"Material Req.",icon:h,cardBg:"bg-emerald-50 dark:bg-emerald-500/10",iconBg:"bg-emerald-100 dark:bg-emerald-500/20",iconColor:"text-emerald-600 dark:text-emerald-400",sparklineColor:"#059669",href:"/inventory/material-requisitions"},{key:"serviceReq",title:"Service Req.",icon:i,cardBg:"bg-fuchsia-50 dark:bg-fuchsia-500/10",iconBg:"bg-fuchsia-100 dark:bg-fuchsia-500/20",iconColor:"text-fuchsia-600 dark:text-fuchsia-400",sparklineColor:"#c026d3",href:"/inventory/service-requisitions"},{key:"purchases",title:"Purchases",icon:j,cardBg:"bg-orange-50 dark:bg-orange-500/10",iconBg:"bg-orange-100 dark:bg-orange-500/20",iconColor:"text-orange-600 dark:text-orange-400",sparklineColor:"#ea580c",href:"/inventory/purchases"},{key:"sales",title:"Sales",icon:k,cardBg:"bg-sky-50 dark:bg-sky-500/10",iconBg:"bg-sky-100 dark:bg-sky-500/20",iconColor:"text-sky-600 dark:text-sky-400",sparklineColor:"#0284c7",href:"/inventory/sales"}];function J({icon:a,iconBg:b,iconColor:c,title:e,subtitle:f,action:g,onAction:h}){return(0,d.jsxs)("div",{className:"mb-4 flex items-start justify-between",children:[(0,d.jsxs)("div",{className:"flex items-center gap-2.5",children:[(0,d.jsx)("div",{className:`flex h-8 w-8 items-center justify-center rounded-lg ${b}`,children:(0,d.jsx)(a,{className:`h-4 w-4 ${c}`})}),(0,d.jsxs)("div",{children:[(0,d.jsx)("h2",{className:"text-sm font-semibold text-foreground",children:e}),f&&(0,d.jsx)("p",{className:"text-[10px] text-muted-foreground",children:f})]})]}),"menu"===g&&(0,d.jsx)("button",{type:"button",onClick:h,className:"text-muted-foreground transition hover:text-foreground",children:(0,d.jsx)(l,{className:"h-4 w-4"})}),"viewAll"===g&&(0,d.jsxs)("button",{type:"button",onClick:h,className:"flex items-center gap-1 text-[11px] font-medium text-primary hover:underline",children:["View All",(0,d.jsx)(m,{className:"h-3 w-3"})]})]})}function K({config:a,data:b,periodLabel:c,isLoading:e,onNavigate:f}){let g=a.icon,h=b.changePercent>=0,i=`spark-${a.key}`,{line:j,area:k}=(0,w.useMemo)(()=>(function(a,b=100,c=28){let d=a.length>0?a:[0,0],e=d.length>1?d:[d[0],d[0]],f=Math.max(...e,1),g=Math.min(...e,0),h=f-g||1,i=b/(e.length-1),j=e.map((a,b)=>({x:b*i,y:c-(a-g)/h*(c-4)-2})),k=`M ${j[0].x.toFixed(1)} ${j[0].y.toFixed(1)}`;for(let a=0;a<j.length-1;a++){let b=j[0===a?a:a-1],c=j[a],d=j[a+1],e=j[a+2<j.length?a+2:a+1],f=c.x+(d.x-b.x)/6,g=c.y+(d.y-b.y)/6,h=d.x-(e.x-c.x)/6,i=d.y-(e.y-c.y)/6;k+=` C ${f.toFixed(1)} ${g.toFixed(1)}, ${h.toFixed(1)} ${i.toFixed(1)}, ${d.x.toFixed(1)} ${d.y.toFixed(1)}`}let l=`${k} L ${j[j.length-1].x.toFixed(1)} ${c} L ${j[0].x.toFixed(1)} ${c} Z`;return{line:k,area:l}})(b.trend),[b.trend]);return(0,d.jsxs)("a",{href:a.href,onClick:b=>{b.preventDefault(),f(a.href)},className:`
+        group relative flex w-full cursor-pointer
+        flex-col overflow-hidden rounded
+        border border-border/60
+        ${a.cardBg}
+        p-4 text-left shadow-sm
+        transition-all duration-200
+        hover:-translate-y-0.5
+        hover:shadow-lg
+        focus:outline-none
+        focus:ring-2
+        focus:ring-ring
+      `,children:[(0,d.jsxs)("div",{className:"flex items-center justify-between",children:[(0,d.jsx)("div",{className:`flex h-10 w-10 items-center justify-center rounded-full ${a.iconBg}`,children:(0,d.jsx)(g,{className:`h-5 w-5 ${a.iconColor}`})}),(0,d.jsxs)("span",{className:`
+            flex items-center gap-0.5
+            rounded-full px-1.5 py-0.5
+            text-[10px] font-semibold
+            ${h?"bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400":"bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400"}
+          `,children:[h?(0,d.jsx)(m,{className:"h-3 w-3"}):(0,d.jsx)(n,{className:"h-3 w-3"}),e?"…":`${Math.abs(b.changePercent)}%`]})]}),(0,d.jsxs)("div",{className:"mt-3",children:[(0,d.jsx)("p",{className:"text-[11px] font-medium text-muted-foreground",children:a.title}),(0,d.jsx)("p",{className:"mt-0.5 text-2xl font-bold tracking-tight text-foreground",children:e?"…":b.value.toLocaleString()}),(0,d.jsxs)("p",{className:"mt-0.5 text-[10px] text-muted-foreground",children:["vs last ",c]})]}),(0,d.jsxs)("svg",{viewBox:"0 0 100 28",preserveAspectRatio:"none",className:"mt-2 h-8 w-full",children:[(0,d.jsx)("defs",{children:(0,d.jsxs)("linearGradient",{id:i,x1:"0",y1:"0",x2:"0",y2:"1",children:[(0,d.jsx)("stop",{offset:"0%",stopColor:a.sparklineColor,stopOpacity:.35}),(0,d.jsx)("stop",{offset:"100%",stopColor:a.sparklineColor,stopOpacity:0})]})}),(0,d.jsx)("path",{d:k,fill:`url(#${i})`,opacity:e?.3:1}),(0,d.jsx)("path",{d:j,fill:"none",stroke:a.sparklineColor,strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",opacity:e?.35:1})]}),(0,d.jsx)("span",{className:" pointer-events-none absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-md bg-card/60 text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 ",children:(0,d.jsx)(m,{className:"h-3 w-3"})})]})}function L({currentPercent:a,currentLabel:b,previousLabel:c,accent:e,isLoading:f}){let g=Math.min(Math.max(a,0),100),h=2*Math.PI*76,i="purchase-donut-gradient";return(0,d.jsxs)("div",{className:"flex flex-col items-center py-2",children:[(0,d.jsxs)("div",{className:"relative",style:{width:168,height:168},children:[(0,d.jsxs)("svg",{width:168,height:168,viewBox:"0 0 168 168",className:"-rotate-90",children:[(0,d.jsx)("defs",{children:(0,d.jsxs)("linearGradient",{id:i,x1:"0%",y1:"0%",x2:"100%",y2:"100%",children:[(0,d.jsx)("stop",{offset:"0%",stopColor:e.donutActive,stopOpacity:.75}),(0,d.jsx)("stop",{offset:"100%",stopColor:e.donutActive,stopOpacity:1})]})}),(0,d.jsx)("circle",{cx:84,cy:84,r:76,fill:"none",stroke:e.donutRest,strokeWidth:16}),(0,d.jsx)("circle",{cx:84,cy:84,r:76,fill:"none",stroke:`url(#${i})`,strokeWidth:16,strokeLinecap:"round",strokeDasharray:h,strokeDashoffset:h-(f?0:g/100)*h,className:"transition-[stroke-dashoffset] duration-700 ease-out"})]}),(0,d.jsxs)("div",{className:"absolute inset-0 flex flex-col items-center justify-center",children:[(0,d.jsx)("p",{className:"text-3xl font-bold text-foreground",children:f?"…":`${g}%`}),(0,d.jsx)("p",{className:"mt-0.5 text-[10px] font-medium text-muted-foreground",children:"Purchase share"}),(0,d.jsx)("p",{className:"text-[9px] text-muted-foreground",children:"Last 12 Months"})]})]}),(0,d.jsxs)("div",{className:"mt-4 grid w-full grid-cols-2 gap-2",children:[(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background/60 px-3 py-2",children:[(0,d.jsxs)("div",{className:"flex items-center gap-1.5 text-[10px] text-muted-foreground",children:[(0,d.jsx)("span",{className:`h-2 w-2 rounded-full ${e.dotPurchase}`}),b]}),(0,d.jsx)("p",{className:"mt-1 text-sm font-semibold text-foreground",children:f?"…":`${g}%`})]}),(0,d.jsxs)("div",{className:"rounded-lg border border-border bg-background/60 px-3 py-2",children:[(0,d.jsxs)("div",{className:"flex items-center gap-1.5 text-[10px] text-muted-foreground",children:[(0,d.jsx)("span",{className:`h-2 w-2 rounded-full ${e.dotConsumption}`}),c]}),(0,d.jsx)("p",{className:"mt-1 text-sm font-semibold text-foreground",children:f?"…":`${100-g}%`})]})]})]})}function M({points:a,accent:b,isLoading:c}){let e=a.length>0?a:[{label:"N/A",purchase:0,consumption:0},{label:"N/A",purchase:0,consumption:0}],f=Math.max(...e.flatMap(a=>[a.purchase,a.consumption]),1),[g,h]=(0,w.useState)(null),i=[1,.75,.5,.25,0].map(a=>Math.round(f*a));return(0,d.jsxs)("div",{className:"mt-3 w-full overflow-hidden",children:[(0,d.jsx)("div",{className:"w-full overflow-x-auto pb-2",children:(0,d.jsx)("div",{className:"min-w-85",children:(0,d.jsxs)("div",{className:"flex h-44 gap-2",children:[(0,d.jsx)("div",{className:"flex h-full flex-col justify-between pb-6 text-right text-[9px] text-muted-foreground shrink-0 w-12",children:i.map((a,b)=>(0,d.jsx)("span",{children:a.toLocaleString()},b))}),(0,d.jsxs)("div",{className:"relative flex flex-1 items-end gap-3 sm:gap-6 px-2",children:[(0,d.jsx)("div",{className:"pointer-events-none absolute inset-x-0 bottom-6 top-0 flex flex-col justify-between",children:i.map((a,b)=>(0,d.jsx)("div",{className:"border-t border-dashed border-border/70"},b))}),e.map((a,e)=>(0,d.jsxs)("div",{className:"relative z-10 flex h-full flex-1 items-end justify-center gap-1.5 sm:gap-2 pb-6 min-w-8",children:[(0,d.jsxs)("div",{className:"relative flex h-full w-4 sm:w-8 flex-col justify-end",children:[g?.idx===e&&"purchase"===g.series&&(0,d.jsxs)("div",{className:"absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg z-20",children:[a.label,": ",a.purchase.toLocaleString()]}),(0,d.jsx)("div",{onMouseEnter:()=>h({idx:e,series:"purchase"}),onMouseLeave:()=>h(null),className:`
+                          cursor-default rounded-t-md
+                          transition-all duration-500 w-full
+                          ${b.barPurchase}
+                          ${g?.idx===e&&"purchase"===g.series?"opacity-75":""}
+                        `,style:{height:`${c?0:Math.max(a.purchase/f*100,3*(a.purchase>0))}%`}})]}),(0,d.jsxs)("div",{className:"relative flex h-full w-4 sm:w-8 flex-col justify-end",children:[g?.idx===e&&"consumption"===g.series&&(0,d.jsxs)("div",{className:"absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg z-20",children:[a.label,": ",a.consumption.toLocaleString()]}),(0,d.jsx)("div",{onMouseEnter:()=>h({idx:e,series:"consumption"}),onMouseLeave:()=>h(null),className:`
+                          cursor-default rounded-t-md
+                          transition-all duration-500 w-full
+                          ${b.barConsumption}
+                          ${g?.idx===e&&"consumption"===g.series?"opacity-75":""}
+                        `,style:{height:`${c?0:Math.max(a.consumption/f*100,3*(a.consumption>0))}%`}})]}),(0,d.jsx)("span",{className:"absolute bottom-0 left-1/2 -translate-x-1/2 text-center text-[9px] text-muted-foreground truncate w-full",children:a.label})]},e))]})]})})}),(0,d.jsxs)("div",{className:"mt-3 flex justify-center gap-5 text-[10px] text-muted-foreground",children:[(0,d.jsxs)("div",{className:"flex items-center gap-1",children:[(0,d.jsx)("span",{className:`h-2 w-2 rounded-sm ${b.dotPurchase}`}),"Purchase"]}),(0,d.jsxs)("div",{className:"flex items-center gap-1",children:[(0,d.jsx)("span",{className:`h-2 w-2 rounded-sm ${b.dotConsumption}`}),"Consumption"]})]})]})}function N({status:a}){return(0,d.jsx)("span",{className:`rounded-full px-2 py-0.5 text-[9px] font-semibold ${{Issued:"bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",Approved:"bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",Pending:"bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"}[a]}`,children:a})}function O({rows:a,isLoading:b,onView:c,onUpdate:e,onDelete:f}){return(0,d.jsxs)(d.Fragment,{children:[(0,d.jsx)("div",{className:"overflow-x-auto",children:(0,d.jsxs)("table",{className:"w-full min-w-212.5 border-collapse",children:[(0,d.jsx)("thead",{children:(0,d.jsxs)("tr",{className:"bg-primary/10 text-[9px] uppercase text-muted-foreground",children:[(0,d.jsx)("th",{className:"px-3 py-2 text-left",children:"SL"}),(0,d.jsx)("th",{className:"px-3 py-2 text-left",children:"Description"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right",children:"Budget Qty"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right",children:"Budget Amount"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right",children:"Issue Qty"}),(0,d.jsx)("th",{className:"px-3 py-2 text-right",children:"Issue Amount"}),(0,d.jsx)("th",{className:"px-3 py-2 text-left",children:"Status"}),(0,d.jsx)("th",{className:"px-3 py-2 text-center",children:"Actions"})]})}),(0,d.jsxs)("tbody",{children:[b&&(0,d.jsx)("tr",{children:(0,d.jsx)("td",{colSpan:8,className:"h-24 text-center text-xs text-muted-foreground",children:"Loading…"})}),!b&&0===a.length&&(0,d.jsx)("tr",{children:(0,d.jsx)("td",{colSpan:8,className:"h-24 text-center text-xs text-muted-foreground",children:"No data available in table"})}),!b&&a.map(a=>(0,d.jsxs)("tr",{className:" border-b border-border/60 text-[11px] last:border-none hover:bg-muted/40 ",children:[(0,d.jsx)("td",{className:"px-3 py-2 text-foreground",children:a.sl}),(0,d.jsx)("td",{className:"px-3 py-2 font-medium text-foreground",children:a.description}),(0,d.jsx)("td",{className:"px-3 py-2 text-right text-muted-foreground",children:a.budgetQty.toLocaleString()}),(0,d.jsxs)("td",{className:"px-3 py-2 text-right text-muted-foreground",children:["৳",a.budgetAmount.toLocaleString()]}),(0,d.jsx)("td",{className:"px-3 py-2 text-right text-muted-foreground",children:a.issueQty.toLocaleString()}),(0,d.jsxs)("td",{className:"px-3 py-2 text-right text-muted-foreground",children:["৳",a.issueAmount.toLocaleString()]}),(0,d.jsx)("td",{className:"px-3 py-2",children:(0,d.jsx)(N,{status:a.status})}),(0,d.jsx)("td",{className:"px-3 py-2",children:(0,d.jsxs)("div",{className:"flex items-center justify-center gap-1",children:[(0,d.jsx)("button",{type:"button",title:"View",onClick:()=>c(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary ",children:(0,d.jsx)(o,{className:"h-3.5 w-3.5"})}),(0,d.jsx)("button",{type:"button",title:"Update",onClick:()=>e(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-500 ",children:(0,d.jsx)(p,{className:"h-3.5 w-3.5"})}),(0,d.jsx)("button",{type:"button",title:"Delete",onClick:()=>f(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-500 ",children:(0,d.jsx)(q,{className:"h-3.5 w-3.5"})})]})})]},a.sl))]})]})}),(0,d.jsxs)("div",{className:"mt-3 flex items-center justify-between text-[9px] text-muted-foreground",children:[(0,d.jsxs)("span",{children:["Showing ",+(0!==a.length)," to ",a.length," of ",a.length," entries"]}),(0,d.jsxs)("div",{className:"flex items-center gap-3",children:[(0,d.jsx)("button",{type:"button",title:"Previous",className:"hover:text-foreground",children:(0,d.jsx)(r.A,{className:"h-3 w-3 rotate-90"})}),(0,d.jsx)("button",{type:"button",title:"Next",className:"hover:text-foreground",children:(0,d.jsx)(r.A,{className:"h-3 w-3 -rotate-90"})})]})]})]})}function P({period:a,onPeriodChange:b,items:c,isLoading:e,onView:f,onUpdate:g,onDelete:h}){let[i,j]=(0,w.useState)(""),k=(0,w.useMemo)(()=>{let a=i.trim().toLowerCase();return a?c.filter(b=>[b.project,b.contact,b.addedBy,b.reference,b.type,b.date].some(b=>b.toLowerCase().includes(a))):c},[c,i]);return(0,d.jsxs)("div",{className:"flex h-full min-h-145 flex-col rounded-xl border border-border bg-card shadow-sm",children:[(0,d.jsxs)("div",{className:"border-b border-border p-4",children:[(0,d.jsxs)("div",{className:"flex items-center justify-between",children:[(0,d.jsxs)("div",{className:"flex items-center gap-2.5",children:[(0,d.jsx)("div",{className:"flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15",children:(0,d.jsx)(s,{className:"h-4 w-4 text-indigo-600 dark:text-indigo-400"})}),(0,d.jsxs)("div",{children:[(0,d.jsx)("h2",{className:"text-sm font-semibold text-foreground",children:"Pending Voucher/Invoice"}),(0,d.jsx)("p",{className:"text-[10px] text-muted-foreground",children:"Pending approval items"})]})]}),(0,d.jsxs)("button",{type:"button",onClick:()=>console.log("View all pending items"),className:"flex items-center gap-1 text-[11px] font-medium text-primary hover:underline",children:["View All",(0,d.jsx)(m,{className:"h-3 w-3"})]})]}),(0,d.jsx)("div",{className:"mt-4 flex items-center gap-1 rounded-lg bg-muted p-1",children:z.map(c=>(0,d.jsx)("button",{type:"button",onClick:()=>b(c),className:`
+                  flex-1 rounded-md
+                  px-1 py-1.5
+                  text-[9px] font-medium
+                  transition
+                  ${c===a?"bg-primary text-primary-foreground":"text-muted-foreground hover:bg-background hover:text-foreground"}
+                `,children:c},c))}),(0,d.jsxs)("div",{className:"relative mt-3",children:[(0,d.jsx)(t.A,{className:"pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"}),(0,d.jsx)("input",{type:"text",value:i,onChange:a=>j(a.target.value),placeholder:"Search with Project/Code/Reference...",className:" h-8 w-full rounded-md border border-input bg-background pl-8 pr-3 text-[10px] text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring "})]})]}),(0,d.jsxs)("div",{className:"flex-1 space-y-2 overflow-y-auto p-3",children:[e&&(0,d.jsx)("p",{className:"p-4 text-center text-[10px] text-muted-foreground",children:"Loading…"}),!e&&0===k.length&&(0,d.jsx)("p",{className:"p-4 text-center text-[10px] text-muted-foreground",children:"No pending items found."}),!e&&k.map(a=>(0,d.jsxs)("div",{className:" group rounded-lg border border-border bg-background p-3 transition-all hover:border-primary/40 hover:shadow-sm ",children:[(0,d.jsxs)("div",{className:"flex items-start justify-between gap-3",children:[(0,d.jsxs)("div",{className:"min-w-0 space-y-1",children:[(0,d.jsx)("p",{className:"text-[10px] font-semibold text-muted-foreground",children:"Reference"}),(0,d.jsxs)("p",{className:"truncate text-[10px] text-foreground",children:["Project: ",(0,d.jsx)("span",{className:"font-medium",children:a.project})]}),(0,d.jsxs)("p",{className:"text-[10px] text-muted-foreground",children:["Contact: ",a.contact]}),(0,d.jsxs)("p",{className:"text-[10px] text-muted-foreground",children:["Added By: ",a.addedBy]}),(0,d.jsx)("p",{className:"text-[9px] text-muted-foreground",children:a.date})]}),(0,d.jsxs)("div",{className:"flex shrink-0 flex-col items-end",children:[(0,d.jsx)("span",{className:"rounded bg-orange-100 px-2 py-1 text-[9px] font-semibold text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",children:a.type}),(0,d.jsx)("p",{className:"mt-2 max-w-30 truncate text-[9px] font-medium text-muted-foreground",children:a.reference})]})]}),(0,d.jsxs)("div",{className:"mt-3 flex items-center justify-between border-t border-border/60 pt-2",children:[(0,d.jsx)("p",{className:"text-[9px] font-medium text-red-500",children:"Approval Layer has not been set yet."}),(0,d.jsxs)("div",{className:"flex items-center gap-1",children:[(0,d.jsx)("button",{type:"button",title:"View",onClick:()=>f(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary ",children:(0,d.jsx)(o,{className:"h-3.5 w-3.5"})}),(0,d.jsx)("button",{type:"button",title:"Update",onClick:()=>g(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-500 ",children:(0,d.jsx)(p,{className:"h-3.5 w-3.5"})}),(0,d.jsx)("button",{type:"button",title:"Delete",onClick:()=>h(a),className:" flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-500 ",children:(0,d.jsx)(q,{className:"h-3.5 w-3.5"})})]})]})]},a.reference))]}),(0,d.jsx)("div",{className:"border-t border-border px-4 py-2",children:(0,d.jsxs)("div",{className:"flex items-center justify-between text-[9px] text-muted-foreground",children:[(0,d.jsxs)("span",{children:["Showing ",k.length," of ",c.length," entries"]}),(0,d.jsxs)("div",{className:"flex items-center gap-3",children:[(0,d.jsx)("button",{type:"button",title:"Previous",className:"hover:text-foreground",children:(0,d.jsx)(r.A,{className:"h-3 w-3 rotate-90"})}),(0,d.jsx)("button",{type:"button",title:"Next",className:"hover:text-foreground",children:(0,d.jsx)(r.A,{className:"h-3 w-3 -rotate-90"})})]})]})})]})}function Q({period:a,onChange:b}){let[c,e]=(0,w.useState)(!1);return(0,d.jsxs)("div",{className:"relative",children:[(0,d.jsxs)("button",{type:"button",onClick:()=>e(a=>!a),className:" flex items-center gap-2 rounded-lg border border-input bg-card px-3 py-2 text-xs font-medium text-foreground shadow-sm hover:bg-muted ",children:[a," view",(0,d.jsx)(r.A,{className:`
+            h-3.5 w-3.5
+            text-muted-foreground
+            transition-transform
+            ${c?"rotate-180":""}
+          `})]}),c&&(0,d.jsx)("div",{className:"absolute right-0 z-30 mt-1 w-36 overflow-hidden rounded-lg border border-border bg-popover shadow-lg",children:z.map(c=>(0,d.jsx)("button",{type:"button",onClick:()=>{b(c),e(!1)},className:`
+                  block w-full
+                  px-3 py-2
+                  text-left text-xs
+                  transition
+                  ${c===a?"bg-primary text-primary-foreground":"text-popover-foreground hover:bg-muted"}
+                `,children:c},c))})]})}function R(){let a=(0,x.useRouter)(),[b,c]=(0,w.useState)("Today"),[e,f]=(0,w.useState)(E()),[g,i]=(0,w.useState)(!0);(0,w.useCallback)((a,b)=>{i(!0),F(a,b).then(a=>{f(a)}).catch(a=>{"AbortError"!==a.name&&(console.error(a),f(E()))}).finally(()=>{i(!1)})},[]);let j=G[b],l=H[b],m=(0,w.useCallback)(b=>{a.push(b)},[a]),n=(0,w.useCallback)(b=>{console.log("View pending item:",b),a.push(`/inventory/pending/${encodeURIComponent(b.reference)}`)},[a]),o=(0,w.useCallback)(b=>{console.log("Update pending item:",b),a.push(`/inventory/pending/${encodeURIComponent(b.reference)}/edit`)},[a]),p=(0,w.useCallback)(a=>{window.confirm(`Are you sure you want to delete ${a.reference}?`)&&console.log("Delete pending item:",a)},[]),q=(0,w.useCallback)(b=>{console.log("View overflow material:",b),a.push(`/inventory/overflow-material/${b.sl}`)},[a]),r=(0,w.useCallback)(b=>{console.log("Update overflow material:",b),a.push(`/inventory/overflow-material/${b.sl}/edit`)},[a]),s=(0,w.useCallback)(a=>{window.confirm(`Are you sure you want to delete "${a.description}"?`)&&console.log("Delete overflow material:",a)},[]),t=(0,w.useCallback)(()=>{a.push("/inventory/overflow-material")},[a]),y=(0,w.useCallback)(()=>{console.log("Purchase chart menu")},[]),z=(0,w.useCallback)(()=>{console.log("Purchase vs Consumption menu")},[]);return(0,d.jsx)("main",{className:"min-h-screen bg-background text-foreground",children:(0,d.jsxs)("div",{className:" space-y-5 p-2 md:p-3",children:[(0,d.jsxs)("div",{className:"flex flex-wrap items-center justify-between gap-3",children:[(0,d.jsxs)("div",{className:"flex items-center gap-3",children:[(0,d.jsx)("div",{className:"flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary",children:(0,d.jsx)(u,{className:"h-5 w-5"})}),(0,d.jsxs)("div",{children:[(0,d.jsx)("h1",{className:"text-lg font-bold text-foreground",children:"Inventory Dashboard"}),(0,d.jsx)("p",{className:"text-[11px] text-muted-foreground",children:"Overview of inventory activities and key metrics"})]})]}),(0,d.jsx)("div",{className:"flex items-center gap-2",children:(0,d.jsx)(Q,{period:b,onChange:c})})]}),(0,d.jsx)("div",{className:"grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6",children:I.map(a=>(0,d.jsx)(K,{config:a,data:e.quickCards[a.key],periodLabel:l,isLoading:g,onNavigate:m},a.key))}),(0,d.jsxs)("div",{className:"space-y-5 ",children:[(0,d.jsxs)("div",{className:"rounded border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)(J,{icon:h,iconBg:"bg-emerald-100 dark:bg-emerald-500/15",iconColor:"text-emerald-600 dark:text-emerald-400",title:"Overflow Material",action:"viewAll",onAction:t}),(0,d.jsx)(O,{rows:e.overflowMaterial,isLoading:g,onView:q,onUpdate:r,onDelete:s})]}),(0,d.jsxs)("div",{className:" grid md:grid-cols-2 gap-4",children:[(0,d.jsxs)("div",{className:"rounded border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)(J,{icon:v,iconBg:"bg-orange-100 dark:bg-orange-500/15",iconColor:"text-orange-600 dark:text-orange-400",title:"Purchase",subtitle:"Last 12 Months",action:"menu",onAction:y}),(0,d.jsx)(L,{currentPercent:e.purchaseDonut.currentPercent,currentLabel:e.purchaseDonut.currentLabel,previousLabel:e.purchaseDonut.previousLabel,accent:j,isLoading:g})]}),(0,d.jsxs)("div",{className:"rounded border border-border bg-card p-4 shadow-sm",children:[(0,d.jsx)(J,{icon:k,iconBg:"bg-sky-100 dark:bg-sky-500/15",iconColor:"text-sky-600 dark:text-sky-400",title:"Purchase vs Consumption",action:"menu",onAction:z}),(0,d.jsx)(M,{points:e.purchaseVsConsumption,accent:j,isLoading:g})]})]})]}),(0,d.jsx)("section",{className:"",children:(0,d.jsx)("div",{className:"min-w-0",children:(0,d.jsx)(P,{period:b,onPeriodChange:c,items:e.pendingItems,isLoading:g,onView:n,onUpdate:o,onDelete:p})})})]})})}},63033:a=>{"use strict";a.exports=require("next/dist/server/app-render/work-unit-async-storage.external.js")},84792:(a,b,c)=>{Promise.resolve().then(c.t.bind(c,1297,23)),Promise.resolve().then(c.bind(c,38460))},85464:(a,b,c)=>{Promise.resolve().then(c.t.bind(c,92583,23)),Promise.resolve().then(c.bind(c,49776))},86439:a=>{"use strict";a.exports=require("next/dist/shared/lib/no-fallback-error.external")}};var b=require("../../../webpack-runtime.js");b.C(a);var c=b.X(0,[204,32,224,717],()=>b(b.s=2560));module.exports=c})();

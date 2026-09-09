@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RealBiz Nexus
 
-## Getting Started
+একটি প্রজেক্ট তৈরি করে দিন যেখানে Next.js, tailwindcss, typescript এবং প্রয়োজনীয় package. এটি pnpm use করা হবে। Project এ responsible এবং dark-light হবে। Default light থাকবে এটি একটি রিয়েল এস্টেট প্রজেক্ট যার নাম RealBiz লোগোটা ও এটি ব্যবহার করবে
 
-First, run the development server:
+Home page বা অন্যান্য পেজ অপশন থাকবে navbar এ এগুলো শো করবে । লগ ইন করলে একটি ড্যাশবোর্ড ওপেন হবে এবং এই ড্যাশবোর্ডের navbar আলাদা হবে সার্চিং এবং প্রোফাইল এবং ডার্ক লাইট icon এবং এক্সটেনশন আইকন থাকবে। এখানে একটি sidebar থাকবে এবং একটি সিলেক্ট ইনপুট থাকবে যে ইনপুটে বিভিন্ন ধরনের রোল থাকবে যেমন। Project, Inventory, Accounts, HRM, CRM, credit realisation (CR), LAMS, Procurement, All। এগুলো সিলেক্ট করতে পারবে কোন একটি। যখন যেটা সিলেক্ট হবে সেটার জন্য আলাদা আলাদা সাইট বার মেনু আসবে। যেমন প্রত্যেকটা রোলের জন্য আলাদা আলাদা স্ট্রাকচার দেওয়া হল এভাবে ড্রপ ডাউন আকারে সাইবার শো করবে একটি সিলেক্ট ইনপুটের মাধ্যমে ইনপুট ভ্যালু যেটা থাকবে সেটার জন্য যে sidebar রয়েছে সেটি ওপেন হবে প্রতিটা সাইট বারের স্ট্রাকচার আমি দিয়ে দিয়েছি।
+project │ ├── dashboard │ ├── projects │ ├── project-type │ ├── project │ ├── site │ └── report │ ├── project-summary │ └── project-details │ ├── contract │ ├── customer-accounts │ ├── supplier-accounts │ ├── labour-work-bank │ ├── contractor │ └── report │ ├── at-a-glance │ └── project-summary-report │ ├── investments │ ├── investor │ ├── configuration │ └── report │ ├── project-financial-report │ └── project-progress-report │ ├── share-project │ ├── assign-share │ ├── share-report │ ├── share-collection-report │ ├── penalty-report │ ├── share-holders-point-report │ ├── project-share-configuration │ └── report │ ├── project-wise-income-statement │ └── site-wise-income-statement │ ├── requisition │ ├── material-requisition │ ├── service-work-requisition │ ├── fund-requisition │ └── fund-requisition-report │ ├── billing │ ├── configuration │ │ ├── category │ │ ├── sub-category │ │ ├── bill-item │ │ ├── service-work-name │ │ └── boq-title │ ├── bill-invoice │ ├── contractor-bill │ ├── labour-work-bill │ ├── work-order │ ├── contractor-work-order │ ├── period-billing │ ├── adjustment-billing │ ├── quote │ └── labour-work-bill-report │ ├── flat-land │ ├── flat │ ├── land │ │ ├── road │ │ ├── block │ │ └── land-details │ ├── booking │ ├── sale-offer │ ├── flat-land-sale │ ├── flat-land-sale-report │ ├── sale-collection-report │ ├── plot-distribution-report │ ├── aging-report │ └── installment-report │ └── document ati project role er jonno.
 
-```bash
+📦 INVENTORY │ ├── 📄 Contracts │ └── Supplier Accounts │ ├── 🛍️ Products │ ├── Categories │ ├── Sub-Categories │ ├── Brands │ ├── Units │ └── Item Entry │ ├── 🛒 Purchase │ ├── Add Purchase │ └── Purchase List │ ├── 💰 Sales │ ├── ⚙️ Adjustment │ ├── Material Usage │ └── Stock Transfer │ ├── 📝 Material Requisition │ └── 📊 Reports ├── Purchase Details ├── Purchase Order Receive Details ├── Stock Report ├── Item History Report ├── Item-Wise Supplier Ledger ├── Material Usage Report └── Material Comparison Report ati Inventory er jonno.
+
+accounts │ ├── dashboard │ ├── contract │ ├── customer-account │ ├── supplier-account │ └── labour-worker-contractor │ ├── employee │ ├── department │ ├── designation │ ├── shift │ ├── section │ ├── unit │ ├── employee-list │ └── employee-hierarchy │ ├── configuration │ ├── chart-of-group │ └── chart-of-accounts │ ├── voucher │ ├── expense │ ├── receipt-voucher │ ├── payment-voucher │ ├── journal-voucher │ └── contra-voucher │ ├── bank-reconciliation │ ├── bank-reconciliation-statement │ ├── list-of-cheque-range │ └── list-of-cheque │ ├── billing │ ├── configuration │ │ ├── category │ │ ├── sub-category │ │ ├── bill-item │ │ ├── service-work-name │ │ └── boq-title │ ├── bill-invoice │ ├── contractor-bill │ ├── labour-work-bill │ ├── work-order │ ├── contractor-work-order │ ├── period-billing │ ├── adjustment-billing │ ├── quote │ └── labour-worker-bill-report │ ├── flat-land │ ├── flat │ ├── land │ │ ├── road │ │ ├── block │ │ └── land-details │ ├── booking │ ├── sale-offer │ ├── flat-land-sale │ ├── flat-land-sale-report │ ├── sale-collection-report │ ├── plot-distribution-report │ ├── aging-report │ └── installment-report │ ├── assets │ ├── asset-list │ └── item-empty │ └── reports ├── payable-report ├── expense-report ├── receipt-report ├── receivable-report ├── day-book ├── receive-payment-statement ├── receive-and-payment-summary ├── cash-bank-books └── general-ledger
+
+ati Account er jonno.
+
+hrm │ ├── dashboard │ ├── employee │ ├── department │ ├── designation │ ├── shift │ ├── shift-allocation │ ├── bonus │ ├── bonus-generate │ ├── section │ ├── unit │ ├── employee-list │ └── employee-hierarchy │ ├── configuration │ ├── month-configuration │ ├── deduction-rules │ ├── allowance-deduction │ ├── salary-grade │ ├── leave-type │ └── holiday │ ├── attendance │ ├── zkteco-device-configuration │ ├── attendance-log │ ├── pending-attendance │ └── attendance-reconciliations ├── pay-slip │ ├── pay-slip-process │ ├── pay-slip-details │ └── bank-pay-slip │ ├── leave-application │ ├── reports │ ├── daily-attendance-report │ ├── daily-manpower-report │ ├── attendance-register │ ├── attendance-summary │ ├── attendance-details-report │ ├── job-card │ ├── leave-report │ ├── leave-details-report │ ├── salary-sheet │ ├── salary-due-report │ └── deduction-report │ └── kpi ├── employee-call-report ├── employee-task-report ├── employee-kpi-setting └── reports ati hrm er jonno.
+
+Creadit-realization-cr │ ├── dashboard │ ├── receipt-voucher │ ├── overdue-list │ └── reports ├── realization-summary-report ├── sale-collection-report ├── aging-report └── installment-report ati Creadit-realization-cr er jonno.
+
+lams │ ├── dashboard │ ├── land-owners │ ├── acquisition-leads │ ├── negotiation-process │ ├── legal-documents │ └── follow-up ati lams er jonno.
+
+crm │ ├── dashboard │ ├── configuration │ ├── communication-status │ ├── teams │ ├── lead-category │ ├── campaign │ ├── profession │ ├── lead-source │ ├── offers │ ├── area │ ├── lead-stage │ ├── project │ └── price-range │ ├── lead │ ├── lead-list │ ├── junk-lead │ └── transfer-history │ ├── call-center │ ├── follow-up │ ├── call-report │ ├── call-report-details │ └── call-assign-history │ ├── task-visit │ ├── task-visit-list │ ├── deal-negotiation-activity │ ├── task-visit-summary-report │ └── task-visit-details-report │ ├── property │ ├── flat │ ├── land │ ├── booking │ └── sale-offer │ ├── reports │ ├── user-wise-report │ ├── user-active-report │ ├── sales-pipeline-funnel-report │ ├── team-reports │ ├── interested-flat-land-requirements │ ├── sales-probability │ ├── flat-land-sale-report │ ├── missed-followup-visit-summary │ └── deal-negotiation-reports │ └── kpi ├── employee-kpi-setting └── reports ati crm er jonno.
+
+procurement │ ├── dashboard │ ├── requisition │ ├── material-requisition │ └── asset-requisition │ ├── rfq │ ├── request-for-quotation │ └── asset-request-for-quotation │ ├── purchase-order │ ├── purchase-order-list │ └── asset-purchase-order-list │ ├── grn │ ├── goods-receipt-note │ └── asset-goods-receipt-note │ ├── purchase-bill │ ├── purchase-bill-invoice │ └── asset-purchase-bill-invoice │ └── reports └── grn-vs-invoice-report ati procurement er jonno.
+
+all │ ├── project │ ├── project-type │ ├── project │ ├── agreement │ ├── party-list │ ├── site │ ├── flat-land │ ├── share-project │ └── reports │ ├── inventory │ ├── products │ │ ├── category │ │ ├── brand │ │ ├── unit │ │ └── item-entry │ ├── add-purchase │ ├── purchase-list │ │ ├── material-usage │ │ └── stock-transfer │ ├── purchase-order-list │ ├── adjustment │ ├── sales │ └── reports │ ├── purchase-details │ ├── purchase-order-receive-details │ ├── stock-report │ └── material-usage-report │ ├── requisition │ ├── material-requisition │ ├── service-work-requested-requisition │ ├── fund-requisition │ └── reports │ └── fund-requisition-report │ ├── accounts │ ├── dashboard │ ├── configuration │ │ ├── chart-of-group │ │ └── chart-of-accounts │ ├── contact │ │ ├── customer-account │ │ ├── supplier-accounts │ │ └── investors │ ├── billing │ │ ├── configuration │ │ │ ├── category │ │ │ ├── bill-item │ │ │ ├── service │ │ │ └── boq-title │ │ ├── bill-invoice │ │ ├── contractor-bill │ │ ├── labor-worker-bill │ │ ├── work-orders │ │ ├── contractor-work-order │ │ ├── period-billing │ │ ├── adjustment-billing │ │ └── quote │ ├── assets │ │ └── assets-list │ ├── vouchers │ │ ├── expense │ │ ├── receipt-voucher │ │ ├── payment-vouchers │ │ ├── journal-voucher │ │ └── contra-voucher │ ├── bank-reconciliation │ └── reports │ ├── payable-report │ ├── expense-report │ ├── receive-payment-statement │ ├── cash-bank-books │ ├── general-ledger │ ├── income-statement │ ├── cash-flow-statement │ ├── trial-balance │ └── balance-sheet │ ├── hrm │ ├── dashboard │ ├── employee │ │ ├── department │ │ ├── designation │ │ ├── shift │ │ ├── section │ │ ├── unit │ │ ├── employee │ │ └── increment │ ├── deduction-rules │ ├── allowance-deduction │ ├── salary-grade │ ├── attendance-log │ ├── attendance │ ├── pay-slip │ ├── bonus │ ├── bonus-generate │ ├── leave-type │ ├── leave-application │ └── reports │ ├── daily-attendance-report │ ├── attendance-register │ ├── job-card │ ├── leave-reports │ ├── salary-sheet │ └── salary-due-report │ └── crm ├── dashboard ├── configuration │ ├── common-communication-status │ ├── lead-category │ ├── campaign │ ├── profession │ ├── lead-source │ ├── offers │ ├── area │ └── lead-stage ├── lead ├── call-center │ ├── follow-up │ ├── transfer │ └── call-report ├── visits │ ├── visits-entry │ └── visits-report └── reports └── user-wise-report akane all roles er jonno.
+
+এগুলো সব এক একটা রোলের জন্য সাইডবারের নেস্টেট মেন। যখন যেটাতে ক্লিক করা হবে তখন সেটা একটিভ থাকবে এবং বাকিগুলো আনঅ্যাকটিভ থাকবে.
+
+This project was built with [Lovable](https://lovable.dev).
+
+**Live app**: https://realbiz-unified-hub.lovable.app
+
+## Build with Lovable
+
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/4d13f9f7-e3e9-4cab-bb94-bd4eb6fbcbf2).
+
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+
+## Development
+
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

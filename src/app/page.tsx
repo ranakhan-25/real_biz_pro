@@ -1,79 +1,79 @@
-<<<<<<< HEAD
-import Image from "next/image";
+import { SiteShell } from "@/components/site/SiteNav";
+import { PropertyCard, PROPERTIES } from "@/components/site/PropertyCard";
+import Link from "next/link";
 
-export default function Home() {
+const STATS = [
+  { v: "1.42M", l: "sq ft under management" },
+  { v: "38", l: "active projects" },
+  { v: "৳ 2.6B", l: "revenue tracked" },
+  { v: "99.2%", l: "on-time delivery" },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <SiteShell>
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-24 top-0 h-[140%] w-[55%] -skew-x-12 bg-primary" />
+        <div className="pointer-events-none absolute right-[42%] top-0 hidden h-[140%] w-20 -skew-x-12 bg-accent md:block" />
+        <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/50 bg-accent/10 px-3 py-1">
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em]">
+                Live · Dhaka, BD
+              </span>
+            </div>
+            <h1 className="mt-6 font-display text-5xl font-bold leading-[0.92] tracking-tight sm:text-6xl lg:text-7xl">
+              Build the city.
+              <br />
+              <span className="text-accent">Own the outcome.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-foreground/70">
+              RealBiz is the operating system for real estate — projects, inventory, accounts, HRM
+              and CRM unified in one high-signal command deck.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/properties"
+                className="group inline-flex items-center gap-3 rounded-md bg-accent px-6 py-3.5 font-bold text-accent-foreground"
+              >
+                <span className="inline-block -skew-x-12">Explore properties</span>
+                <span className="transition group-hover:translate-x-1">→</span>
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-md border border-foreground/20 px-6 py-3.5 font-semibold transition hover:bg-primary hover:text-primary-foreground"
+              >
+                Open dashboard
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="border-y border-border bg-primary text-primary-foreground">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-primary-foreground/10 px-5 sm:px-8 md:grid-cols-4">
+          {STATS.map((s) => (
+            <div key={s.l} className="px-6 py-8">
+              <div className="font-mono text-3xl text-accent">{s.v}</div>
+              <div className="mt-1 text-sm text-primary-foreground/60">{s.l}</div>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
-=======
+      </section>
 
-
-export default function Home() {
-  return (
-   <div>
-    hellow project
-   </div>
->>>>>>> 73d0b67595a4cdd0d9f291afff7142eb21b1becc
+      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+        <div className="flex items-end justify-between">
+          <h2 className="font-display text-3xl font-bold tracking-tight">Featured developments</h2>
+          <Link href="/properties" className="nav-active hidden text-sm font-semibold sm:block">
+            View all →
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {PROPERTIES.map((p) => (
+            <PropertyCard key={p.name} {...p} />
+          ))}
+        </div>
+      </section>
+    </SiteShell>
   );
 }
