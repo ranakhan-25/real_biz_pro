@@ -1,0 +1,188 @@
+@import "tailwindcss";
+/* @import "@heroui/styles";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css"; */
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Core palette -- deliberately quiet, no gradients */
+  --canvas: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --border: #E7E8EA;
+  --border-strong: #D8DADD;
+  --ink: #1B1E23;
+  --ink-muted: #6B7280;
+  --ink-faint: #9AA0A8;
+
+  --accent: #2B6455;
+  --accent-soft: #E7EFEC;
+  --accent-strong: #1F4B40;
+
+  --success: #3F7D58;
+  --success-soft: #EAF3EC;
+  --warning: #B8863B;
+  --warning-soft: #FBF3E6;
+  --danger: #B3453F;
+  --danger-soft: #FAECEB;
+  --info: #3E6FA6;
+  --info-soft: #EAF1F8;
+
+  /* Marketing/landing page accents — fresh multi-color palette, no gradients */
+  --brand-blue: #2F6FE4;
+  --brand-blue-soft: #EAF1FC;
+  --brand-teal: #0E9E93;
+  --brand-teal-soft: #E7F6F4;
+  --brand-amber: #D97A22;
+  --brand-amber-soft: #FCEEE0;
+  --brand-violet: #7C5CFC;
+  --brand-violet-soft: #F1EEFE;
+  --brand-ink: #14171F;
+  --brand-canvas: #FCFCFB;
+}
+
+.dark {
+  --canvas: #101214;
+  --surface: #17191C;
+  --surface-raised: #1D2023;
+  --border: #2A2D31;
+  --border-strong: #383B40;
+  --ink: #EDEEF0;
+  --ink-muted: #9BA1A9;
+  --ink-faint: #6D7278;
+
+  --accent: #4E9481;
+  --accent-soft: #1B2C27;
+  --accent-strong: #6BAE9C;
+
+  --success: #5FA379;
+  --success-soft: #1A2A20;
+  --warning: #D2A25F;
+  --warning-soft: #2C2417;
+  --danger: #D2726C;
+  --danger-soft: #2C1B1A;
+  --info: #6C9AC7;
+  --info-soft: #1A2530;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-soft: var(--brand-blue-soft);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-soft: var(--brand-teal-soft);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-amber-soft: var(--brand-amber-soft);
+  --color-brand-violet: var(--brand-violet);
+  --color-brand-violet-soft: var(--brand-violet-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-canvas: var(--brand-canvas);
+
+  --font-mono-accent: var(--font-jetbrains-mono);
+
+  --font-sans: var(--font-inter), "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-poppins), "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

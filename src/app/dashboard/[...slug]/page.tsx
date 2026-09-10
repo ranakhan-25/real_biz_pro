@@ -1,4 +1,5 @@
 import { ModulePage } from "@/components/dashboard/ModulePage";
+import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import { isModuleKey } from "@/lib/menus";
 
 export default async function DashboardSlugPage({
@@ -10,5 +11,10 @@ export default async function DashboardSlugPage({
   const routeSlug = Array.isArray(slug) ? slug.join("/") : "";
   const [first = "", ...rest] = routeSlug.split("/").filter(Boolean);
   const moduleKey = isModuleKey(first) ? first : "project";
-  return <ModulePage module={moduleKey} path={rest.join("/")} />;
+  return (
+    <>
+      <RouteBreadcrumb />
+      <ModulePage module={moduleKey} path={rest.join("/")} />
+    </>
+  );
 }

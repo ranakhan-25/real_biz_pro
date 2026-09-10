@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
-
 import { procurementStats } from "@/data/procurement/procurement.mock";
+import Link from "next/link";
 
 const iconMap = {
   clipboard: ClipboardList,
@@ -78,24 +78,28 @@ export default function ProcurementStats() {
       {procurementStats.map((item, index) => {
         const Icon = iconMap[item.icon as keyof typeof iconMap];
 
-        const colors = cardStyles[item.color as keyof typeof cardStyles];
+        const colors =
+          cardStyles[item.color as keyof typeof cardStyles];
 
-        /*
-         * Mock chart data তৈরি করা হচ্ছে existing
-         * item.chart থেকে।
-         */
-        const chart = item.chart ?? [20, 24, 18, 27, 22, 31, 26, 35];
+        const chart = item.chart ?? [
+          20, 24, 18, 27, 22, 31, 26, 35,
+        ];
+
         const chartData = chart.map((value, chartIndex) => ({
           index: chartIndex,
           value,
         }));
 
         return (
-          <div
+          <Link
             key={item.id}
+            href={item.route}
             className={[
-              "relative",
+              "group",
+              "flex",
               "h-[210px]",
+              "min-w-0",
+              "flex-col",
               "overflow-hidden",
               "rounded-[10px]",
               "border",
@@ -107,6 +111,7 @@ export default function ProcurementStats() {
               "duration-200",
               "hover:-translate-y-[1px]",
               "hover:shadow-[0_6px_18px_rgba(15,23,42,0.08)]",
+              "cursor-pointer",
               colors.background,
               colors.border,
             ].join(" ")}
@@ -117,6 +122,7 @@ export default function ProcurementStats() {
                 "flex",
                 "h-[42px]",
                 "w-[42px]",
+                "shrink-0",
                 "items-center",
                 "justify-center",
                 "rounded-[11px]",
@@ -126,29 +132,32 @@ export default function ProcurementStats() {
               <Icon size={21} strokeWidth={2.2} />
             </div>
 
-            {/* Title */}
-            <h3 className="mt-[12px] text-[13px] font-semibold leading-[18px] text-[#172554]">
-              {item.title}
-            </h3>
+            {/* Content */}
+            <div className="min-w-0">
+              {/* Title */}
+              <h3 className="mt-[12px] truncate text-[13px] font-bold leading-[18px] text-[#172554]">
+                {item.title}
+              </h3>
 
-            {/* Value */}
-            <p className="mt-1.75 text-[26px] font-bold leading-8 tracking-[-0.5px] text-[#10234f]">
-              {item.value.toLocaleString()}
-            </p>
+              {/* Value */}
+              <p className="mt-1.75 text-[26px] font-bold leading-8 tracking-[-0.5px] text-[#10234f]">
+                {item.value.toLocaleString()}
+              </p>
 
-            {/* Change */}
-            <div className="mt-1.75 flex items-center gap-[5px]">
-              <span className="text-[12px] font-semibold text-[#16a34a]">
-                ↑ {item.change}%
-              </span>
+              {/* Change */}
+              <div className="mt-1.75 flex min-w-0 items-center gap-[5px]">
+                <span className="shrink-0 text-[12px] font-semibold text-[#16a34a]">
+                  ↑ {item.change}%
+                </span>
 
-              <span className="text-[11px] text-[#71809c]">
-                {item.changeLabel}
-              </span>
+                <span className="truncate text-[11px] text-[#71809c]">
+                  {item.changeLabel}
+                </span>
+              </div>
             </div>
 
-            {/* Bottom chart */}
-            <div className="absolute bottom-1.5 left-4 right-4 h-12">
+            {/* Bottom Chart */}
+            <div className="mt-auto h-12 w-full shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartData}
@@ -196,7 +205,7 @@ export default function ProcurementStats() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

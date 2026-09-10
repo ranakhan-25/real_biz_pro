@@ -10,19 +10,19 @@ export function Logo({
   compact?: boolean;
 }) {
   return (
-    <Link href={to} className="flex items-center gap-2.5" aria-label="RealBiz home">
+    <Link href={to} className="flex items-center" aria-label="RealBiz home">
       <Image
         src={logo}
         alt="RealBiz logo"
         width={512}
         height={512}
-        className="h-9 w-9 object-contain"
+        className="h-20 w-20 object-contain"
       />
-      {!compact && (
+      {/* {!compact && (
         <span className="font-display text-xl font-bold tracking-tight text-foreground">
           RealBiz
         </span>
-      )}
+      )} */}
     </Link>
   );
 }

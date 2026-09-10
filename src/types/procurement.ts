@@ -17,6 +17,7 @@ export interface ProcurementStat {
   changeLabel?: string;
   color?: "red" | "blue" | "green" | "purple" | "orange" | "cyan";
   chart?: number[];
+  route: string;
 }
 
 export interface OverflowMaterial {

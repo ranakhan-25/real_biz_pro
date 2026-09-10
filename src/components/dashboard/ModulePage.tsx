@@ -133,7 +133,7 @@ export function ModulePage({ module, path }: { module: ModuleKey; path: string }
   const moduleDashboard = renderModuleDashboard();
 
   return (
-    <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
+    <div className="mx-auto max-w-[1600px] px-5 py-8 sm:px-8">
       {/* ==========================================
           CUSTOM MODULE DASHBOARD
       ========================================== */}
@@ -145,7 +145,7 @@ export function ModulePage({ module, path }: { module: ModuleKey; path: string }
            CHILD MENU
         ========================================== */
 
-        <div className=" grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {node.children.map((c: MenuNode) => (
             <Link
               key={c.path}
@@ -231,7 +231,7 @@ export function ModulePage({ module, path }: { module: ModuleKey; path: string }
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-160 text-left text-sm">
+              <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Project</th>
@@ -248,7 +248,7 @@ export function ModulePage({ module, path }: { module: ModuleKey; path: string }
 
                 <tbody className="divide-y divide-border">
                   {ROWS.map((r) => (
-                    <tr key={r.name} className="hover:bg-foreground/3">
+                    <tr key={r.name} className="hover:bg-foreground/[0.03]">
                       <td className="px-5 py-3.5 font-semibold">{r.name}</td>
 
                       <td className="px-5 py-3.5 text-muted-foreground">{r.type}</td>

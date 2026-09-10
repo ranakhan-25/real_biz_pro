@@ -11,10 +11,11 @@ export const procurementStats: ProcurementStat[] = [
     value: 0,
     icon: "clipboard",
     type: "pending",
-    color: "red",        // ✅ যোগ করুন
-    change: 0,           // ✅ যোগ করুন
-    changeLabel: "vs last month", // ✅ যোগ করুন
-    chart: [10, 15, 12, 18, 14, 20, 17, 22], // ✅ যোগ করুন
+    color: "red",
+    change: 0, 
+    changeLabel: "vs last month",
+    chart: [10, 15, 12, 18, 14, 20, 17, 22], 
+    route: "/procurement/purchase-orders",
   },
   {
     id: "requisition",
@@ -22,10 +23,11 @@ export const procurementStats: ProcurementStat[] = [
     value: 3,
     icon: "file",
     type: "total",
-    color: "blue",       // ✅ যোগ করুন
-    change: 5.2,         // ✅ যোগ করুন
+    color: "blue",   
+    change: 5.2,
     changeLabel: "vs last month",
     chart: [20, 24, 18, 27, 22, 31, 26, 35],
+    route: "/procurement/purchase-orders",
   },
   {
     id: "pending-purchase-order",
@@ -33,10 +35,11 @@ export const procurementStats: ProcurementStat[] = [
     value: 0,
     icon: "shopping-cart",
     type: "pending",
-    color: "green",      // ✅ যোগ করুন
+    color: "green",  
     change: 0,
     changeLabel: "vs last month",
     chart: [8, 12, 10, 15, 11, 13, 9, 14],
+    route: "/procurement/purchase-orders",
   },
   {
     id: "purchase-order",
@@ -44,10 +47,11 @@ export const procurementStats: ProcurementStat[] = [
     value: 3,
     icon: "package",
     type: "total",
-    color: "purple",     // ✅ যোগ করুন
+    color: "purple",  
     change: 3.8,
     changeLabel: "vs last month",
     chart: [25, 22, 28, 24, 30, 26, 29, 27],
+    route: "/procurement/purchase-orders",
   },
   {
     id: "pending-grn",
@@ -55,10 +59,11 @@ export const procurementStats: ProcurementStat[] = [
     value: 0,
     icon: "truck",
     type: "pending",
-    color: "orange",     // ✅ যোগ করুন
+    color: "orange",   
     change: 0,
     changeLabel: "vs last month",
     chart: [5, 8, 6, 10, 7, 9, 11, 8],
+    route: "/procurement/purchase-orders",
   },
   {
     id: "pending-purchase-bill",
@@ -70,6 +75,7 @@ export const procurementStats: ProcurementStat[] = [
     change: 0,
     changeLabel: "vs last month",
     chart: [12, 15, 10, 13, 11, 14, 9, 12],
+    route: "/procurement/purchase-orders",
   },
 ];
 
@@ -103,6 +109,42 @@ export const overflowMaterials: OverflowMaterial[] = [
   },
   {
     id: "OM-004",
+    description: "Sand",
+    budgetQty: 300,
+    budgetAmount: 180000,
+    issueQty: 250,
+    issueAmount: 150000,
+    status: "Issued",
+  },
+  {
+    id: "OM-005",
+    description: "Sand",
+    budgetQty: 300,
+    budgetAmount: 180000,
+    issueQty: 250,
+    issueAmount: 150000,
+    status: "Issued",
+  },
+  {
+    id: "OM-006",
+    description: "Sand",
+    budgetQty: 300,
+    budgetAmount: 180000,
+    issueQty: 250,
+    issueAmount: 150000,
+    status: "Issued",
+  },
+  {
+    id: "OM-007",
+    description: "Sand",
+    budgetQty: 300,
+    budgetAmount: 180000,
+    issueQty: 250,
+    issueAmount: 150000,
+    status: "Issued",
+  },
+  {
+    id: "OM-008",
     description: "Sand",
     budgetQty: 300,
     budgetAmount: 180000,

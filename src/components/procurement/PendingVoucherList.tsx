@@ -1,30 +1,30 @@
+"use client";
+
 import { Eye, Search, FileCheck2 } from "lucide-react";
 import { pendingVouchers } from "@/data/procurement/procurement.mock";
 
 export default function PendingVoucherList() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-cyan-100 p-2 text-cyan-600">
-            <FileCheck2 size={20} />
-          </div>
-
-          <div>
-            <h3 className="font-bold text-slate-800">
-              Pending Voucher/Invoice
-            </h3>
-
-            <p className="text-xs text-slate-500">Awaiting approval</p>
-          </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      {/* Header */}
+      <div className="mb-3 flex items-center gap-3">
+        <div className="rounded-lg bg-cyan-100 p-2 text-cyan-600">
+          <FileCheck2 size={20} />
         </div>
 
-        <button className="text-sm font-semibold text-blue-600 hover:underline">
-          View All
-        </button>
+        <div>
+          <h3 className="font-bold text-slate-800">
+            Pending Voucher/Invoice
+          </h3>
+
+          <p className="text-xs text-slate-500">
+            Awaiting approval
+          </p>
+        </div>
       </div>
 
-      <div className="relative mb-4">
+      {/* Search */}
+      <div className="relative mb-3">
         <Search
           size={17}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -37,12 +37,14 @@ export default function PendingVoucherList() {
         />
       </div>
 
-      <div className="space-y-3">
+      {/* Voucher List */}
+      <div className="max-h-[370px] space-y-2 overflow-y-auto pr-1">
         {pendingVouchers.map((voucher) => (
           <div
             key={voucher.id}
-            className="rounded-xl border border-slate-200 p-4 transition hover:border-blue-200 hover:shadow-sm"
+            className="rounded-xl border border-slate-200 p-3 transition hover:border-blue-200 hover:shadow-sm"
           >
+            {/* Reference + Type */}
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500">
                 Reference
@@ -53,30 +55,44 @@ export default function PendingVoucherList() {
               </span>
             </div>
 
+            {/* Voucher Content */}
             <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1 text-sm">
+              <div className="min-w-0 space-y-0.5 text-sm">
                 <p className="font-semibold text-slate-800">
                   Project:{" "}
-                  <span className="font-normal">{voucher.project}</span>
+                  <span className="font-normal">
+                    {voucher.project}
+                  </span>
                 </p>
 
-                <p className="text-slate-600">Contact: {voucher.contact}</p>
+                <p className="text-slate-600">
+                  Contact: {voucher.contact}
+                </p>
 
-                <p className="text-slate-600">Added By: {voucher.addedBy}</p>
+                <p className="text-slate-600">
+                  Added By: {voucher.addedBy}
+                </p>
 
-                <p className="text-slate-500">{voucher.date}</p>
+                <p className="text-slate-500">
+                  {voucher.date}
+                </p>
 
                 <p className="font-semibold text-blue-600">
                   {voucher.saleOffer}
                 </p>
               </div>
 
-              <button className="rounded-lg bg-blue-600 p-2 text-white hover:bg-blue-700">
+              {/* View Button */}
+              <button
+                type="button"
+                className="shrink-0 rounded-lg bg-blue-600 p-2 text-white transition hover:bg-blue-700"
+              >
                 <Eye size={17} />
               </button>
             </div>
 
-            <p className="mt-3 text-xs font-semibold text-red-500">
+            {/* Status */}
+            <p className="mt-2 text-xs font-semibold text-red-500">
               {voucher.status}
             </p>
           </div>
