@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "home": "Home",
+    "properties": "Properties",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Log in"
+  },
+  "language": {
+    "english": "English",
+    "bangla": "বাংলা"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

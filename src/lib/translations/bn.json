@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "home": "হোম",
+    "properties": "প্রপার্টি",
+    "about": "সম্পর্কে",
+    "contact": "যোগাযোগ",
+    "login": "লগ ইন"
+  },
+  "language": {
+    "english": "ইংরেজি",
+    "bangla": "বাংলা"
+  },
+  "theme": {
+    "light": "আলো",
+    "dark": "অন্ধকার"
+  }
+}
