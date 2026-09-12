@@ -1,92 +1,78 @@
 "use client";
 
 import React, { useState } from "react";
-<<<<<<< HEAD
-import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
-=======
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
->>>>>>> origin/dev
 
 // API থেকে আসা ডেটার TypeScript Interface
-interface SectionItem {
+interface UnitItem {
   id: number;
   sl: number;
   name: string;
 }
 
-// API যুক্ত করার আগ পর্যন্ত মক ডাটা (Mock Data)
-const initialSectionData: SectionItem[] = [
+// আপনার ছবিতে থাকা ডাটা অনুসারে মক ডাটা (Mock Data)
+const initialUnitData: UnitItem[] = [
   { id: 1, sl: 1, name: "Software Development" },
-  { id: 2, sl: 2, name: "Software Support" },
-  { id: 3, sl: 3, name: "Software Testing" },
-  { id: 4, sl: 4, name: "Store" },
-  { id: 5, sl: 5, name: "Customs" },
-  { id: 6, sl: 6, name: "Dop" },
-  { id: 7, sl: 7, name: "Chemical" },
-  { id: 8, sl: 8, name: "Mechanical" },
-  { id: 9, sl: 9, name: "Electrical" },
-  { id: 10, sl: 10, name: "Factory" },
+  { id: 2, sl: 2, name: "Head Office" },
+  { id: 3, sl: 3, name: "Site" },
+  { id: 4, sl: 4, name: "Architecture" },
+  { id: 5, sl: 5, name: "General" },
+  { id: 6, sl: 6, name: "Marketing" },
+  { id: 7, sl: 7, name: "Servicing" },
 ];
 
-export default function SectionListPage() {
-  // API Integrated States
-  const [sections, setSections] = useState<SectionItem[]>(initialSectionData);
+export default function UnitListPage() {
+  // Page States
+  const [units, setUnits] = useState<UnitItem[]>(initialUnitData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
 
-<<<<<<< HEAD
-=======
   // Modal State Management
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [sectionName, setSectionName] = useState("");
+  const [unitName, setUnitName] = useState("");
 
->>>>>>> origin/dev
   /* 
     TODO: API Integration Example
     useEffect(() => {
-      const fetchSections = async () => {
+      const fetchUnits = async () => {
         try {
-          const res = await fetch('/api/sections');
+          const res = await fetch('/api/units');
           const data = await res.json();
-          setSections(data);
+          setUnits(data);
         } catch (error) {
-          console.error("Failed to fetch sections", error);
+          console.error("Failed to fetch units", error);
         }
       };
-      fetchSections();
+      fetchUnits();
     }, []);
   */
 
-<<<<<<< HEAD
-=======
   // Submit Handler (API Ready)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sectionName.trim()) return;
+    if (!unitName.trim()) return;
 
     /* TODO: API Call Here 
-       const res = await fetch('/api/sections', { 
+       const res = await fetch('/api/units', { 
          method: 'POST', 
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ name: sectionName }) 
+         body: JSON.stringify({ name: unitName }) 
        });
     */
 
-    const newSection: SectionItem = {
-      id: sections.length + 1,
-      sl: sections.length + 1,
-      name: sectionName.trim(),
+    const newUnit: UnitItem = {
+      id: units.length + 1,
+      sl: units.length + 1,
+      name: unitName.trim(),
     };
 
-    setSections([...sections, newSection]);
+    setUnits([...units, newUnit]);
 
     // Reset Form & Close Modal
-    setSectionName("");
+    setUnitName("");
     setIsModalOpen(false);
   };
 
->>>>>>> origin/dev
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
       {/* Top Header Section: Breadcrumb & Add Button */}
@@ -101,21 +87,17 @@ export default function SectionListPage() {
           </span>
           <span>&gt;</span>
           <span className="text-slate-400 dark:text-slate-500">
-            Section List
+            Unit List
           </span>
         </nav>
 
-<<<<<<< HEAD
-        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
-=======
-        {/* Section Add Button (Modal Trigger) */}
+        {/* Unit Add Button (Modal Trigger) */}
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
         >
->>>>>>> origin/dev
           <Plus className="w-4 h-4" />
-          Section Add
+          Unit Add
         </button>
       </div>
 
@@ -174,7 +156,7 @@ export default function SectionListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]/80 bg-white dark:bg-[#080d1a]">
-              {sections.map((item) => (
+              {units.map((item) => (
                 <tr
                   key={item.id}
                   className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors"
@@ -188,22 +170,14 @@ export default function SectionListPage() {
                   <td className="p-3">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
-<<<<<<< HEAD
-                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
-=======
                         className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm cursor-pointer"
->>>>>>> origin/dev
-                        title="Edit Section"
+                        title="Edit Unit"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
-<<<<<<< HEAD
-                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
-=======
                         className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm cursor-pointer"
->>>>>>> origin/dev
-                        title="Delete Section"
+                        title="Delete Unit"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -217,7 +191,7 @@ export default function SectionListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
-          <div>Showing 1 to 10 of 19 entries</div>
+          <div>Showing 1 to 7 of 7 entries</div>
           <div className="flex items-center gap-1">
             <button
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
@@ -228,26 +202,25 @@ export default function SectionListPage() {
             <button className="px-3 py-1.5 rounded bg-indigo-600 text-white font-medium">
               1
             </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              2
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
+            <button
+              className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
+              disabled
+            >
               Next
             </button>
           </div>
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* SECTION ADD MODAL (18.PNG অনুসরণে) */}
+      {/* UNIT ADD MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#131c31]">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                Section Add
+                Unit Add
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -262,14 +235,14 @@ export default function SectionListPage() {
               {/* Input Field */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Section Name<span className="text-rose-500 ml-0.5">*</span>
+                  Unit Name<span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   placeholder="Enter Name"
-                  value={sectionName}
-                  onChange={(e) => setSectionName(e.target.value)}
+                  value={unitName}
+                  onChange={(e) => setUnitName(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
@@ -295,7 +268,6 @@ export default function SectionListPage() {
         </div>
       )}
 
->>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>

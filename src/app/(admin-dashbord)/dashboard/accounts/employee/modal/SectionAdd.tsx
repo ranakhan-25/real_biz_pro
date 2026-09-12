@@ -1,21 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-<<<<<<< HEAD
-import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
-=======
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
->>>>>>> origin/dev
 
-// API থেকে আসা ডেটার TypeScript Interface
-interface SectionItem {
+// API থেকে আসা Section Data-র TypeScript Interface
+interface Section {
   id: number;
   sl: number;
   name: string;
 }
 
-// API যুক্ত করার আগ পর্যন্ত মক ডাটা (Mock Data)
-const initialSectionData: SectionItem[] = [
+// ছবিতে থাকা ডাটা অনুসারে মক ডাটা (Mock Data)
+const initialSectionData: Section[] = [
   { id: 1, sl: 1, name: "Software Development" },
   { id: 2, sl: 2, name: "Software Support" },
   { id: 3, sl: 3, name: "Software Testing" },
@@ -29,51 +25,25 @@ const initialSectionData: SectionItem[] = [
 ];
 
 export default function SectionListPage() {
-  // API Integrated States
-  const [sections, setSections] = useState<SectionItem[]>(initialSectionData);
+  // Page States
+  const [sections, setSections] = useState<Section[]>(initialSectionData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
 
-<<<<<<< HEAD
-=======
-  // Modal State Management
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sectionName, setSectionName] = useState("");
 
->>>>>>> origin/dev
-  /* 
-    TODO: API Integration Example
-    useEffect(() => {
-      const fetchSections = async () => {
-        try {
-          const res = await fetch('/api/sections');
-          const data = await res.json();
-          setSections(data);
-        } catch (error) {
-          console.error("Failed to fetch sections", error);
-        }
-      };
-      fetchSections();
-    }, []);
-  */
-
-<<<<<<< HEAD
-=======
-  // Submit Handler (API Ready)
+  // Submit Handler (API Integration Ready)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sectionName.trim()) return;
 
     /* TODO: API Call Here 
-       const res = await fetch('/api/sections', { 
-         method: 'POST', 
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ name: sectionName }) 
-       });
+       const res = await fetch('/api/sections', { method: 'POST', body: JSON.stringify({ name: sectionName }) });
     */
 
-    const newSection: SectionItem = {
+    const newSection: Section = {
       id: sections.length + 1,
       sl: sections.length + 1,
       name: sectionName.trim(),
@@ -81,12 +51,11 @@ export default function SectionListPage() {
 
     setSections([...sections, newSection]);
 
-    // Reset Form & Close Modal
+    // Reset & Close
     setSectionName("");
     setIsModalOpen(false);
   };
 
->>>>>>> origin/dev
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
       {/* Top Header Section: Breadcrumb & Add Button */}
@@ -105,15 +74,10 @@ export default function SectionListPage() {
           </span>
         </nav>
 
-<<<<<<< HEAD
-        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
-=======
-        {/* Section Add Button (Modal Trigger) */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
+          className="flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
         >
->>>>>>> origin/dev
           <Plus className="w-4 h-4" />
           Section Add
         </button>
@@ -165,9 +129,8 @@ export default function SectionListPage() {
                     <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
                   </div>
                 </th>
-                <th className="p-3 text-center w-28">
-                  <div className="flex items-center justify-center gap-1">
-                    ACTION
+                <th className="p-3 text-right w-28">
+                  <div className="flex items-center justify-end gap-1">
                     <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
                   </div>
                 </th>
@@ -186,23 +149,15 @@ export default function SectionListPage() {
                     {item.name}
                   </td>
                   <td className="p-3">
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
-<<<<<<< HEAD
-                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
-=======
                         className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm cursor-pointer"
->>>>>>> origin/dev
                         title="Edit Section"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
-<<<<<<< HEAD
-                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
-=======
                         className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm cursor-pointer"
->>>>>>> origin/dev
                         title="Delete Section"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -238,12 +193,11 @@ export default function SectionListPage() {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
-      {/* SECTION ADD MODAL (18.PNG অনুসরণে) */}
+      {/* SECTION ADD MODAL (ছবির সাথে ১০০% মিল রেখে তৈরি) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#131c31]">
               <h3 className="text-base font-semibold text-slate-900 dark:text-white">
@@ -258,7 +212,7 @@ export default function SectionListPage() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-5 space-y-5">
+            <form onSubmit={handleSubmit} className="p-5 space-y-6">
               {/* Input Field */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -295,7 +249,6 @@ export default function SectionListPage() {
         </div>
       )}
 
->>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>

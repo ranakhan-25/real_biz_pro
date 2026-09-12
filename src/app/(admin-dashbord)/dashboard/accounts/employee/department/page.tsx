@@ -10,6 +10,10 @@ import {
   Pencil,
   Trash2,
   ArrowUpDown,
+<<<<<<< HEAD
+=======
+  X,
+>>>>>>> origin/dev
 } from "lucide-react";
 
 // API থেকে আসা ডেটার TypeScript Interface
@@ -35,12 +39,17 @@ const initialDepartmentData: Department[] = [
 ];
 
 export default function DepartmentListPage() {
+<<<<<<< HEAD
   // API Integrated States (ভবিষ্যতে API দিয়ে এগুলো আপডেট করা সহজ হবে)
+=======
+  // API Integrated States
+>>>>>>> origin/dev
   const [departments, setDepartments] = useState<Department[]>(initialDepartmentData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+<<<<<<< HEAD
   /* 
     TODO: API Integration Example
     useEffect(() => {
@@ -56,6 +65,31 @@ export default function DepartmentListPage() {
       fetchDepartments();
     }, []);
   */
+=======
+  // Modal State & Form Input States
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [departmentName, setDepartmentName] = useState("");
+  const [departmentHead, setDepartmentHead] = useState("");
+
+  // New Department Submit Handler
+  const handleAddDepartment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!departmentName.trim()) return;
+
+    const newId = departments.length + 1;
+    const newDepartment: Department = {
+      id: newId,
+      sl: newId,
+      departmentName: departmentName.trim(),
+      departmentHead: departmentHead.trim() ? departmentHead.trim() : "-",
+    };
+
+    setDepartments([...departments, newDepartment]);
+    setDepartmentName("");
+    setDepartmentHead("");
+    setIsModalOpen(false);
+  };
+>>>>>>> origin/dev
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
@@ -91,7 +125,16 @@ export default function DepartmentListPage() {
               <FileText className="w-4 h-4" />
               PDF
             </button>
+<<<<<<< HEAD
             <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
+=======
+            
+            {/* Modal Open Trigger Button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+            >
+>>>>>>> origin/dev
               <Plus className="w-4 h-4" />
               Department Add
             </button>
@@ -190,22 +233,100 @@ export default function DepartmentListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
+<<<<<<< HEAD
           <div>Showing 1 to 10 of 20 entries</div>
+=======
+          <div>Showing 1 to {departments.length} of {departments.length} entries</div>
+>>>>>>> origin/dev
           <div className="flex items-center gap-1">
             <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40" disabled>
               Previous
             </button>
             <button className="px-3 py-1.5 rounded bg-indigo-600 text-white font-medium">1</button>
             <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
+<<<<<<< HEAD
               2
             </button>
             <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
+=======
+>>>>>>> origin/dev
               Next
             </button>
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* --- Department Add Modal --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#131c31] bg-slate-50/50 dark:bg-[#030712]/50">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Add New Department</h3>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleAddDepartment} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Department Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Human Resources"
+                  value={departmentName}
+                  onChange={(e) => setDepartmentName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Department Head (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={departmentHead}
+                  onChange={(e) => setDepartmentHead(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                />
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-[#1e293b] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+                >
+                  Save Department
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+>>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>
