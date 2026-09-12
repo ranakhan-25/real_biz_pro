@@ -20,6 +20,10 @@
     ]
   },
   "dependencies": {
+<<<<<<< HEAD
+    "@ant-design/icons": "^6.3.4",
+=======
+>>>>>>> origin/dev
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -53,6 +57,11 @@
     "@tanstack/react-router": "1.170.18",
     "@tanstack/react-start": "1.168.32",
     "@tanstack/router-plugin": "1.168.23",
+<<<<<<< HEAD
+    "antd": "^6.6.3",
+    "axios": "^1.20.0",
+=======
+>>>>>>> origin/dev
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

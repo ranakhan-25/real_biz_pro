@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+<<<<<<< HEAD
+import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
+=======
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
+>>>>>>> origin/dev
 
 // API থেকে আসা ডেটার TypeScript Interface
 interface UnitItem {
@@ -22,12 +26,20 @@ const initialUnitData: UnitItem[] = [
 ];
 
 export default function UnitListPage() {
+<<<<<<< HEAD
+  // API Integrated States
+=======
   // Main States
+>>>>>>> origin/dev
   const [units, setUnits] = useState<UnitItem[]>(initialUnitData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+<<<<<<< HEAD
+  /* 
+    TODO: API Integration Example
+=======
   // Modal & Form States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitItem | null>(null);
@@ -35,6 +47,7 @@ export default function UnitListPage() {
 
   /* 
     TODO: API Integration Example (Fetch Units)
+>>>>>>> origin/dev
     useEffect(() => {
       const fetchUnits = async () => {
         try {
@@ -49,6 +62,8 @@ export default function UnitListPage() {
     }, []);
   */
 
+<<<<<<< HEAD
+=======
   // Add Modal Open Handler
   const handleOpenAddModal = () => {
     setEditingUnit(null);
@@ -123,6 +138,7 @@ export default function UnitListPage() {
     unit.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+>>>>>>> origin/dev
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
       {/* Top Header Section: Breadcrumb & Add Button */}
@@ -139,11 +155,15 @@ export default function UnitListPage() {
           <span className="text-slate-400 dark:text-slate-500">Unit List</span>
         </nav>
 
+<<<<<<< HEAD
+        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
+=======
         {/* Unit Add Button */}
         <button
           onClick={handleOpenAddModal}
           className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
         >
+>>>>>>> origin/dev
           <Plus className="w-4 h-4" />
           Unit Add
         </button>
@@ -173,7 +193,10 @@ export default function UnitListPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+<<<<<<< HEAD
+=======
               placeholder="Search..."
+>>>>>>> origin/dev
               className="w-full sm:w-64 px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
@@ -205,6 +228,37 @@ export default function UnitListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]/80 bg-white dark:bg-[#080d1a]">
+<<<<<<< HEAD
+              {units.map((item) => (
+                <tr
+                  key={item.id}
+                  className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors"
+                >
+                  <td className="p-3 text-slate-600 dark:text-slate-400 font-medium">
+                    {item.sl}
+                  </td>
+                  <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">
+                    {item.name}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
+                        title="Edit Unit"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
+                        title="Delete Unit"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+=======
               {filteredUnits.length > 0 ? (
                 filteredUnits.map((item, index) => (
                   <tr
@@ -250,6 +304,7 @@ export default function UnitListPage() {
                   </td>
                 </tr>
               )}
+>>>>>>> origin/dev
             </tbody>
           </table>
         </div>
@@ -257,11 +312,19 @@ export default function UnitListPage() {
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
           <div>
+<<<<<<< HEAD
+            Showing 1 to {units.length} of {units.length} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
+=======
             Showing 1 to {filteredUnits.length} of {filteredUnits.length} entries
           </div>
           <div className="flex items-center gap-1">
             <button
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40 cursor-not-allowed"
+>>>>>>> origin/dev
               disabled
             >
               Previous
@@ -270,7 +333,11 @@ export default function UnitListPage() {
               1
             </button>
             <button
+<<<<<<< HEAD
+              className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
+=======
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40 cursor-not-allowed"
+>>>>>>> origin/dev
               disabled
             >
               Next
@@ -279,6 +346,8 @@ export default function UnitListPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
       {/* UNIT ADD / EDIT MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -340,6 +409,7 @@ export default function UnitListPage() {
         </div>
       )}
 
+>>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>
@@ -347,4 +417,8 @@ export default function UnitListPage() {
       </footer>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/dev
