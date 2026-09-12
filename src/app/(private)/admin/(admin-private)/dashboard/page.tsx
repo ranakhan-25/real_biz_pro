@@ -759,31 +759,6 @@ export default function AdminDashboardPage() {
               );
             })}
           </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {[
-              ["12", "Modules", Boxes],
-              ["48", "Menus", Menu],
-              ["96", "Keys", FileKey2],
-            ].map(([value, label, Icon]) => {
-              const MiniIcon = Icon as typeof Boxes;
-
-              return (
-                <div
-                  key={label as string}
-                  className="rounded-xl bg-slate-50 p-3 text-center"
-                >
-                  <MiniIcon className="mx-auto h-4 w-4 text-slate-400" />
-
-                  <p className="mt-1.5 text-sm font-bold text-slate-800">
-                    {value as string}
-                  </p>
-
-                  <p className="text-[9px] text-slate-400">{label as string}</p>
-                </div>
-              );
-            })}
-          </div>
         </motion.section>
       </div>
     </main>
