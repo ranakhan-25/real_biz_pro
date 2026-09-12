@@ -1,80 +1,83 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUpDown, X, Clock } from "lucide-react";
 
-// API থেকে আসা ডেটার TypeScript Interface
-interface Designation {
-  id: number;
-  sl: number;
-  department: string;
-  designation: string;
+// API থেকে আসা Shift Data-র Interface
+interface ShiftDaySchedule {
+  day: string;
+  enabled: boolean;
+  fromTime: string;
+  toTime: string;
 }
 
-// API যুক্ত করার আগ পর্যন্ত মক ডাটা (Mock Data)
-const initialDesignationData: Designation[] = [
-  {
-    id: 1,
-    sl: 1,
-    department: "Business Development",
-    designation: "Jr Execuitve",
-  },
-  { id: 2, sl: 2, department: "Business Development", designation: "HOS" },
-  {
-    id: 3,
-    sl: 3,
-    department: "Business Development",
-    designation: "Executive",
-  },
-  { id: 4, sl: 4, department: "Business Development", designation: "TL" },
-  { id: 5, sl: 5, department: "Business Development", designation: "GL" },
-  {
-    id: 6,
-    sl: 6,
-    department: "Business Development",
-    designation: "Co-Ordinator",
-  },
-  { id: 7, sl: 7, department: "Accounts", designation: "Manager" },
-  {
-    id: 8,
-    sl: 8,
-    department: "Sales and Marketing",
-    designation: "Team Leader",
-  },
-  { id: 9, sl: 9, department: "Test", designation: "Messanger" },
-  { id: 10, sl: 10, department: "Store", designation: "Coveredvan Helper" },
+interface Shift {
+  id: number;
+  sl: number;
+  name: string;
+  schedules?: ShiftDaySchedule[];
+}
+
+// ডিফল্ট সপ্তাহের দিনগুলো
+const initialDays: ShiftDaySchedule[] = [
+  { day: "Saturday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Sunday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Monday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Tuesday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Wednesday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Thursday", enabled: true, fromTime: "", toTime: "" },
+  { day: "Friday", enabled: true, fromTime: "", toTime: "" },
 ];
 
-export default function DesignationListPage() {
-  // API Integrated States
-  const [designations, setDesignations] = useState<Designation[]>(
-    initialDesignationData
-  );
+// মক ডাটা (API যুক্ত করার পূর্ব পর্যন্ত)
+const initialShiftData: Shift[] = [
+  { id: 1, sl: 1, name: "General Shift" },
+  { id: 2, sl: 2, name: "Morning Shift" },
+  { id: 3, sl: 3, name: "Night Shift" },
+  { id: 4, sl: 4, name: "Roster Shift" },
+];
+
+export default function ShiftListPage() {
+  const [shifts, setShifts] = useState<Shift[]>(initialShiftData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal & Form State
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [designationName, setDesignationName] = useState("");
+  const [shiftName, setShiftName] = useState("");
+  const [daysSchedule, setDaysSchedule] = useState<ShiftDaySchedule[]>(initialDays);
 
-  // New Designation Submit Handler
-  const handleAddDesignation = (e: React.FormEvent) => {
+  // Checkbox Toggle Handler
+  const handleDayToggle = (index: number) => {
+    const updated = [...daysSchedule];
+    updated[index].enabled = !updated[index].enabled;
+    setDaysSchedule(updated);
+  };
+
+  // Time Change Handler
+  const handleTimeChange = (index: number, field: "fromTime" | "toTime", value: string) => {
+    const updated = [...daysSchedule];
+    updated[index][field] = value;
+    setDaysSchedule(updated);
+  };
+
+  // Submit Handler (API Ready)
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDepartment || !designationName.trim()) return;
+    if (!shiftName.trim()) return;
 
-    const newId = designations.length + 1;
-    const newDesignation: Designation = {
-      id: newId,
-      sl: newId,
-      department: selectedDepartment,
-      designation: designationName.trim(),
+    const newShift: Shift = {
+      id: shifts.length + 1,
+      sl: shifts.length + 1,
+      name: shiftName.trim(),
+      schedules: daysSchedule,
     };
 
-    setDesignations([...designations, newDesignation]);
-    setSelectedDepartment("");
-    setDesignationName("");
+    setShifts([...shifts, newShift]);
+    
+    // Reset State
+    setShiftName("");
+    setDaysSchedule(initialDays);
     setIsModalOpen(false);
   };
 
@@ -92,16 +95,16 @@ export default function DesignationListPage() {
           </span>
           <span>&gt;</span>
           <span className="text-slate-400 dark:text-slate-500">
-            Designation List
+            Shift List
           </span>
         </nav>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+          className="flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Designation Add
+          Shift Add
         </button>
       </div>
 
@@ -147,13 +150,7 @@ export default function DesignationListPage() {
                 </th>
                 <th className="p-3">
                   <div className="flex items-center gap-1">
-                    DEPARTMENT
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
-                  </div>
-                </th>
-                <th className="p-3">
-                  <div className="flex items-center gap-1">
-                    DESIGNATION
+                    SHIFT NAME
                     <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
                   </div>
                 </th>
@@ -166,7 +163,7 @@ export default function DesignationListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]/80 bg-white dark:bg-[#080d1a]">
-              {designations.map((item) => (
+              {shifts.map((item) => (
                 <tr
                   key={item.id}
                   className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors"
@@ -175,22 +172,19 @@ export default function DesignationListPage() {
                     {item.sl}
                   </td>
                   <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">
-                    {item.department}
-                  </td>
-                  <td className="p-3 text-slate-600 dark:text-slate-300">
-                    {item.designation}
+                    {item.name}
                   </td>
                   <td className="p-3">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
-                        title="Edit Designation"
+                        title="Edit Shift"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
-                        title="Delete Designation"
+                        title="Delete Shift"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -204,7 +198,7 @@ export default function DesignationListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
-          <div>Showing 1 to {designations.length} of 54 entries</div>
+          <div>Showing 1 to {shifts.length} of {shifts.length} entries</div>
           <div className="flex items-center gap-1">
             <button
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
@@ -216,83 +210,102 @@ export default function DesignationListPage() {
               1
             </button>
             <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              2
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              3
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              4
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              5
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              6
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
               Next
             </button>
           </div>
         </div>
       </div>
 
-      {/* Designation Add Modal */}
+      {/* Shift Add Modal (Follows Image 17.PNG Exactly) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+          <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#131c31]">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Designation
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                Shift
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
+                className="w-7 h-7 flex items-center justify-center rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleAddDesignation} className="p-5 space-y-4">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              {/* Name Input */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Department<span className="text-rose-500 ml-0.5">*</span>
-                </label>
-                <select
-                  required
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"
-                >
-                  <option value="" disabled>
-                    Select value
-                  </option>
-                  <option value="Business Development">
-                    Business Development
-                  </option>
-                  <option value="Sales and Marketing">
-                    Sales and Marketing
-                  </option>
-                  <option value="Accounts">Accounts</option>
-                  <option value="Store">Store</option>
-                  <option value="Test">Test</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Designation<span className="text-rose-500 ml-0.5">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Name<span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Designation"
-                  value={designationName}
-                  onChange={(e) => setDesignationName(e.target.value)}
+                  placeholder="Enter Name"
+                  value={shiftName}
+                  onChange={(e) => setShiftName(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
+              </div>
+
+              {/* Day & Time Grid Table */}
+              <div className="border border-slate-200 dark:border-[#131c31] rounded-lg overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-indigo-600 dark:bg-indigo-600/90 text-white font-semibold">
+                      <th className="p-2.5 text-left w-1/3 border-r border-indigo-500/30">DAY</th>
+                      <th className="p-2.5 text-left w-1/3 border-r border-indigo-500/30">FROM TIME</th>
+                      <th className="p-2.5 text-left w-1/3">TO TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]">
+                    {daysSchedule.map((item, index) => (
+                      <tr key={item.day} className="bg-white dark:bg-[#080d1a]">
+                        {/* Day Pill Column */}
+                        <td className="p-2 border-r border-slate-200 dark:border-[#131c31]">
+                          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-200 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-300 font-medium text-xs w-full cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={item.enabled}
+                              onChange={() => handleDayToggle(index)}
+                              className="rounded border-emerald-400 text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5"
+                            />
+                            <span>{item.day}</span>
+                          </label>
+                        </td>
+
+                        {/* From Time Input */}
+                        <td className="p-2 border-r border-slate-200 dark:border-[#131c31]">
+                          <div className="relative flex items-center">
+                            <input
+                              type="time"
+                              value={item.fromTime}
+                              onChange={(e) => handleTimeChange(index, "fromTime", e.target.value)}
+                              disabled={!item.enabled}
+                              className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                            />
+                          </div>
+                        </td>
+
+                        {/* To Time Input */}
+                        <td className="p-2">
+                          <div className="relative flex items-center">
+                            <input
+                              type="time"
+                              value={item.toTime}
+                              onChange={(e) => handleTimeChange(index, "toTime", e.target.value)}
+                              disabled={!item.enabled}
+                              className="w-full px-3 py-1.5 text-xs bg-white dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
               {/* Modal Actions */}
@@ -300,13 +313,13 @@ export default function DesignationListPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-slate-400 dark:bg-slate-700 hover:bg-slate-500 dark:hover:bg-slate-600 text-white transition-colors"
+                  className="px-6 py-2 text-xs font-medium rounded bg-slate-400 dark:bg-slate-600 hover:bg-slate-500 dark:hover:bg-slate-500 text-white transition-colors"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+                  className="px-6 py-2 text-xs font-medium rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
                 >
                   Submit
                 </button>

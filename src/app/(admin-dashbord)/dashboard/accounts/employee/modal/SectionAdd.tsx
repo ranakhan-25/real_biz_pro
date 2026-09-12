@@ -3,78 +3,56 @@
 import React, { useState } from "react";
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
 
-// API থেকে আসা ডেটার TypeScript Interface
-interface Designation {
+// API থেকে আসা Section Data-র TypeScript Interface
+interface Section {
   id: number;
   sl: number;
-  department: string;
-  designation: string;
+  name: string;
 }
 
-// API যুক্ত করার আগ পর্যন্ত মক ডাটা (Mock Data)
-const initialDesignationData: Designation[] = [
-  {
-    id: 1,
-    sl: 1,
-    department: "Business Development",
-    designation: "Jr Execuitve",
-  },
-  { id: 2, sl: 2, department: "Business Development", designation: "HOS" },
-  {
-    id: 3,
-    sl: 3,
-    department: "Business Development",
-    designation: "Executive",
-  },
-  { id: 4, sl: 4, department: "Business Development", designation: "TL" },
-  { id: 5, sl: 5, department: "Business Development", designation: "GL" },
-  {
-    id: 6,
-    sl: 6,
-    department: "Business Development",
-    designation: "Co-Ordinator",
-  },
-  { id: 7, sl: 7, department: "Accounts", designation: "Manager" },
-  {
-    id: 8,
-    sl: 8,
-    department: "Sales and Marketing",
-    designation: "Team Leader",
-  },
-  { id: 9, sl: 9, department: "Test", designation: "Messanger" },
-  { id: 10, sl: 10, department: "Store", designation: "Coveredvan Helper" },
+// ছবিতে থাকা ডাটা অনুসারে মক ডাটা (Mock Data)
+const initialSectionData: Section[] = [
+  { id: 1, sl: 1, name: "Software Development" },
+  { id: 2, sl: 2, name: "Software Support" },
+  { id: 3, sl: 3, name: "Software Testing" },
+  { id: 4, sl: 4, name: "Store" },
+  { id: 5, sl: 5, name: "Customs" },
+  { id: 6, sl: 6, name: "Dop" },
+  { id: 7, sl: 7, name: "Chemical" },
+  { id: 8, sl: 8, name: "Mechanical" },
+  { id: 9, sl: 9, name: "Electrical" },
+  { id: 10, sl: 10, name: "Factory" },
 ];
 
-export default function DesignationListPage() {
-  // API Integrated States
-  const [designations, setDesignations] = useState<Designation[]>(
-    initialDesignationData
-  );
+export default function SectionListPage() {
+  // Page States
+  const [sections, setSections] = useState<Section[]>(initialSectionData);
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal & Form State
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [designationName, setDesignationName] = useState("");
+  const [sectionName, setSectionName] = useState("");
 
-  // New Designation Submit Handler
-  const handleAddDesignation = (e: React.FormEvent) => {
+  // Submit Handler (API Integration Ready)
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDepartment || !designationName.trim()) return;
+    if (!sectionName.trim()) return;
 
-    const newId = designations.length + 1;
-    const newDesignation: Designation = {
-      id: newId,
-      sl: newId,
-      department: selectedDepartment,
-      designation: designationName.trim(),
+    /* TODO: API Call Here 
+       const res = await fetch('/api/sections', { method: 'POST', body: JSON.stringify({ name: sectionName }) });
+    */
+
+    const newSection: Section = {
+      id: sections.length + 1,
+      sl: sections.length + 1,
+      name: sectionName.trim(),
     };
 
-    setDesignations([...designations, newDesignation]);
-    setSelectedDepartment("");
-    setDesignationName("");
+    setSections([...sections, newSection]);
+
+    // Reset & Close
+    setSectionName("");
     setIsModalOpen(false);
   };
 
@@ -92,16 +70,16 @@ export default function DesignationListPage() {
           </span>
           <span>&gt;</span>
           <span className="text-slate-400 dark:text-slate-500">
-            Designation List
+            Section List
           </span>
         </nav>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+          className="flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Designation Add
+          Section Add
         </button>
       </div>
 
@@ -147,26 +125,19 @@ export default function DesignationListPage() {
                 </th>
                 <th className="p-3">
                   <div className="flex items-center gap-1">
-                    DEPARTMENT
+                    NAME
                     <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
                   </div>
                 </th>
-                <th className="p-3">
-                  <div className="flex items-center gap-1">
-                    DESIGNATION
-                    <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
-                  </div>
-                </th>
-                <th className="p-3 text-center w-28">
-                  <div className="flex items-center justify-center gap-1">
-                    ACTION
+                <th className="p-3 text-right w-28">
+                  <div className="flex items-center justify-end gap-1">
                     <ArrowUpDown className="w-3 h-3 text-indigo-200 dark:text-slate-500" />
                   </div>
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]/80 bg-white dark:bg-[#080d1a]">
-              {designations.map((item) => (
+              {sections.map((item) => (
                 <tr
                   key={item.id}
                   className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors"
@@ -175,22 +146,19 @@ export default function DesignationListPage() {
                     {item.sl}
                   </td>
                   <td className="p-3 text-slate-800 dark:text-slate-200 font-medium">
-                    {item.department}
-                  </td>
-                  <td className="p-3 text-slate-600 dark:text-slate-300">
-                    {item.designation}
+                    {item.name}
                   </td>
                   <td className="p-3">
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
-                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
-                        title="Edit Designation"
+                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm cursor-pointer"
+                        title="Edit Section"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
-                        title="Delete Designation"
+                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm cursor-pointer"
+                        title="Delete Section"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -204,7 +172,7 @@ export default function DesignationListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
-          <div>Showing 1 to {designations.length} of 54 entries</div>
+          <div>Showing 1 to 10 of 19 entries</div>
           <div className="flex items-center gap-1">
             <button
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
@@ -219,94 +187,59 @@ export default function DesignationListPage() {
               2
             </button>
             <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              3
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              4
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              5
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
-              6
-            </button>
-            <button className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900">
               Next
             </button>
           </div>
         </div>
       </div>
 
-      {/* Designation Add Modal */}
+      {/* SECTION ADD MODAL (ছবির সাথে ১০০% মিল রেখে তৈরি) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#080d1a] border border-slate-200 dark:border-[#131c31] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#131c31]">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Designation
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                Section Add
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
+                className="w-7 h-7 flex items-center justify-center rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleAddDesignation} className="p-5 space-y-4">
+            <form onSubmit={handleSubmit} className="p-5 space-y-6">
+              {/* Input Field */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Department<span className="text-rose-500 ml-0.5">*</span>
-                </label>
-                <select
-                  required
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"
-                >
-                  <option value="" disabled>
-                    Select value
-                  </option>
-                  <option value="Business Development">
-                    Business Development
-                  </option>
-                  <option value="Sales and Marketing">
-                    Sales and Marketing
-                  </option>
-                  <option value="Accounts">Accounts</option>
-                  <option value="Store">Store</option>
-                  <option value="Test">Test</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Designation<span className="text-rose-500 ml-0.5">*</span>
+                  Section Name<span className="text-rose-500 ml-0.5">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Designation"
-                  value={designationName}
-                  onChange={(e) => setDesignationName(e.target.value)}
+                  placeholder="Enter Name"
+                  value={sectionName}
+                  onChange={(e) => setSectionName(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-[#030712] border border-slate-200 dark:border-[#1e293b] rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-2 pt-3">
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-slate-400 dark:bg-slate-700 hover:bg-slate-500 dark:hover:bg-slate-600 text-white transition-colors"
+                  className="px-6 py-2 text-xs font-medium rounded bg-slate-400 dark:bg-slate-600 hover:bg-slate-500 dark:hover:bg-slate-500 text-white transition-colors cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+                  className="px-6 py-2 text-xs font-medium rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
                 >
                   Submit
                 </button>
