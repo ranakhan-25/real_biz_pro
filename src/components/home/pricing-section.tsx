@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 
@@ -37,7 +37,7 @@ export default function PricingSection() {
           className="mx-auto max-w-xl text-center"
         >
           <span className="chip-kinetic">{t("pricing.subtitle")}</span>
-          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {t("pricing.title")}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -70,7 +70,7 @@ export default function PricingSection() {
               )}
               <p className="text-sm font-semibold text-foreground">{t(plan.key)}</p>
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-display text-3xl font-semibold text-foreground">
+                <span className="font-[family-name:var(--font-display)] text-3xl font-semibold text-foreground">
                   {plan.price ?? t("pricing.custom")}
                 </span>
                 {plan.price && (
