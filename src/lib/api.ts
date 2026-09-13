@@ -7,6 +7,16 @@
  * NestJS backend exposes these routes — the components that consume
  * them will not need to change.
  */
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export default api;
 
 export interface StatCardData {
   id: string;
