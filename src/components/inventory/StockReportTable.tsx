@@ -50,7 +50,7 @@ export default function StockReportTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="bg-[var(--sidebar-foreground, #6366f1)] text-white font-semibold select-none whitespace-nowrap">
+            <tr className="bg-[var(--sidebar-foreground)] text-white font-semibold select-none whitespace-nowrap">
               <th className="py-3 px-3">ID</th>
               <th className="py-3 px-3">NAME</th>
               <th className="py-3 px-3 text-right">OPENING</th>
