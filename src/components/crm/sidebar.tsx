@@ -3,7 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+<<<<<<< HEAD
 import { motion, AnimatePresence } from "motion/react";
+=======
+import { motion, AnimatePresence } from "framer-motion";
+>>>>>>> niloy
 import {
   LayoutDashboard,
   SlidersHorizontal,

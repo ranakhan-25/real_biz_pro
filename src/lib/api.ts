@@ -17,6 +17,7 @@ export interface StatCardData {
   leadStageId?: number;
 }
 
+<<<<<<< HEAD
 export interface StatGroup {
   id: string;
   label: string;
@@ -25,6 +26,8 @@ export interface StatGroup {
   items: StatCardData[];
 }
 
+=======
+>>>>>>> niloy
 export interface TodoSummaryItem {
   id: string;
   label: string;
@@ -60,6 +63,7 @@ export interface ActivityPoint {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+<<<<<<< HEAD
 export function groupStatCards(stats: StatCardData[]): StatGroup[] {
   const groups: Record<string, StatGroup> = {
     overview: { id: "overview", label: "Total Pipeline", totalValue: 0, tone: "accent", items: [] },
@@ -139,6 +143,17 @@ export async function fetchStatCards(): Promise<StatCardData[]> {
     { id: "emi-hold", label: "EMI Hold", value: 4, tone: "warning", leadStageId: 20 },
     { id: "hold-for-later", label: "Hold For Later", value: 6, tone: "neutral", leadStageId: 21 },
     { id: "token-hold", label: "Token Hold", value: 2, tone: "warning", leadStageId: 22 },
+=======
+export async function fetchStatCards(): Promise<StatCardData[]> {
+  await delay(250);
+  return [
+    { id: "total-leads", label: "Total Inquiries", value: 128, tone: "accent" },
+    { id: "hot-prospects", label: "Hot Prospects", value: 22, tone: "warning", leadStageId: 1 },
+    { id: "site-visits", label: "Site Visits Scheduled", value: 13, tone: "info", leadStageId: 2 },
+    { id: "booking-pending", label: "Token / Booking", value: 10, tone: "accent", leadStageId: 3 },
+    { id: "closed-deals", label: "Handover & Closed", value: 31, tone: "success", leadStageId: 4 },
+    { id: "junk-leads", label: "Junk Inquiries", value: 6, tone: "neutral", leadStageId: 5 },
+>>>>>>> niloy
   ];
 }
 
@@ -157,8 +172,25 @@ export async function fetchTodoSummary(): Promise<TodoSummaryItem[]> {
 export async function fetchNewLeads(): Promise<FeedLead[]> {
   await delay(300);
   return [
+<<<<<<< HEAD
     { id: "1", leadId: "L260907-0022", name: "Serena Ahmed", caller: "Admin", timestamp: "10:14 AM" },
     { id: "2", leadId: "L260906-0020", name: "Sharmin Akter", caller: "Sarna", timestamp: "9:58 AM" },
+=======
+    {
+      id: "1",
+      leadId: "L260907-0022",
+      name: "Serena Ahmed",
+      caller: "Admin",
+      timestamp: "10:14 AM",
+    },
+    {
+      id: "2",
+      leadId: "L260906-0020",
+      name: "Sharmin Akter",
+      caller: "Sarna",
+      timestamp: "9:58 AM",
+    },
+>>>>>>> niloy
     { id: "3", leadId: "L260906-0018", name: "Rafiq Islam", caller: "Admin", timestamp: "9:20 AM" },
   ];
 }
@@ -166,8 +198,25 @@ export async function fetchNewLeads(): Promise<FeedLead[]> {
 export async function fetchFollowUps(): Promise<FeedLead[]> {
   await delay(300);
   return [
+<<<<<<< HEAD
     { id: "1", leadId: "L260827-0012", name: "Golam Gaus", caller: "Admin", timestamp: "Yesterday" },
     { id: "2", leadId: "L260825-0009", name: "Nusrat Jahan", caller: "Sarna", timestamp: "2 days ago" },
+=======
+    {
+      id: "1",
+      leadId: "L260827-0012",
+      name: "Golam Gaus",
+      caller: "Admin",
+      timestamp: "Yesterday",
+    },
+    {
+      id: "2",
+      leadId: "L260825-0009",
+      name: "Nusrat Jahan",
+      caller: "Sarna",
+      timestamp: "2 days ago",
+    },
+>>>>>>> niloy
   ];
 }
 
@@ -260,6 +309,11 @@ export async function fetchDayActivity(dateISO: string): Promise<DayActivity> {
   await delay(250);
   const day = Number(dateISO.split("-")[2]);
 
+<<<<<<< HEAD
+=======
+  // Demo data: a couple of sample dates carry birthday/anniversary entries,
+  // everything else comes back with empty lists.
+>>>>>>> niloy
   const hasEvents = day === 7;
 
   return {
@@ -279,4 +333,8 @@ export async function fetchDayActivity(dateISO: string): Promise<DayActivity> {
         ]
       : [],
   };
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> niloy

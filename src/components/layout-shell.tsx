@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+<<<<<<< HEAD
 
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,22 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const isStandalone = standaloneRoutes.some(
     (route) => route === "/" ? pathname === "/" : pathname?.startsWith(route)
   );
+=======
+import Navbar from "@/components/Navber";
+import Sidebar from "@/components/Sidebar";
+
+export function LayoutShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // Pages that provide their own full-page layout, site nav, or dashboard shell
+  const isStandalone =
+    pathname === "/" ||
+    pathname?.startsWith("/crm-module") ||
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/properties") ||
+    pathname?.startsWith("/about") ||
+    pathname?.startsWith("/contact");
+>>>>>>> niloy
 
   if (isStandalone) {
     return <>{children}</>;
@@ -32,4 +49,8 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> niloy

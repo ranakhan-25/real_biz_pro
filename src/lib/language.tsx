@@ -23,7 +23,10 @@ const translations: Translations = {
   en: {
     "nav.home": "Home",
     "nav.properties": "Properties",
+<<<<<<< HEAD
     "nav.pricing": "Pricing",
+=======
+>>>>>>> niloy
     "nav.about": "About",
     "nav.contact": "Contact",
     "nav.login": "Log in",
@@ -53,43 +56,67 @@ const translations: Translations = {
         title: "Property Management",
         description:
           "Manage properties, units, availability, pricing and property information from one place.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images4.jpg",
+>>>>>>> niloy
       },
       {
         title: "Property Listings",
         description:
           "Create and manage property listings with images, details, locations and pricing.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images5.jpg",
+>>>>>>> niloy
       },
       {
         title: "Leads & CRM",
         description:
           "Track potential buyers, manage leads and build strong customer relationships.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images6.jpg",
+>>>>>>> niloy
       },
       {
         title: "Sales & Booking",
         description:
           "Manage property sales, bookings, customers, payments and booking status easily.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images7.jpg",
+>>>>>>> niloy
       },
       {
         title: "Project Management",
         description:
           "Monitor real estate projects, construction progress, tasks and project activities.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images8.jpg",
+>>>>>>> niloy
       },
       {
         title: "Accounts & Finance",
         description:
           "Manage payments, expenses, invoices and financial transactions for your business.",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images9.jpg",
+>>>>>>> niloy
       },
     ],
     "services.title": "Professional real estate services for every need.",
@@ -102,6 +129,7 @@ const translations: Translations = {
     "services.explore": "Explore More",
     "services.imageAlt1": "Modern luxury real estate property",
     "services.imageAlt2": "Luxury residential building",
+<<<<<<< HEAD
 
     // Pricing Section
     "pricing.badge": "Pricing Plans",
@@ -269,11 +297,16 @@ const translations: Translations = {
     "partner.customerDescription":
       "Manage your own leads, visits, and deals without needing a full team rollout.",
     "latest.title": "The platform, module by module",
+=======
+>>>>>>> niloy
   },
   bn: {
     "nav.home": "হোম",
     "nav.properties": "প্রপার্টি",
+<<<<<<< HEAD
     "nav.pricing": "প্রাইসিং",
+=======
+>>>>>>> niloy
     "nav.about": "সম্পর্কে",
     "nav.contact": "যোগাযোগ",
     "nav.login": "লগ ইন",
@@ -302,42 +335,64 @@ const translations: Translations = {
       {
         title: "প্রপার্টি ম্যানেজমেন্ট",
         description:
+<<<<<<< HEAD
           "এক জায়গা থেকে প্রপার্টি, ইউনিট, উপলব্ধতা, মূল্য এবং প্রপার্টি তথ্য পরিচালনা করুন।",
         image:
           "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+=======
+          "এক জায়গা থেকে প্রপার্টি, ইউনিট, oírলব্ধতা, মূল্য এবং প্রপার্টি তথ্য পরিচালনা করুন।",
+        image: "/image/images4.jpg",
+>>>>>>> niloy
       },
       {
         title: "প্রপার্টি লিস্টিং",
         description:
           "ছবি, বিবরণ, লোকেশন এবং মূল্যের সাথে প্রপার্টি লিস্টিং তৈরি এবং পরিচালনা করুন।",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images5.jpg",
+>>>>>>> niloy
       },
       {
         title: "লিডস এবং সিআরএম",
         description:
           "সম্ভাব্য ক্রেতা ট্র্যাক করুন, লিড ম্যানেজ করুন এবং শক্তিশালী কাস্টমার সম্পর্ক তৈরি করুন।",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images6.jpg",
+>>>>>>> niloy
       },
       {
         title: "বিক্রয় এবং বুকিং",
         description:
           "প্রপার্টি বিক্রয়, বুকিং, কাস্টমার, পেমেন্ট এবং বুকিং স্ট্যাটাস সহজে পরিচালনা করুন।",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images7.jpg",
+>>>>>>> niloy
       },
       {
         title: "প্রজেক্ট ম্যানেজমেন্ট",
         description:
           "বাস্তব সম্পত্তি প্রজেক্ট, নির্মাণের অগ্রগতি, টাস্ক এবং প্রজেক্ট কার্যক্রম পর্যবেক্ষণ করুন।",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+=======
+        image: "/image/images8.jpg",
+>>>>>>> niloy
       },
       {
         title: "অ্যাকাউন্টস এবং ফাইন্যান্স",
         description:
           "আপনার ব্যবসার জন্য পেমেন্ট, খরচ, ইনভয়েস এবং আর্থিক লেনদেন পরিচালনা করুন।",
+<<<<<<< HEAD
         image:
           "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
       },
@@ -346,12 +401,22 @@ const translations: Translations = {
     "services.subtitle": "রিয়েল এস্টেট সেবা",
     "services.description":
       "আমরা আপনার সম্পত্তির যাত্রাকে সহজ, নিরাপদ এবং সফল করার জন্য ডিজাইন করা প্রফেশনাল সেবার বিস্তৃত রেঞ্জের সাথে প্রিমিয়াম বাস্তব সম্পত্তি সমাধান প্রদান করি।",
+=======
+        image: "/image/images9.jpg",
+      },
+    ],
+    "services.title": "প্রতিটি প্রয়োজনের জন্য পেশাদার বাস্তব সম্পত্তি সেবা।",
+    "services.subtitle": "রিয়েল এস্টেট সেবা",
+    "services.description":
+      "আমরা আপনার সম্পত্তির যাত্রাকে সহজ, নিরাপদ এবং সফল করার জন্য ডিজাইন করা প্রফেশনাল সেবার বিস্তৃত রেঞ্জের সাথে প্রিমিয়াম বাস্তব সম্পত্তি সমাধান প্রদান করি।",
+>>>>>>> niloy
     "services.feature1": "কাস্টমাইজড প্রপার্টি মার্কেটিং",
     "services.feature2": "প্রপার্টি ভ্যালুয়েশন সার্ভিস",
     "services.feature3": "মার্কেট রিসার্চ এবং অ্যানালিসিস",
     "services.explore": "আরও এক্সপ্লোর করুন",
     "services.imageAlt1": "আধুনিক লাক্সারি বাস্তব সম্পত্তি প্রপার্টি",
     "services.imageAlt2": "লাক্সারি আবাসিক ভবন",
+<<<<<<< HEAD
 
     // Pricing Section (Bangla)
     "pricing.badge": "প্রাইসিং প্ল্যান",
@@ -519,6 +584,8 @@ const translations: Translations = {
     "partner.customerDescription":
       "পুরো টিম রোলআউট ছাড়াই নিজের লিড, ভিজিট এবং ডিল পরিচালনা করুন।",
     "latest.title": "প্ল্যাটফর্ম, মডিউল অনুযায়ী",
+=======
+>>>>>>> niloy
   },
 };
 

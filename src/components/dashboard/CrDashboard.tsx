@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+/* eslint-disable prettier/prettier */
+>>>>>>> niloy
 "use client";
 
 import { useState, useMemo } from "react";
@@ -14,6 +18,7 @@ const summaryCards = [
     value: "3.00",
     gradient: "from-orange-400 to-rose-500",
   },
+<<<<<<< HEAD
   {
     title: "This Month Recovered",
     value: "0.00",
@@ -44,6 +49,14 @@ const summaryCards = [
     value: "0.00%",
     gradient: "from-teal-500 to-emerald-600",
   },
+=======
+  { title: "This Month Recovered", value: "0.00", gradient: "from-blue-500 to-indigo-700" },
+  { title: "This Month Recovered %", value: "0.00%", gradient: "from-amber-400 to-yellow-600" },
+  { title: "Outstanding Debts", value: "102,799,225", gradient: "from-cyan-500 to-teal-600" },
+  { title: "Outstanding Overdue", value: "10,950,280", gradient: "from-fuchsia-500 to-pink-600" },
+  { title: "Overdue debt %", value: "0.00%", gradient: "from-violet-500 to-purple-700" },
+  { title: "Overdue debt > 30D %", value: "0.00%", gradient: "from-teal-500 to-emerald-600" },
+>>>>>>> niloy
 ];
 
 const ALL_ROWS = [
@@ -285,8 +298,12 @@ const reportItems = [
 
 const tabs = ["Today", "Weekly", "Monthly", "Yearly", "All"] as const;
 
+<<<<<<< HEAD
 const hideScroll =
   "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]";
+=======
+const hideScroll = "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]";
+>>>>>>> niloy
 
 export default function CreditRealizationPage() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("All");
@@ -338,16 +355,25 @@ export default function CreditRealizationPage() {
 
   return (
     <div
+<<<<<<< HEAD
       className="flex flex-col bg-[#f4f5f7] text-slate-700"
+=======
+      className="flex flex-col bg-canvas text-ink"
+>>>>>>> niloy
       style={{ height: "100vh", overflow: "hidden" }}
     >
       {/* Top tabs */}
       <div
+<<<<<<< HEAD
         className="shrink-0 bg-white border-b border-slate-200 px-5 py-2.5 flex items-center gap-1.5"
+=======
+        className="shrink-0 bg-surface border-b border-border px-5 py-2.5 flex items-center gap-1.5"
+>>>>>>> niloy
         style={{ overflow: "visible", position: "relative", zIndex: 50 }}
       >
         <button
           type="button"
+<<<<<<< HEAD
           className="px-3.5 py-1.5 rounded-md bg-violet-600 text-white text-[13px] font-medium shadow-sm flex items-center gap-1.5"
         >
           <span>$</span> Credit Realization (CR)
@@ -399,6 +425,12 @@ export default function CreditRealizationPage() {
             ))}
           </div>
         </details>
+=======
+          className="px-3.5 py-1.5 rounded-md bg-black text-white text-[13px] font-medium shadow-sm shadow-black/6 flex items-center gap-1.5"
+        >
+          <span>$</span> Credit Realization (CR)
+        </button>
+>>>>>>> niloy
       </div>
 
       {/* Body */}
@@ -409,11 +441,17 @@ export default function CreditRealizationPage() {
             {summaryCards.map((card) => (
               <div
                 key={card.title}
+<<<<<<< HEAD
                 className={`rounded-lg bg-gradient-to-br ${card.gradient} px-4 py-3 text-white shadow-sm`}
               >
                 <p className="text-[11px] font-medium opacity-90 leading-snug">
                   {card.title}
                 </p>
+=======
+                className={`rounded-lg bg-gradient-to-br ${card.gradient} px-4 py-3 text-white shadow-sm shadow-black/6`}
+              >
+                <p className="text-[11px] font-medium opacity-90 leading-snug">{card.title}</p>
+>>>>>>> niloy
                 <p className="mt-1 text-[18px] font-bold tracking-tight tabular-nums">
                   {card.value}
                 </p>
@@ -422,7 +460,11 @@ export default function CreditRealizationPage() {
           </div>
 
           <div className="shrink-0 flex flex-wrap items-center justify-between gap-2">
+<<<<<<< HEAD
             <div className="flex items-center gap-2 text-[13px] text-slate-600">
+=======
+            <div className="flex items-center gap-2 text-[13px] text-ink-muted">
+>>>>>>> niloy
               <span>Show</span>
               <select
                 value={entries}
@@ -430,7 +472,11 @@ export default function CreditRealizationPage() {
                   setEntries(Number(e.target.value));
                   setPage(1);
                 }}
+<<<<<<< HEAD
                 className="border border-slate-200 rounded px-2 py-1 text-[13px] bg-white"
+=======
+                className="border border-border rounded px-2 py-1 text-[13px] bg-surface text-ink"
+>>>>>>> niloy
               >
                 {[5, 10, 25, 50].map((n) => (
                   <option key={n} value={n}>
@@ -441,7 +487,11 @@ export default function CreditRealizationPage() {
               <span>entries</span>
             </div>
             <div className="flex items-center gap-1.5 text-[13px]">
+<<<<<<< HEAD
               <span className="text-slate-500">Search:</span>
+=======
+              <span className="text-ink-muted">Search:</span>
+>>>>>>> niloy
               <input
                 type="text"
                 value={search}
@@ -449,12 +499,17 @@ export default function CreditRealizationPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
+<<<<<<< HEAD
                 className="border border-slate-200 rounded px-2 py-1 text-[13px] w-36 bg-white"
+=======
+                className="border border-border rounded px-2 py-1 text-[13px] w-36 bg-surface text-ink focus:outline-none focus:ring-1 focus:ring-black"
+>>>>>>> niloy
               />
             </div>
           </div>
 
           {/* Table – scrollbar hidden */}
+<<<<<<< HEAD
           <div className="flex-1 min-h-0 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden">
             <div
               className={`flex-1 min-h-0 overflow-x-auto overflow-y-hidden ${hideScroll}`}
@@ -462,6 +517,13 @@ export default function CreditRealizationPage() {
               <table className="w-full text-left text-[12.5px]">
                 <thead>
                   <tr className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
+=======
+          <div className="flex-1 min-h-0 bg-surface rounded-lg border border-border shadow-sm shadow-black/6 flex flex-col overflow-hidden">
+            <div className={`flex-1 min-h-0 overflow-x-auto overflow-y-hidden ${hideScroll}`}>
+              <table className="w-full text-left text-[12.5px]">
+                <thead>
+                  <tr className="bg-black text-white">
+>>>>>>> niloy
                     {[
                       "ID",
                       "PROJECT",
@@ -479,10 +541,14 @@ export default function CreditRealizationPage() {
                       "NEXT DUE DATE",
                       "ACTION",
                     ].map((h) => (
+<<<<<<< HEAD
                       <th
                         key={h}
                         className="px-2.5 py-2.5 font-semibold whitespace-nowrap"
                       >
+=======
+                      <th key={h} className="px-2.5 py-2.5 font-semibold whitespace-nowrap">
+>>>>>>> niloy
                         {h}
                       </th>
                     ))}
@@ -491,15 +557,20 @@ export default function CreditRealizationPage() {
                 <tbody>
                   {pageRows.length === 0 ? (
                     <tr>
+<<<<<<< HEAD
                       <td
                         colSpan={15}
                         className="px-2.5 py-10 text-center text-slate-400"
                       >
+=======
+                      <td colSpan={15} className="px-2.5 py-10 text-center text-ink-faint">
+>>>>>>> niloy
                         No records found
                       </td>
                     </tr>
                   ) : (
                     pageRows.map((row) => (
+<<<<<<< HEAD
                       <tr
                         key={row.id}
                         className="border-b border-slate-100 hover:bg-slate-50/70"
@@ -542,11 +613,42 @@ export default function CreditRealizationPage() {
                         <td className="px-2.5 py-2.5 text-slate-400">
                           {row.nextDueDate || ""}
                         </td>
+=======
+                      <tr key={row.id} className="border-b border-border hover:bg-canvas/70">
+                        <td className="px-2.5 py-2.5 text-ink-muted">{row.id}</td>
+                        <td className="px-2.5 py-2.5 font-medium text-ink">{row.project}</td>
+                        <td className="px-2.5 py-2.5 text-ink">{row.flatLand}</td>
+                        <td className="px-2.5 py-2.5 text-ink">{row.customer}</td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.totalValue}</td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.paid}</td>
+                        <td className="px-2.5 py-2.5 tabular-nums font-medium text-rose-500">
+                          {row.due}
+                        </td>
+                        <td className="px-2.5 py-2.5 text-ink">{row.installmentDate}</td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">
+                          {row.installmentAmount}
+                        </td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">
+                          {row.installmentDue}
+                        </td>
+                        <td className="px-2.5 py-2.5 text-ink-faint">{row.salesBy || ""}</td>
+                        <td className="px-2.5 py-2.5 text-center">
+                          <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1 rounded-full bg-rose-500/15 text-rose-500 text-[11px] font-semibold">
+                            {row.daysOverdue}
+                          </span>
+                        </td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.delayAmount}</td>
+                        <td className="px-2.5 py-2.5 text-ink-faint">{row.nextDueDate || ""}</td>
+>>>>>>> niloy
                         <td className="px-2.5 py-2.5">
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
+<<<<<<< HEAD
                               className="w-7 h-7 rounded-md bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700"
+=======
+                              className="w-7 h-7 rounded-md bg-black text-white flex items-center justify-center hover:bg-slate-800"
+>>>>>>> niloy
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
                             </button>
@@ -566,7 +668,11 @@ export default function CreditRealizationPage() {
             </div>
 
             {/* Pagination */}
+<<<<<<< HEAD
             <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 border-t border-slate-100 text-[13px] text-slate-500">
+=======
+            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 border-t border-border text-[13px] text-ink-muted">
+>>>>>>> niloy
               <span>
                 Showing {from} to {to} of {total} entries
               </span>
@@ -575,14 +681,22 @@ export default function CreditRealizationPage() {
                   type="button"
                   disabled={currentPage <= 1}
                   onClick={() => goPage(currentPage - 1)}
+<<<<<<< HEAD
                   className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+=======
+                  className="px-2.5 py-1 rounded border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed text-ink"
+>>>>>>> niloy
                 >
                   Previous
                 </button>
 
                 {pageNumbers.map((p, i) =>
                   p === "…" ? (
+<<<<<<< HEAD
                     <span key={`e-${i}`} className="px-1 text-slate-400">
+=======
+                    <span key={`e-${i}`} className="px-1 text-ink-faint">
+>>>>>>> niloy
                       …
                     </span>
                   ) : (
@@ -592,8 +706,13 @@ export default function CreditRealizationPage() {
                       onClick={() => goPage(p as number)}
                       className={`min-w-[32px] px-2 py-1 rounded font-medium ${
                         currentPage === p
+<<<<<<< HEAD
                           ? "bg-violet-600 text-white"
                           : "border border-slate-200 hover:bg-slate-50"
+=======
+                          ? "bg-black text-white"
+                          : "border border-border hover:bg-canvas text-ink"
+>>>>>>> niloy
                       }`}
                     >
                       {p}
@@ -605,7 +724,11 @@ export default function CreditRealizationPage() {
                   type="button"
                   disabled={currentPage >= totalPages}
                   onClick={() => goPage(currentPage + 1)}
+<<<<<<< HEAD
                   className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+=======
+                  className="px-2.5 py-1 rounded border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed text-ink"
+>>>>>>> niloy
                 >
                   Next
                 </button>
@@ -616,17 +739,26 @@ export default function CreditRealizationPage() {
 
         {/* RIGHT – scrollbar hidden */}
         <div className="w-[320px] shrink-0 min-h-0 flex flex-col">
+<<<<<<< HEAD
           <div className="flex-1 min-h-0 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden">
             <div className="shrink-0 flex border-b border-slate-100">
+=======
+          <div className="flex-1 min-h-0 bg-surface rounded-lg border border-border shadow-sm shadow-black/6 flex flex-col overflow-hidden">
+            <div className="shrink-0 flex border-b border-border">
+>>>>>>> niloy
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-2 text-[11px] font-semibold ${
+<<<<<<< HEAD
                     activeTab === tab
                       ? "bg-violet-600 text-white"
                       : "text-slate-500 hover:bg-slate-50"
+=======
+                    activeTab === tab ? "bg-black text-white" : "text-ink-muted hover:bg-canvas"
+>>>>>>> niloy
                   }`}
                 >
                   {tab}
@@ -634,6 +766,7 @@ export default function CreditRealizationPage() {
               ))}
             </div>
             <div className="flex-1 min-h-0 p-3.5 flex flex-col overflow-hidden">
+<<<<<<< HEAD
               <h3 className="shrink-0 text-[13px] font-semibold text-slate-800 text-center mb-3">
                 Pending Voucher/Invoice
               </h3>
@@ -683,6 +816,44 @@ export default function CreditRealizationPage() {
                       <button
                         type="button"
                         className="w-6 h-6 rounded-full bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700"
+=======
+              <h3 className="shrink-0 text-[13px] font-semibold text-ink text-center mb-3">
+                Pending Voucher/Invoice
+              </h3>
+              <div className="shrink-0 relative mb-3">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint" />
+                <input
+                  type="text"
+                  placeholder="Search with Project/Code/Reference..."
+                  className="w-full pl-8 pr-2.5 py-1.5 border border-border rounded-md text-[11px] bg-surface text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-black"
+                />
+              </div>
+              <div className={`flex-1 min-h-0 overflow-y-auto space-y-2.5 ${hideScroll}`}>
+                {pendingVouchers.map((item) => (
+                  <div
+                    key={item.reference}
+                    className="border border-border rounded-lg p-3 bg-surface"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 text-[11px] leading-relaxed">
+                        <p className="text-ink-muted">
+                          Reference: <span className="font-medium text-ink">{item.reference}</span>
+                        </p>
+                        <p className="font-medium text-ink mt-0.5">Project: {item.project}</p>
+                        <p className="text-ink-muted">Contact: {item.contact}</p>
+                        <p className="text-ink-muted">Added By: {item.addedBy}</p>
+                        <p className="text-ink-faint">{item.date}</p>
+                      </div>
+                      <span className="shrink-0 px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-500 text-[10px] font-semibold">
+                        Offer
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-rose-500 font-medium mt-1.5">{item.note}</p>
+                    <div className="flex justify-end mt-2">
+                      <button
+                        type="button"
+                        className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center hover:bg-slate-800"
+>>>>>>> niloy
                       >
                         <Eye className="w-3 h-3" />
                       </button>
@@ -696,4 +867,8 @@ export default function CreditRealizationPage() {
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> niloy
