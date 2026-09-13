@@ -146,7 +146,7 @@ export default function AdminSidebar() {
           aria-label="Go to dashboard"
         >
           <Image
-            src={"/assets/image.png"}
+            src={"/logo.svg"}
             alt="GarmenTek"
             width={150}
             height={50}
@@ -242,7 +242,7 @@ export default function AdminSidebar() {
               className="origin-left"
             >
               <Image
-                src={"/assets/image.png"}
+                src={"/logo.svg"}
                 alt="GarmenTek"
                 width={300}
                 height={200}
