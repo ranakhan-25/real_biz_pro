@@ -2,9 +2,10 @@
   "nav": {
     "home": "Home",
     "properties": "Properties",
+    "pricing": "Pricing",
     "about": "About",
     "contact": "Contact",
-    "login": "Log in"
+    "login": "Login"
   },
   "language": {
     "english": "English",

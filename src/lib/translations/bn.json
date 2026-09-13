@@ -1,10 +1,11 @@
 {
   "nav": {
     "home": "হোম",
-    "properties": "প্রপার্টি",
-    "about": "সম্পর্কে",
+    "properties": "প্রোপার্টিজ",
+    "pricing": "প্রাইসিং",
+    "about": "আমাদের সম্পর্কে",
     "contact": "যোগাযোগ",
-    "login": "লগ ইন"
+    "login": "লগইন"
   },
   "language": {
     "english": "ইংরেজি",
