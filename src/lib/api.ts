@@ -27,6 +27,14 @@ export interface StatCardData {
   leadStageId?: number;
 }
 
+export interface StatGroup {
+  id: string;
+  label: string;
+  totalValue: number;
+  tone: StatCardData["tone"];
+  items: StatCardData[];
+}
+
 export interface TodoSummaryItem {
   id: string;
   label: string;
@@ -62,15 +70,215 @@ export interface ActivityPoint {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export function groupStatCards(stats: StatCardData[]): StatGroup[] {
+  const groups: Record<string, StatGroup> = {
+    overview: {
+      id: "overview",
+      label: "Total Pipeline",
+      totalValue: 0,
+      tone: "accent",
+      items: [],
+    },
+    active: {
+      id: "active",
+      label: "Active Deals",
+      totalValue: 0,
+      tone: "info",
+      items: [],
+    },
+    closing: {
+      id: "closing",
+      label: "Closing & Won",
+      totalValue: 0,
+      tone: "success",
+      items: [],
+    },
+    hold: {
+      id: "hold",
+      label: "Pending & Hold",
+      totalValue: 0,
+      tone: "warning",
+      items: [],
+    },
+    archived: {
+      id: "archived",
+      label: "Junk & Lost",
+      totalValue: 0,
+      tone: "danger",
+      items: [],
+    },
+  };
+
+  const groupMapping: Record<string, keyof typeof groups> = {
+    "total-leads": "overview",
+    "junk-leads": "archived",
+    lost: "archived",
+    sold: "closing",
+    closed: "closing",
+    booked: "closing",
+    booking: "closing",
+    registration: "closing",
+    exchange: "closing",
+    "high-prospect": "active",
+    priority: "active",
+    negotiation: "active",
+    visit: "active",
+    query: "active",
+    "new-call": "active",
+    "follow-up": "active",
+    lead: "active",
+    potential: "active",
+    "high-potential": "active",
+    "token-lead": "active",
+    hold: "hold",
+    "emi-hold": "hold",
+    "hold-for-later": "hold",
+    "token-hold": "hold",
+  };
+
+  stats.forEach((stat) => {
+    const groupId = groupMapping[stat.id] || "active";
+    groups[groupId].items.push(stat);
+
+    if (stat.id !== "total-leads") {
+      groups[groupId].totalValue += stat.value;
+    } else {
+      groups[groupId].totalValue = stat.value;
+    }
+  });
+
+  return Object.values(groups);
+}
+
 export async function fetchStatCards(): Promise<StatCardData[]> {
   await delay(250);
   return [
-    { id: "total-leads", label: "Total Inquiries", value: 128, tone: "accent" },
-    { id: "hot-prospects", label: "Hot Prospects", value: 22, tone: "warning", leadStageId: 1 },
-    { id: "site-visits", label: "Site Visits Scheduled", value: 13, tone: "info", leadStageId: 2 },
-    { id: "booking-pending", label: "Token / Booking", value: 10, tone: "accent", leadStageId: 3 },
-    { id: "closed-deals", label: "Handover & Closed", value: 31, tone: "success", leadStageId: 4 },
-    { id: "junk-leads", label: "Junk Inquiries", value: 6, tone: "neutral", leadStageId: 5 },
+    { id: "total-leads", label: "Total Leads", value: 128, tone: "accent" },
+    {
+      id: "junk-leads",
+      label: "Junk Leads",
+      value: 6,
+      tone: "neutral",
+      leadStageId: 1,
+    },
+    { id: "sold", label: "Sold", value: 14, tone: "success", leadStageId: 2 },
+    {
+      id: "high-prospect",
+      label: "High Prospect",
+      value: 22,
+      tone: "accent",
+      leadStageId: 3,
+    },
+    {
+      id: "priority",
+      label: "Priority",
+      value: 9,
+      tone: "warning",
+      leadStageId: 4,
+    },
+    { id: "hold", label: "Hold", value: 11, tone: "info", leadStageId: 37 },
+    { id: "lost", label: "Lost", value: 17, tone: "danger", leadStageId: 5 },
+    {
+      id: "closed",
+      label: "Closed",
+      value: 31,
+      tone: "success",
+      leadStageId: 6,
+    },
+    {
+      id: "negotiation",
+      label: "Negotiation",
+      value: 8,
+      tone: "warning",
+      leadStageId: 7,
+    },
+    { id: "visit", label: "Visit", value: 13, tone: "info", leadStageId: 8 },
+    { id: "query", label: "Query", value: 19, tone: "neutral", leadStageId: 9 },
+    {
+      id: "new-call",
+      label: "New Call",
+      value: 24,
+      tone: "accent",
+      leadStageId: 10,
+    },
+    {
+      id: "follow-up",
+      label: "Follow Up",
+      value: 27,
+      tone: "info",
+      leadStageId: 11,
+    },
+    { id: "lead", label: "Lead", value: 41, tone: "neutral", leadStageId: 12 },
+    {
+      id: "booked",
+      label: "Booked",
+      value: 16,
+      tone: "success",
+      leadStageId: 13,
+    },
+    {
+      id: "potential",
+      label: "Potential",
+      value: 20,
+      tone: "accent",
+      leadStageId: 14,
+    },
+    {
+      id: "high-potential",
+      label: "High Potential",
+      value: 12,
+      tone: "warning",
+      leadStageId: 15,
+    },
+    {
+      id: "token-lead",
+      label: "Token Lead",
+      value: 7,
+      tone: "neutral",
+      leadStageId: 16,
+    },
+    {
+      id: "booking",
+      label: "Booking",
+      value: 10,
+      tone: "success",
+      leadStageId: 17,
+    },
+    {
+      id: "registration",
+      label: "Registration & Handover",
+      value: 5,
+      tone: "info",
+      leadStageId: 18,
+    },
+    {
+      id: "exchange",
+      label: "Exchange",
+      value: 3,
+      tone: "neutral",
+      leadStageId: 19,
+    },
+    {
+      id: "emi-hold",
+      label: "EMI Hold",
+      value: 4,
+      tone: "warning",
+      leadStageId: 20,
+    },
+    {
+      id: "hold-for-later",
+      label: "Hold For Later",
+      value: 6,
+      tone: "neutral",
+      leadStageId: 21,
+    },
+    {
+      id: "token-hold",
+      label: "Token Hold",
+      value: 2,
+      tone: "warning",
+      leadStageId: 22,
+    },
   ];
 }
 
@@ -80,7 +288,12 @@ export async function fetchTodoSummary(): Promise<TodoSummaryItem[]> {
     { id: "todays-followup", label: "Today's Followup", value: 5 },
     { id: "todays-call", label: "Today's Call", value: 8 },
     { id: "todays-visit", label: "Today's Visit", value: 2 },
-    { id: "missed-followup", label: "Missed Followup", value: 3, emphasis: "danger" },
+    {
+      id: "missed-followup",
+      label: "Missed Followup",
+      value: 3,
+      emphasis: "danger",
+    },
     { id: "missed-visit", label: "Missed Visit", value: 0 },
     { id: "next-followup", label: "Next Followup", value: 6 },
   ];
@@ -103,7 +316,13 @@ export async function fetchNewLeads(): Promise<FeedLead[]> {
       caller: "Sarna",
       timestamp: "9:58 AM",
     },
-    { id: "3", leadId: "L260906-0018", name: "Rafiq Islam", caller: "Admin", timestamp: "9:20 AM" },
+    {
+      id: "3",
+      leadId: "L260906-0018",
+      name: "Rafiq Islam",
+      caller: "Admin",
+      timestamp: "9:20 AM",
+    },
   ];
 }
 
@@ -132,7 +351,9 @@ export async function fetchTaskVisits(): Promise<FeedVisit[]> {
   return [{ id: "1", message: "No visit scheduled" }];
 }
 
-export async function fetchCalendarEvents(month: string): Promise<CalendarEvent[]> {
+export async function fetchCalendarEvents(
+  month: string,
+): Promise<CalendarEvent[]> {
   await delay(200);
   return [
     { date: `${month}-08`, count: 2, label: "Site visits" },
@@ -187,7 +408,9 @@ export interface PropertyStatusCount {
   count: number;
 }
 
-export async function fetchPropertyStatusCounts(): Promise<PropertyStatusCount[]> {
+export async function fetchPropertyStatusCounts(): Promise<
+  PropertyStatusCount[]
+> {
   await delay(250);
   return [
     { status: "Ready Flat", count: 34 },

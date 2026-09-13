@@ -11,7 +11,7 @@ export default function FeaturesPage() {
     <section className="bg-background pt-16 text-foreground sm:pt-20 lg:pt-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-12">
-          <span className="text-sm font-semibold uppercase tracking-wider text-primary">
+          <span className="chip-kinetic">
             {t("features.subtitle")}
           </span>
 
