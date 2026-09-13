@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+<<<<<<< HEAD
+import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
+=======
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
+>>>>>>> origin/dev
 
 // API থেকে আসা ডেটার TypeScript Interface
 interface SectionItem {
@@ -31,10 +35,13 @@ export default function SectionListPage() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+<<<<<<< HEAD
+=======
   // Modal State Management
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sectionName, setSectionName] = useState("");
 
+>>>>>>> origin/dev
   /* 
     TODO: API Integration Example
     useEffect(() => {
@@ -51,6 +58,8 @@ export default function SectionListPage() {
     }, []);
   */
 
+<<<<<<< HEAD
+=======
   // Submit Handler (API Ready)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +86,7 @@ export default function SectionListPage() {
     setIsModalOpen(false);
   };
 
+>>>>>>> origin/dev
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
       {/* Top Header Section: Breadcrumb & Add Button */}
@@ -95,11 +105,15 @@ export default function SectionListPage() {
           </span>
         </nav>
 
+<<<<<<< HEAD
+        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
+=======
         {/* Section Add Button (Modal Trigger) */}
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm cursor-pointer"
         >
+>>>>>>> origin/dev
           <Plus className="w-4 h-4" />
           Section Add
         </button>
@@ -174,13 +188,21 @@ export default function SectionListPage() {
                   <td className="p-3">
                     <div className="flex items-center justify-center gap-1.5">
                       <button
+<<<<<<< HEAD
+                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
+=======
                         className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm cursor-pointer"
+>>>>>>> origin/dev
                         title="Edit Section"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
+<<<<<<< HEAD
+                        className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm"
+=======
                         className="p-1.5 rounded bg-rose-500 hover:bg-rose-600 text-white transition-colors shadow-sm cursor-pointer"
+>>>>>>> origin/dev
                         title="Delete Section"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -216,6 +238,8 @@ export default function SectionListPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
       {/* SECTION ADD MODAL (18.PNG অনুসরণে) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -271,6 +295,7 @@ export default function SectionListPage() {
         </div>
       )}
 
+>>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>
