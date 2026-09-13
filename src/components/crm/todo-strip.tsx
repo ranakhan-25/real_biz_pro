@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ClipboardList } from "lucide-react";
 import clsx from "clsx";
 import type { TodoSummaryItem } from "@/lib/api";
@@ -10,7 +10,7 @@ export function TodoStrip({ items }: { items: TodoSummaryItem[] }) {
     <div className="rounded-lg border border-border bg-surface p-4">
       <div className="flex items-center gap-2 mb-3.5">
         <ClipboardList size={15} className="text-ink-muted" />
-        <h2 className="font-[family-name:var(--font-display)] text-[13.5px] font-semibold text-ink">
+        <h2 className="font-display text-[13.5px] font-semibold text-ink">
           To-Do List
         </h2>
       </div>
