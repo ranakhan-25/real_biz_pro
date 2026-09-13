@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/lib/language";
-import { Logo } from "./Logo";
 
 export function SiteFooter() {
   const { t } = useLanguage();
@@ -12,11 +11,11 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1 flex flex-col items-start">
-            <Link href="/" className="inline-block">
-              <Logo />
-            </Link>
-            <p className="mt-2 text-xs text-muted-foreground max-w-xs">
+          <div className="lg:col-span-1">
+            <span className="font-display font-semibold text-foreground text-lg">
+              {t("footer.tagline")}
+            </span>
+            <p className="mt-4 text-sm text-muted-foreground max-w-xs">
               {t("footer.copyright").replace("{year}", year.toString())}
             </p>
           </div>

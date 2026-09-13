@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-<<<<<<< HEAD
-import { Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
-=======
 import { Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
->>>>>>> origin/dev
 
 // API থেকে আসা ডেটার TypeScript Interface
 interface Designation {
@@ -52,33 +48,12 @@ const initialDesignationData: Designation[] = [
 export default function DesignationListPage() {
   // API Integrated States
   const [designations, setDesignations] = useState<Designation[]>(
-<<<<<<< HEAD
-    initialDesignationData,
-=======
     initialDesignationData
->>>>>>> origin/dev
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-<<<<<<< HEAD
-  /* 
-    TODO: API Integration Example
-    useEffect(() => {
-      const fetchDesignations = async () => {
-        try {
-          const res = await fetch('/api/designations');
-          const data = await res.json();
-          setDesignations(data);
-        } catch (error) {
-          console.error("Failed to fetch designations", error);
-        }
-      };
-      fetchDesignations();
-    }, []);
-  */
-=======
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState("");
@@ -102,7 +77,6 @@ export default function DesignationListPage() {
     setDesignationName("");
     setIsModalOpen(false);
   };
->>>>>>> origin/dev
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
@@ -122,14 +96,10 @@ export default function DesignationListPage() {
           </span>
         </nav>
 
-<<<<<<< HEAD
-        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm">
-=======
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
         >
->>>>>>> origin/dev
           <Plus className="w-4 h-4" />
           Designation Add
         </button>
@@ -234,11 +204,7 @@ export default function DesignationListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
-<<<<<<< HEAD
-          <div>Showing 1 to 10 of 54 entries</div>
-=======
           <div>Showing 1 to {designations.length} of 54 entries</div>
->>>>>>> origin/dev
           <div className="flex items-center gap-1">
             <button
               className="px-3 py-1.5 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
@@ -271,8 +237,6 @@ export default function DesignationListPage() {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
       {/* Designation Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -352,7 +316,6 @@ export default function DesignationListPage() {
         </div>
       )}
 
->>>>>>> origin/dev
       {/* Page Footer */}
       <footer className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-600 border-t border-slate-200/60 dark:border-[#131c31] pt-4">
         <div>2026 © Somikoron IT LTD</div>
@@ -360,8 +323,4 @@ export default function DesignationListPage() {
       </footer>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/dev
