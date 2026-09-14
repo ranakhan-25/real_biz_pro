@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-<<<<<<< HEAD
+
 
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const isStandalone = standaloneRoutes.some(
     (route) => route === "/" ? pathname === "/" : pathname?.startsWith(route)
   );
-=======
+
 import Navbar from "@/components/Navber";
 import Sidebar from "@/components/Sidebar";
 
@@ -36,7 +36,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith("/properties") ||
     pathname?.startsWith("/about") ||
     pathname?.startsWith("/contact");
->>>>>>> niloy
+
 
   if (isStandalone) {
     return <>{children}</>;
@@ -49,8 +49,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-<<<<<<< HEAD
+
 }
-=======
+
 }
->>>>>>> niloy
+}
+
