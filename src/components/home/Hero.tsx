@@ -7,15 +7,15 @@ import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 
 export default function Hero() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const isBn = language === "bn";
 
   return (
     <section className="relative overflow-hidden">
-      {/* Decorative soft circle */}
-      <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-gold-soft sm:-right-20" />
+      <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-gold-soft sm:-right-20 dark:bg-zinc-800" />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 pb-16 pt-16 sm:px-8 lg:grid-cols-2 lg:pt-24">
-        {/* Left: storyline copy */}
         <div>
           <motion.span
             initial={{ opacity: 0, y: 10 }}
@@ -30,7 +30,11 @@ export default function Hero() {
             <motion.span
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{
+                duration: 0.6,
+                delay: 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               className="block font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem]"
             >
               {t("legacy.titleLine1")}
@@ -38,8 +42,14 @@ export default function Hero() {
             <motion.span
               initial={{ opacity: 0, y: 24, rotate: -2 }}
               animate={{ opacity: 1, y: 0, rotate: 0 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="block font-[family-name:var(--font-script)] text-6xl leading-none text-gold sm:text-7xl lg:text-8xl"
+              transition={{
+                duration: 0.6,
+                delay: 0.3,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className={`block font-[family-name:var(--font-script)] text-6xl leading-none text-gold sm:text-7xl lg:text-8xl ${
+                isBn ? "mt-8" : ""
+              }`}
             >
               {t("legacy.titleAccent")}
             </motion.span>
@@ -116,20 +126,6 @@ export default function Hero() {
               className="object-cover"
             />
           </motion.div>
-
-          <motion.span
-            initial={{ opacity: 0, rotate: -8, scale: 0.9 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.75 }}
-            className="absolute -top-5 right-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border border-gold/40 bg-background text-center shadow-sm"
-          >
-            <span className="font-[family-name:var(--font-serif)] text-xl font-semibold text-gold">
-              {t("milestones.founded")}
-            </span>
-            <span className="font-[family-name:var(--font-mono)] text-[8px] uppercase tracking-wide text-muted-foreground">
-              modules
-            </span>
-          </motion.span>
         </motion.div>
       </div>
     </section>
