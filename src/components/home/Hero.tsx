@@ -11,30 +11,62 @@ export default function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-2 lg:items-center lg:pt-20">
+      {/* Decorative soft circle */}
+      <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-gold-soft sm:-right-20" />
+
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 pb-16 pt-16 sm:px-8 lg:grid-cols-2 lg:pt-24">
         {/* Left: storyline copy */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <span className="chip-kinetic">{t("legacy.eyebrow")}</span>
-          <h1 className="mt-5 font-[family-name:var(--font-display)] text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
-            {t("legacy.title")}
+        <div>
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="chip-kinetic"
+          >
+            {t("legacy.eyebrow")}
+          </motion.span>
+
+          <h1 className="mt-6 leading-[1.05]">
+            <motion.span
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="block font-[family-name:var(--font-serif)] text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem]"
+            >
+              {t("legacy.titleLine1")}
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 24, rotate: -2 }}
+              animate={{ opacity: 1, y: 0, rotate: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="block font-[family-name:var(--font-script)] text-6xl leading-none text-gold sm:text-7xl lg:text-8xl"
+            >
+              {t("legacy.titleAccent")}
+            </motion.span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            className="mt-8 max-w-xl text-sm leading-relaxed text-muted-foreground"
+          >
             {t("legacy.paragraph1")}
-          </p>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+            className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground"
+          >
             {t("legacy.paragraph2")}
-          </p>
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-8 flex flex-wrap items-center gap-4"
+            transition={{ duration: 0.5, delay: 0.7 }}
+            className="mt-9 flex flex-wrap items-center gap-6"
           >
             <Link
               href="/about"
@@ -50,16 +82,15 @@ export default function Hero() {
               {t("hero.cta")}
             </Link>
           </motion.div>
-        </motion.div>
+        </div>
 
-        {/* Right: layered visual with reduced image height */}
+        {/* Right: layered visual */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="relative"
         >
-          {/* Main Hero Image: Reduced height container */}
           <div className="relative aspect-[16/11] max-h-[380px] w-full overflow-hidden rounded-2xl bg-secondary shadow-2xl sm:max-h-[420px]">
             <Image
               src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80"
@@ -71,21 +102,34 @@ export default function Hero() {
             />
           </div>
 
-          {/* Floating Accent Image */}
           <motion.div
             initial={{ opacity: 0, y: 16, x: -16 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute -bottom-6 -left-6 hidden aspect-square w-32 overflow-hidden rounded-xl border-4 border-background shadow-xl sm:block lg:w-36"
+            transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute -bottom-8 -left-8 hidden aspect-square w-40 overflow-hidden rounded-xl border-4 border-background shadow-xl sm:block"
           >
             <Image
               src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80"
-              alt="Real estate property preview"
+              alt=""
               fill
-              sizes="144px"
+              sizes="160px"
               className="object-cover"
             />
           </motion.div>
+
+          <motion.span
+            initial={{ opacity: 0, rotate: -8, scale: 0.9 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.75 }}
+            className="absolute -top-5 right-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border border-gold/40 bg-background text-center shadow-sm"
+          >
+            <span className="font-[family-name:var(--font-serif)] text-xl font-semibold text-gold">
+              {t("milestones.founded")}
+            </span>
+            <span className="font-[family-name:var(--font-mono)] text-[8px] uppercase tracking-wide text-muted-foreground">
+              modules
+            </span>
+          </motion.span>
         </motion.div>
       </div>
     </section>
