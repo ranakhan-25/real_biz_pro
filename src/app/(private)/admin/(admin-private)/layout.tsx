@@ -12,10 +12,10 @@ export default function AdminPrivateLayout({
       <div className="min-h-screen bg-[#F8FAFC] text-slate-900">
         <AdminSidebar />
 
-        <div className="pl-[250px]">
+        <div className="lg:pl-[250px]">
           <AdminTopbar />
 
-          <main className="min-h-full p-6">{children}</main>
+          <main className="min-h-full p-6 sm:p-12 mt-10">{children}</main>
         </div>
       </div>
     </AdminAuthGuard>
