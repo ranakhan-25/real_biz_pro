@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 
+
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -21,6 +22,22 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     (route) => route === "/" ? pathname === "/" : pathname?.startsWith(route)
   );
 
+import Navbar from "@/components/Navber";
+import Sidebar from "@/components/Sidebar";
+
+export function LayoutShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // Pages that provide their own full-page layout, site nav, or dashboard shell
+  const isStandalone =
+    pathname === "/" ||
+    pathname?.startsWith("/crm-module") ||
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/properties") ||
+    pathname?.startsWith("/about") ||
+    pathname?.startsWith("/contact");
+
+
   if (isStandalone) {
     return <>{children}</>;
   }
@@ -32,5 +49,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
+
+}
+
+}
 }
 

@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+<<<<<<< HEAD
 import { motion } from "motion/react";
+=======
+import { motion } from "framer-motion";
+>>>>>>> niloy
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 import { fetchCalendarEvents, type CalendarEvent } from "@/lib/api";

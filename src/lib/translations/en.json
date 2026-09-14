@@ -2,10 +2,16 @@
   "nav": {
     "home": "Home",
     "properties": "Properties",
+<<<<<<< HEAD
     "pricing": "Pricing",
     "about": "About",
     "contact": "Contact",
     "login": "Login"
+=======
+    "about": "About",
+    "contact": "Contact",
+    "login": "Log in"
+>>>>>>> niloy
   },
   "language": {
     "english": "English",

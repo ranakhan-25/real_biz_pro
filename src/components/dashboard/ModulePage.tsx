@@ -248,7 +248,11 @@ export function ModulePage({
             </div>
 
             <div className="overflow-x-auto">
+<<<<<<< HEAD
               <table className="w-full min-w-160 text-left text-sm">
+=======
+              <table className="w-full min-w-[640px] text-left text-sm">
+>>>>>>> niloy
                 <thead className="border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="px-5 py-3 font-semibold">Project</th>
@@ -267,7 +271,11 @@ export function ModulePage({
 
                 <tbody className="divide-y divide-border">
                   {ROWS.map((r) => (
+<<<<<<< HEAD
                     <tr key={r.name} className="hover:bg-foreground/3">
+=======
+                    <tr key={r.name} className="hover:bg-foreground/[0.03]">
+>>>>>>> niloy
                       <td className="px-5 py-3.5 font-semibold">{r.name}</td>
 
                       <td className="px-5 py-3.5 text-muted-foreground">

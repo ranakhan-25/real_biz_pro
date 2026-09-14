@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { AnimatePresence, motion } from "motion/react";
+=======
+import { AnimatePresence, motion } from "framer-motion";
+>>>>>>> niloy
 import { X, CalendarDays, PhoneCall, MapPinned, Cake, PartyPopper } from "lucide-react";
 import { fetchDayActivity, type DayActivity } from "@/lib/api";
 

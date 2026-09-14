@@ -100,7 +100,11 @@ const Navbar = ({
 }: NavbarProps) => {
   const { theme, toggleTheme } = useTheme();
   return (
+<<<<<<< HEAD
     <div className="flex items-center justify-between w-full h-19 px-8 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+=======
+    <div className="flex items-center justify-between w-full h-[76px] px-8 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+>>>>>>> niloy
       {/* Middle: Search */}
       <div className="flex-1 max-w-xl">
         <div className="relative flex items-center">
