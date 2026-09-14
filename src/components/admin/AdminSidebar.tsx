@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { clearStoredTokens } from "@/lib/admin-auth/adminAuthStorage";
+import { useTheme } from "@/lib/theme";
 
 type AdminNavItem = {
   label: string;
@@ -47,11 +48,6 @@ const menuGroups: AdminMenuItem[] = [
     label: "System Management",
     icon: Boxes,
     children: [
-      {
-        label: "Module Management",
-        href: "/admin/modules",
-        icon: Boxes,
-      },
       {
         label: "Menu Management",
         href: "/admin/menus",
@@ -88,6 +84,11 @@ const menuGroups: AdminMenuItem[] = [
         href: "/admin/features",
         icon: FileCog,
       },
+      {
+        label: "Modules",
+        href: "/admin/modules",
+        icon: Boxes,
+      },
     ],
   },
 ];
@@ -95,6 +96,7 @@ const menuGroups: AdminMenuItem[] = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { primaryColor } = useTheme();
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "System Management": true,
@@ -116,12 +118,10 @@ export default function AdminSidebar() {
     router.replace("/admin/login");
   };
 
-  // Close sidebar after navigation on mobile
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when mobile sidebar is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -136,9 +136,7 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* =====================================================
-          MOBILE TOP BAR
-      ====================================================== */}
+      {/* MOBILE TOP BAR */}
       <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm lg:hidden">
         <Link
           href="/admin/dashboard"
@@ -160,26 +158,13 @@ export default function AdminSidebar() {
           onClick={() => setMobileOpen(true)}
           aria-label="Open navigation"
           aria-expanded={mobileOpen}
-          className="
-            flex h-10 w-10 shrink-0
-            items-center justify-center
-            rounded-lg
-            border border-slate-200
-            bg-white
-            text-slate-700
-            shadow-sm
-            transition
-            hover:bg-slate-50
-            active:scale-95
-          "
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
         >
           <MenuIcon size={21} strokeWidth={2} />
         </button>
       </header>
 
-      {/* =====================================================
-          MOBILE OVERLAY
-      ====================================================== */}
+      {/* MOBILE OVERLAY */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -189,19 +174,12 @@ export default function AdminSidebar() {
             transition={{ duration: 0.2 }}
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
-            className="
-              fixed inset-0 z-40
-              bg-slate-950/40
-              backdrop-blur-[2px]
-              lg:hidden
-            "
+            className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[2px] lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* =====================================================
-          SIDEBAR
-      ====================================================== */}
+      {/* SIDEBAR */}
       <aside
         aria-label="Admin navigation"
         className={`
@@ -211,25 +189,14 @@ export default function AdminSidebar() {
           bg-white
           shadow-xl shadow-slate-900/10
           transition-transform duration-300 ease-out
-
           lg:w-[250px]
           lg:translate-x-0
           lg:shadow-none
-
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        {/* ===================================================
-            SIDEBAR LOGO
-        ==================================================== */}
-        <div
-          className="
-            flex h-[68px] shrink-0
-            items-center justify-between
-            border-b border-slate-200
-            px-4 sm:px-5
-          "
-        >
+        {/* LOGO */}
+        <div className="flex h-[68px] shrink-0 items-center justify-between border-b border-slate-200 px-4 sm:px-5">
           <Link
             href="/admin/dashboard"
             className="min-w-0 flex-1"
@@ -247,58 +214,28 @@ export default function AdminSidebar() {
                 width={300}
                 height={200}
                 priority
-                className="
-                  h-auto
-                  max-h-[46px]
-                  w-[155px]
-                  sm:w-[170px]
-                  object-contain
-                  object-left
-                "
+                className="h-auto max-h-[46px] w-[155px] object-contain object-left sm:w-[170px]"
               />
             </motion.div>
           </Link>
 
-          {/* Mobile Close Button */}
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation"
-            className="
-              ml-2 flex h-9 w-9 shrink-0
-              items-center justify-center
-              rounded-lg
-              text-slate-500
-              transition
-              hover:bg-slate-100
-              hover:text-slate-800
-              active:scale-95
-              lg:hidden
-            "
+            className="ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 active:scale-95 lg:hidden"
           >
             <X size={20} strokeWidth={2} />
           </button>
         </div>
 
-        {/* ===================================================
-            NAVIGATION
-        ==================================================== */}
-        <nav
-          className="
-            min-h-0 flex-1
-            overflow-x-hidden
-            overflow-y-auto
-            overscroll-contain
-            px-2.5
-            py-3
-            sm:px-3
-            sm:py-4
-          "
-        >
+        {/* NAVIGATION */}
+        <nav className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2.5 py-3 sm:px-3 sm:py-4">
           <div className="space-y-1">
             {menuGroups.map((item, index) => {
               const Icon = item.icon;
 
+              // ========== Single Link Item ==========
               if ("href" in item) {
                 const active =
                   pathname === item.href ||
@@ -319,30 +256,37 @@ export default function AdminSidebar() {
                       <motion.div
                         whileHover={{ x: active ? 0 : 2 }}
                         whileTap={{ scale: 0.985 }}
-                        className={`
-                          relative flex min-h-10
-                          w-full items-center gap-3
-                          rounded-lg
-                          px-3 py-2
-                          text-[13px] font-medium
-                          transition-all
-                          ${
-                            active
-                              ? "bg-[#1D6BB2] text-white shadow-sm shadow-[#1D6BB2]/20"
-                              : "text-slate-600 hover:bg-[#1D6BB2]/5 hover:text-[#1D6BB2]"
+                        className="relative flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all"
+                        style={
+                          active
+                            ? {
+                                backgroundColor: primaryColor,
+                                color: "#ffffff",
+                                boxShadow: `0 1px 2px ${primaryColor}33`,
+                              }
+                            : { color: "#475569" }
+                        }
+                        onMouseEnter={(e) => {
+                          if (!active) {
+                            e.currentTarget.style.backgroundColor = `${primaryColor}0D`;
+                            e.currentTarget.style.color = primaryColor;
                           }
-                        `}
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active) {
+                            e.currentTarget.style.backgroundColor = "";
+                            e.currentTarget.style.color = "#475569";
+                          }
+                        }}
                       >
                         <Icon
                           size={17}
                           className="shrink-0"
                           strokeWidth={active ? 2.2 : 1.8}
                         />
-
                         <span className="min-w-0 flex-1 truncate">
                           {item.label}
                         </span>
-
                         {active && (
                           <ChevronRight size={14} className="shrink-0" />
                         )}
@@ -352,13 +296,8 @@ export default function AdminSidebar() {
                 );
               }
 
-              {
-                /* =================================================
-                  PARENT MENU
-              ================================================== */
-              }
+              // ========== Group Item ==========
               const isOpen = openGroups[item.label];
-
               const childActive = item.children.some(
                 (child) =>
                   pathname === child.href ||
@@ -372,42 +311,43 @@ export default function AdminSidebar() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.04 }}
                 >
-                  {/* Parent Button */}
                   <motion.button
                     type="button"
                     onClick={() => toggleGroup(item.label)}
                     whileTap={{ scale: 0.985 }}
                     aria-expanded={isOpen}
-                    className={`
-                      relative flex min-h-10
-                      w-full items-center gap-3
-                      rounded-lg
-                      px-3 py-2
-                      text-left
-                      text-[13px]
-                      font-medium
-                      transition-all
-                      ${
-                        childActive
-                          ? "bg-[#1D6BB2]/10 text-[#1D6BB2]"
-                          : "text-slate-600 hover:bg-[#1D6BB2]/5 hover:text-[#1D6BB2]"
+                    className="relative flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-all"
+                    style={
+                      childActive
+                        ? {
+                            backgroundColor: `${primaryColor}1A`,
+                            color: primaryColor,
+                          }
+                        : { color: "#475569" }
+                    }
+                    onMouseEnter={(e) => {
+                      if (!childActive) {
+                        e.currentTarget.style.backgroundColor = `${primaryColor}0D`;
+                        e.currentTarget.style.color = primaryColor;
                       }
-                    `}
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!childActive) {
+                        e.currentTarget.style.backgroundColor = "";
+                        e.currentTarget.style.color = "#475569";
+                      }
+                    }}
                   >
                     <Icon
                       size={17}
                       className="shrink-0"
                       strokeWidth={childActive ? 2.2 : 1.8}
                     />
-
                     <span className="min-w-0 flex-1 truncate">
                       {item.label}
                     </span>
-
                     <motion.span
-                      animate={{
-                        rotate: isOpen ? 0 : -90,
-                      }}
+                      animate={{ rotate: isOpen ? 0 : -90 }}
                       transition={{ duration: 0.18 }}
                       className="shrink-0"
                     >
@@ -415,43 +355,21 @@ export default function AdminSidebar() {
                     </motion.span>
                   </motion.button>
 
-                  {/* =================================================
-                      CHILDREN
-                  ================================================== */}
                   <AnimatePresence initial={false}>
                     {isOpen && (
                       <motion.div
-                        initial={{
-                          opacity: 0,
-                          height: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          height: "auto",
-                        }}
-                        exit={{
-                          opacity: 0,
-                          height: 0,
-                        }}
-                        transition={{
-                          duration: 0.2,
-                          ease: "easeInOut",
-                        }}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
                         <div
-                          className="
-                            ml-4
-                            mt-1
-                            space-y-1
-                            border-l border-[#1D6BB2]/20
-                            pl-2
-                            sm:ml-5
-                          "
+                          className="ml-4 mt-1 space-y-1 border-l pl-2 sm:ml-5"
+                          style={{ borderColor: `${primaryColor}33` }}
                         >
                           {item.children.map((child) => {
                             const ChildIcon = child.icon;
-
                             const active =
                               pathname === child.href ||
                               pathname.startsWith(`${child.href}/`);
@@ -464,38 +382,41 @@ export default function AdminSidebar() {
                                 className="block"
                               >
                                 <motion.div
-                                  whileHover={{
-                                    x: active ? 0 : 2,
-                                  }}
-                                  whileTap={{
-                                    scale: 0.985,
-                                  }}
-                                  className={`
-                                    relative flex min-h-9
-                                    w-full items-center gap-2.5
-                                    rounded-md
-                                    px-2.5 py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    transition-all
-                                    sm:px-3
-                                    ${
-                                      active
-                                        ? "bg-[#1D6BB2] text-white shadow-sm shadow-[#1D6BB2]/20"
-                                        : "text-slate-500 hover:bg-[#1D6BB2]/5 hover:text-[#1D6BB2]"
+                                  whileHover={{ x: active ? 0 : 2 }}
+                                  whileTap={{ scale: 0.985 }}
+                                  className="relative flex min-h-9 w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[12.5px] font-medium transition-all sm:px-3"
+                                  style={
+                                    active
+                                      ? {
+                                          backgroundColor: primaryColor,
+                                          color: "#ffffff",
+                                          boxShadow: `0 1px 2px ${primaryColor}33`,
+                                        }
+                                      : { color: "#64748B" }
+                                  }
+                                  onMouseEnter={(e) => {
+                                    if (!active) {
+                                      e.currentTarget.style.backgroundColor = `${primaryColor}0D`;
+                                      e.currentTarget.style.color =
+                                        primaryColor;
                                     }
-                                  `}
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!active) {
+                                      e.currentTarget.style.backgroundColor =
+                                        "";
+                                      e.currentTarget.style.color = "#64748B";
+                                    }
+                                  }}
                                 >
                                   <ChildIcon
                                     size={15}
                                     className="shrink-0"
                                     strokeWidth={active ? 2.1 : 1.7}
                                   />
-
                                   <span className="min-w-0 flex-1 truncate">
                                     {child.label}
                                   </span>
-
                                   {active && (
                                     <ChevronRight
                                       size={13}
@@ -516,20 +437,8 @@ export default function AdminSidebar() {
           </div>
         </nav>
 
-        {/* =====================================================
-            BOTTOM ACTIONS
-        ====================================================== */}
-        <div
-          className="
-            shrink-0
-            border-t border-slate-200
-            bg-white
-            p-2.5
-            pb-[max(12px,env(safe-area-inset-bottom))]
-            sm:p-3
-          "
-        >
-          {/* Settings */}
+        {/* BOTTOM ACTIONS */}
+        <div className="shrink-0 border-t border-slate-200 bg-white p-2.5 pb-[max(12px,env(safe-area-inset-bottom))] sm:p-3">
           <Link
             href="/admin/settings"
             onClick={() => setMobileOpen(false)}
@@ -538,28 +447,34 @@ export default function AdminSidebar() {
             <motion.div
               whileHover={{ x: 2 }}
               whileTap={{ scale: 0.985 }}
-              className={`
-                flex min-h-10
-                items-center gap-3
-                rounded-lg
-                px-3 py-2
-                text-[13px]
-                font-medium
-                transition-all
-                ${
-                  pathname.startsWith("/admin/settings")
-                    ? "bg-[#1D6BB2] text-white shadow-sm shadow-[#1D6BB2]/20"
-                    : "text-slate-600 hover:bg-[#1D6BB2]/5 hover:text-[#1D6BB2]"
+              className="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all"
+              style={
+                pathname.startsWith("/admin/settings")
+                  ? {
+                      backgroundColor: primaryColor,
+                      color: "#ffffff",
+                      boxShadow: `0 1px 2px ${primaryColor}33`,
+                    }
+                  : { color: "#475569" }
+              }
+              onMouseEnter={(e) => {
+                if (!pathname.startsWith("/admin/settings")) {
+                  e.currentTarget.style.backgroundColor = `${primaryColor}0D`;
+                  e.currentTarget.style.color = primaryColor;
                 }
-              `}
+              }}
+              onMouseLeave={(e) => {
+                if (!pathname.startsWith("/admin/settings")) {
+                  e.currentTarget.style.backgroundColor = "";
+                  e.currentTarget.style.color = "#475569";
+                }
+              }}
             >
               <Settings size={17} className="shrink-0" />
-
               <span className="min-w-0 truncate">Settings</span>
             </motion.div>
           </Link>
 
-          {/* Sign Out */}
           <button
             type="button"
             onClick={handleSignOut}
@@ -568,21 +483,9 @@ export default function AdminSidebar() {
             <motion.div
               whileHover={{ x: 2 }}
               whileTap={{ scale: 0.985 }}
-              className="
-                mt-1 flex min-h-10
-                items-center gap-3
-                rounded-lg
-                px-3 py-2
-                text-[13px]
-                font-medium
-                text-slate-500
-                transition-colors
-                hover:bg-red-50
-                hover:text-red-500
-              "
+              className="mt-1 flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-500"
             >
               <LogOut size={17} className="shrink-0" />
-
               <span className="min-w-0 truncate">Sign Out</span>
             </motion.div>
           </button>

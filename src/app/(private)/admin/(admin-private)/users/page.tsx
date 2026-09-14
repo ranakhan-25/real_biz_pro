@@ -26,6 +26,7 @@ import {
   getUsers,
   type User,
 } from "@/services/userService";
+import { useTheme } from "@/lib/theme";
 
 const DEMO_USERS: User[] = [
   {
@@ -97,18 +98,13 @@ const DEMO_USERS: User[] = [
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
 
-/*
- * Backend routes like GET/PATCH/DELETE /users/{uuid} expect an actual
- * UUID column value. The list/dropdown endpoints return a numeric `id`
- * for display and a separate `uuid` for these operations — always
- * prefer `uuid` when calling those endpoints, falling back to `id`
- * only if `uuid` isn't present.
- */
 function getUserIdentifier(target: User): string {
   return String(target.uuid ?? target.id);
 }
 
 export default function UsersPage() {
+  const { primaryColor } = useTheme();
+
   const [users, setUsers] = useState<User[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
 
@@ -135,24 +131,17 @@ export default function UsersPage() {
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [deleteError, setDeleteError] = useState("");
 
-  // Guards against out-of-order responses (e.g. a slow "search=foo"
-  // request resolving after a faster "search=" request).
   const requestIdRef = useRef(0);
-
   const totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE));
 
-  // Debounce free-text search input, and reset to page 1 whenever the
-  // effective query text changes.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(1);
     }, SEARCH_DEBOUNCE_MS);
-
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Reset to page 1 whenever the status filter changes.
   useEffect(() => {
     setPage(1);
   }, [status]);
@@ -173,15 +162,8 @@ export default function UsersPage() {
         sortOrder: "DESC",
       });
 
-      // Ignore this response if a newer request has since been issued.
       if (requestId !== requestIdRef.current) return;
 
-      /*
-       * API response can come back in a few shapes:
-       * - [...]
-       * - { data: [...], meta: {...} }
-       * - { data: { data: [...], meta: {...} } }
-       */
       let rawUserList: User[] = [];
       let total = 0;
 
@@ -190,7 +172,6 @@ export default function UsersPage() {
         total = response.length;
       } else if (response && typeof response === "object") {
         const result = response as any;
-
         if (Array.isArray(result.data)) {
           rawUserList = result.data;
           total = result.meta?.total ?? rawUserList.length;
@@ -200,18 +181,8 @@ export default function UsersPage() {
         }
       }
 
-      /*
-       * Remove invalid/empty user objects.
-       *
-       * Your API currently appears to return:
-       * { id: undefined, username: undefined }
-       * as the first item.
-       */
       const userList = rawUserList.filter((user) => {
-        if (!user || typeof user !== "object") {
-          return false;
-        }
-
+        if (!user || typeof user !== "object") return false;
         return (
           user.id !== undefined &&
           user.id !== null &&
@@ -231,20 +202,16 @@ export default function UsersPage() {
       setUsers(userList);
       setTotalUsers(total || userList.length);
 
-      // If a delete or filter change left us on a page past the end,
-      // step back rather than showing an empty page forever.
       if (userList.length === 0 && total > 0 && page > 1) {
         setPage((current) => Math.max(1, current - 1));
       }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
-
       setError(
         err instanceof Error
           ? `${err.message} Using demo data instead.`
           : "Using demo data because the backend is unavailable.",
       );
-
       setUsers(DEMO_USERS);
       setTotalUsers(DEMO_USERS.length);
     } finally {
@@ -258,7 +225,6 @@ export default function UsersPage() {
     loadUsers();
   }, [loadUsers]);
 
-  // Close the row action menu on outside click or Escape.
   useEffect(() => {
     if (menuUserId === null) return;
 
@@ -303,8 +269,6 @@ export default function UsersPage() {
       const data = await getUser(getUserIdentifier(user), true);
       setViewUser(data);
     } catch (err) {
-      // Fall back to the row data we already have so the modal
-      // still shows something useful, but surface the error too.
       setViewUser(user);
       setViewError(
         err instanceof Error
@@ -324,13 +288,11 @@ export default function UsersPage() {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-
     setDeletingId(userToDelete.id);
     setDeleteError("");
 
     try {
       await deleteUser(getUserIdentifier(userToDelete));
-
       setUsers((current) =>
         current.filter((item) => item.id !== userToDelete.id),
       );
@@ -348,21 +310,15 @@ export default function UsersPage() {
   const handleFormSuccess = (savedUser: User) => {
     setFormOpen(false);
     setEditingUser(null);
-
     setUsers((current) => {
       const exists = current.some((item) => item.id === savedUser.id);
-
       if (exists) {
         return current.map((item) =>
           item.id === savedUser.id ? { ...item, ...savedUser } : item,
         );
       }
-
       return [savedUser, ...current];
     });
-
-    // A brand-new user was added on the current filter/page view;
-    // refresh totals so the count stays accurate.
     setTotalUsers((current) => current + 1);
   };
 
@@ -370,15 +326,10 @@ export default function UsersPage() {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
-
-    if (page <= 3) {
-      return [1, 2, 3, "...", totalPages];
-    }
-
+    if (page <= 3) return [1, 2, 3, "...", totalPages];
     if (page >= totalPages - 2) {
       return [1, "...", totalPages - 2, totalPages - 1, totalPages];
     }
-
     return [1, "...", page, "...", totalPages];
   };
 
@@ -388,7 +339,6 @@ export default function UsersPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Users</h1>
-
           <p className="mt-1 text-sm text-slate-500">
             Manage platform users, roles, permissions and access.
           </p>
@@ -397,7 +347,8 @@ export default function UsersPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1D6BB2] px-5 text-sm font-semibold text-white transition hover:bg-[#185d9c]"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold text-white transition hover:opacity-90"
+          style={{ backgroundColor: primaryColor }}
         >
           <Plus className="h-4 w-4" />
           Add User
@@ -410,7 +361,6 @@ export default function UsersPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Total Users
           </p>
-
           <p className="mt-1 text-2xl font-bold text-slate-900">{totalUsers}</p>
         </div>
 
@@ -418,7 +368,6 @@ export default function UsersPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Active (this page)
           </p>
-
           <p className="mt-1 text-2xl font-bold text-emerald-600">
             {users.filter((user) => user.isActive).length}
           </p>
@@ -428,8 +377,10 @@ export default function UsersPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Page
           </p>
-
-          <p className="mt-1 text-2xl font-bold text-[#1D6BB2]">
+          <p
+            className="mt-1 text-2xl font-bold"
+            style={{ color: primaryColor }}
+          >
             {page}{" "}
             <span className="text-base font-medium text-slate-400">
               / {totalPages}
@@ -444,26 +395,43 @@ export default function UsersPage() {
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search username or email..."
               aria-label="Search users"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:border-[#1D6BB2] focus:bg-white focus:ring-4 focus:ring-[#1D6BB2]/10"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:bg-white focus:ring-4"
+              style={
+                {
+                  // focus styles via CSS variable if needed
+                } as React.CSSProperties
+              }
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
             />
           </div>
 
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-400" />
-
             <select
               value={status}
               onChange={(event) =>
                 setStatus(event.target.value as "all" | "active" | "inactive")
               }
               aria-label="Filter by status"
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-[#1D6BB2]"
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+              }}
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -512,8 +480,10 @@ export default function UsersPage() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-16 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
-
+                    <Loader2
+                      className="mx-auto h-6 w-6 animate-spin"
+                      style={{ color: primaryColor }}
+                    />
                     <p className="mt-2 text-sm text-slate-400">
                       Loading users...
                     </p>
@@ -523,7 +493,6 @@ export default function UsersPage() {
                 <tr>
                   <td colSpan={8} className="px-5 py-16 text-center">
                     <UserRound className="mx-auto h-8 w-8 text-slate-300" />
-
                     <p className="mt-2 text-sm font-medium text-slate-500">
                       No users found.
                     </p>
@@ -534,10 +503,8 @@ export default function UsersPage() {
                   const fullName =
                     `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
                     user.username;
-
                   const roles =
                     (user as any).roles ?? (user as any).roleIds ?? [];
-
                   const companies = (user as any).companies ?? [];
 
                   return (
@@ -551,7 +518,13 @@ export default function UsersPage() {
                       {/* USER */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1D6BB2]/10 text-[#1D6BB2]">
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                            style={{
+                              backgroundColor: `${primaryColor}1A`,
+                              color: primaryColor,
+                            }}
+                          >
                             {user.avatarUrl ? (
                               <img
                                 src={user.avatarUrl}
@@ -562,16 +535,13 @@ export default function UsersPage() {
                               <UserRound className="h-4 w-4" />
                             )}
                           </div>
-
                           <div>
                             <p className="text-sm font-semibold text-slate-800">
                               {fullName}
                             </p>
-
                             <p className="text-xs text-slate-400">
                               {user.email || "—"}
                             </p>
-
                             <p className="mt-0.5 text-[11px] text-slate-400">
                               @{user.username}
                             </p>
@@ -588,7 +558,13 @@ export default function UsersPage() {
 
                       {/* USER TYPE */}
                       <td className="px-5 py-4">
-                        <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-medium text-[#1D6BB2]">
+                        <span
+                          className="rounded-lg px-2.5 py-1 text-xs font-medium"
+                          style={{
+                            backgroundColor: `${primaryColor}15`,
+                            color: primaryColor,
+                          }}
+                        >
                           {user.userType || "—"}
                         </span>
                       </td>
@@ -611,7 +587,6 @@ export default function UsersPage() {
                                     : role}
                                 </span>
                               ))}
-
                             {roles.length > 2 && (
                               <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
                                 +{roles.length - 2}
@@ -639,7 +614,6 @@ export default function UsersPage() {
                                   "—"
                                 }`}
                             </p>
-
                             {companies.length > 1 && (
                               <p className="text-xs text-slate-400">
                                 +{companies.length - 1} more
@@ -681,7 +655,15 @@ export default function UsersPage() {
                             onClick={() => openView(user)}
                             title="View user"
                             aria-label={`View ${fullName}`}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2]"
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = primaryColor;
+                              e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = "";
+                              e.currentTarget.style.backgroundColor = "";
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -691,7 +673,13 @@ export default function UsersPage() {
                             onClick={() => openEdit(user)}
                             title="Edit user"
                             aria-label={`Edit ${fullName}`}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#1D6BB2]"
+                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = primaryColor;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = "";
+                            }}
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
@@ -743,7 +731,6 @@ export default function UsersPage() {
                               <Eye className="h-4 w-4" />
                               View Details
                             </button>
-
                             <button
                               type="button"
                               role="menuitem"
@@ -753,7 +740,6 @@ export default function UsersPage() {
                               <Edit3 className="h-4 w-4" />
                               Edit User
                             </button>
-
                             <button
                               type="button"
                               role="menuitem"
@@ -779,40 +765,21 @@ export default function UsersPage() {
           <div className="border-t border-slate-100 px-5 py-3">
             <div className="flex items-center justify-end">
               <div className="flex items-center gap-1.5">
-                {/* PREVIOUS */}
                 <button
                   type="button"
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   disabled={page <= 1}
-                  className="
-            inline-flex h-8 items-center justify-center
-            rounded-[3px]
-            border border-slate-200
-            bg-white
-            px-3
-            text-[11px] font-medium text-slate-500
-            transition
-            hover:bg-slate-50
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
+                  className="inline-flex h-8 items-center justify-center rounded-[3px] border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Previous
                 </button>
 
-                {/* PAGE NUMBERS */}
                 {getPageNumbers().map((item, index) => {
                   if (item === "...") {
                     return (
                       <span
                         key={`ellipsis-${index}`}
-                        className="
-                  inline-flex h-8 min-w-6
-                  items-center justify-center
-                  px-1
-                  text-[11px]
-                  text-slate-400
-                "
+                        className="inline-flex h-8 min-w-6 items-center justify-center px-1 text-[11px] text-slate-400"
                       >
                         ...
                       </span>
@@ -826,44 +793,33 @@ export default function UsersPage() {
                       key={item}
                       type="button"
                       onClick={() => setPage(item)}
-                      className={`
-                inline-flex h-8 min-w-7
-                items-center justify-center
-                rounded-[3px]
-                border
-                text-[11px] font-medium
-                transition
-                ${
-                  active
-                    ? "border-[#1D6BB2] bg-[#1D6BB2] text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }
-              `}
+                      className="inline-flex h-8 min-w-7 items-center justify-center rounded-[3px] border text-[11px] font-medium transition"
+                      style={
+                        active
+                          ? {
+                              backgroundColor: primaryColor,
+                              borderColor: primaryColor,
+                              color: "#ffffff",
+                            }
+                          : {
+                              borderColor: "#e2e8f0",
+                              backgroundColor: "#ffffff",
+                              color: "#475569",
+                            }
+                      }
                     >
                       {item}
                     </button>
                   );
                 })}
 
-                {/* NEXT */}
                 <button
                   type="button"
                   onClick={() =>
                     setPage((current) => Math.min(totalPages, current + 1))
                   }
                   disabled={page >= totalPages}
-                  className="
-            inline-flex h-8 items-center justify-center
-            rounded-[3px]
-            border border-slate-200
-            bg-white
-            px-3
-            text-[11px] font-medium text-slate-600
-            transition
-            hover:bg-slate-50
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
+                  className="inline-flex h-8 items-center justify-center rounded-[3px] border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>
@@ -911,12 +867,10 @@ export default function UsersPage() {
                   >
                     User Details
                   </h2>
-
                   <p className="text-sm text-slate-500">
                     Complete user information
                   </p>
                 </div>
-
                 <button
                   type="button"
                   onClick={() => setViewOpen(false)}
@@ -929,7 +883,10 @@ export default function UsersPage() {
 
               {viewLoading ? (
                 <div className="py-12 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
+                  <Loader2
+                    className="mx-auto h-6 w-6 animate-spin"
+                    style={{ color: primaryColor }}
+                  />
                 </div>
               ) : viewUser ? (
                 <>
@@ -941,7 +898,7 @@ export default function UsersPage() {
                       {viewError}
                     </p>
                   )}
-                  <UserDetails user={viewUser} />
+                  <UserDetails user={viewUser} primaryColor={primaryColor} />
                 </>
               ) : null}
             </div>
@@ -964,7 +921,6 @@ export default function UsersPage() {
               >
                 Delete user?
               </h2>
-
               <p className="text-sm text-slate-500">
                 This will permanently remove{" "}
                 <span className="font-semibold text-slate-700">
@@ -972,7 +928,6 @@ export default function UsersPage() {
                 </span>
                 . This action cannot be undone.
               </p>
-
               {deleteError && (
                 <p
                   role="alert"
@@ -981,7 +936,6 @@ export default function UsersPage() {
                   {deleteError}
                 </p>
               )}
-
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
@@ -991,7 +945,6 @@ export default function UsersPage() {
                 >
                   Cancel
                 </button>
-
                 <button
                   type="button"
                   onClick={confirmDelete}
@@ -1012,26 +965,35 @@ export default function UsersPage() {
   );
 }
 
-function UserDetails({ user }: { user: User }) {
+function UserDetails({
+  user,
+  primaryColor,
+}: {
+  user: User;
+  primaryColor: string;
+}) {
   const roles = (user as any).roles ?? (user as any).roleIds ?? [];
   const companies = (user as any).companies ?? [];
 
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1D6BB2]/10 text-[#1D6BB2]">
+        <div
+          className="flex h-14 w-14 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: `${primaryColor}1A`,
+            color: primaryColor,
+          }}
+        >
           <UserRound className="h-6 w-6" />
         </div>
-
         <div>
           <h3 className="font-bold text-slate-900">
             {`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() ||
               user.username}
           </h3>
-
           <p className="text-sm text-slate-500">{user.email || "—"}</p>
         </div>
-
         <span
           className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${
             user.isActive
@@ -1082,7 +1044,6 @@ function Detail({
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
-
       <p className="mt-1 text-sm font-semibold text-slate-700">
         {value === undefined || value === null || value === "" ? "—" : value}
       </p>
@@ -1096,7 +1057,6 @@ function ArrayDetail({ label, values }: { label: string; values?: any[] }) {
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
-
       {values?.length ? (
         <div className="flex flex-wrap gap-1.5">
           {values.map((value, index) => (
@@ -1127,7 +1087,6 @@ function ObjectArrayDetail({
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
-
       {values?.length ? (
         <div className="flex flex-wrap gap-1.5">
           {values.map((value, index) => {
@@ -1139,7 +1098,6 @@ function ObjectArrayDetail({
                   value?.id ??
                   `Item ${index + 1}`)
                 : value;
-
             return (
               <span
                 key={value?.id ?? value?.uuid ?? index}
@@ -1168,17 +1126,13 @@ function Modal({
   labelledBy?: string;
   maxWidthClass?: string;
 }) {
-  // Escape-to-close and body scroll lock while any modal is open.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
@@ -1213,13 +1167,8 @@ function Modal({
 
 function formatDate(date?: string) {
   if (!date) return "—";
-
   const parsed = new Date(date);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return "—";
-  }
-
+  if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
