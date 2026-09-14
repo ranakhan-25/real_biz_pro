@@ -1,4 +1,8 @@
 packages:
   - '.'
 allowBuilds:
+<<<<<<< HEAD
   sharp: false
+=======
+  sharp: true
+>>>>>>> niloy

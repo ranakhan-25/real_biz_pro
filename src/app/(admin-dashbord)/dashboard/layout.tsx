@@ -7,11 +7,7 @@ import { Topbar } from "@/components/dashboard/Topbar";
 import { getSession, type Session } from "@/lib/auth";
 import { isModuleKey, type ModuleKey } from "@/lib/menus";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -39,12 +35,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Topbar
-        session={session}
-        onMenu={() => setOpen(true)}
-        search={search}
-        onSearch={setSearch}
-      />
+      <Topbar session={session} onMenu={() => setOpen(true)} search={search} onSearch={setSearch} />
       <div className="flex">
         <Sidebar
           module={moduleKey}
@@ -53,9 +44,7 @@ export default function DashboardLayout({
           onClose={() => setOpen(false)}
           filter={search}
         />
-        <main className="flex-1 px-4 md:px-6 py-5 max-w-350 w-full mx-auto">
-          {children}
-        </main>
+        <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
   );
