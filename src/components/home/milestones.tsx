@@ -34,7 +34,7 @@ export default function Milestones() {
   const { t } = useLanguage();
 
   return (
-    <section className="border-y border-border bg-secondary/60 px-5 py-16 sm:px-8">
+    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-[minmax(0,280px)_1px_1fr] lg:items-center lg:gap-12">
         <motion.div
           initial={{ opacity: 0, x: -16 }}
@@ -45,7 +45,7 @@ export default function Milestones() {
           <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">
             {t("stats.subtitle")}
           </p>
-          <p className="mt-2 font-[family-name:var(--font-display)] text-6xl font-semibold tracking-tight text-foreground sm:text-7xl">
+          <p className="mt-2 font-[family-name:var(--font-serif)] text-6xl font-semibold tracking-tight text-gold sm:text-7xl">
             {t("milestones.founded")}
           </p>
           <p className="mt-3 max-w-[220px] text-sm leading-relaxed text-muted-foreground">
@@ -70,7 +70,7 @@ export default function Milestones() {
                 show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
               }}
             >
-              <p className="font-[family-name:var(--font-display)] text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+              <p className="font-[family-name:var(--font-serif)] text-3xl font-semibold tabular-nums text-gold sm:text-4xl">
                 <Counter
                   value={STAT_VALUES[i]}
                   decimals={STAT_VALUES[i] % 1 !== 0 ? 1 : 0}
