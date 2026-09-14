@@ -1,3 +1,5 @@
 export default function TotalTasksPage() {
-  return null;
+  return (
+    <div>hello</div>
+  )
 }
