@@ -4,6 +4,7 @@ import { Loader2, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { createRole, type Role, updateRole } from "@/services/roleService";
+import { useTheme } from "@/lib/theme";
 
 interface RoleFormProps {
   role?: Role | null;
@@ -12,6 +13,8 @@ interface RoleFormProps {
 }
 
 export default function RoleForm({ role, onSuccess, onCancel }: RoleFormProps) {
+  const { primaryColor } = useTheme();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -67,6 +70,17 @@ export default function RoleForm({ role, onSuccess, onCancel }: RoleFormProps) {
     }
   };
 
+  const focusHandlers = {
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = primaryColor;
+      e.currentTarget.style.boxShadow = `0 0 0 3px ${primaryColor}20`;
+    },
+    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = "";
+      e.currentTarget.style.boxShadow = "";
+    },
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5 p-6">
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -103,8 +117,9 @@ export default function RoleForm({ role, onSuccess, onCancel }: RoleFormProps) {
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-[#1D6BB2]"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
           placeholder="e.g. Admin"
+          {...focusHandlers}
         />
       </label>
 
@@ -114,8 +129,9 @@ export default function RoleForm({ role, onSuccess, onCancel }: RoleFormProps) {
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={4}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-[#1D6BB2]"
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none"
           placeholder="Describe the purpose of this role"
+          {...focusHandlers}
         />
       </label>
 
@@ -127,10 +143,12 @@ export default function RoleForm({ role, onSuccess, onCancel }: RoleFormProps) {
         >
           Cancel
         </button>
+
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1D6BB2] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: primaryColor }}
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

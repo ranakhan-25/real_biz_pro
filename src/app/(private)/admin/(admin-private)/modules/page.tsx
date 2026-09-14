@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "@/lib/theme";
 
 const API_BASE_URL = "https://backend.garmentech.online/hrm/api/v1";
 
@@ -37,60 +38,17 @@ interface ModuleResponse {
 }
 
 export default function ModuleManagementPage() {
-  const [moduleList, setModuleList] = useState<ModuleItem[]>([]);
+  const { primaryColor } = useTheme();
 
+  const [moduleList, setModuleList] = useState<ModuleItem[]>([]);
   const [search, setSearch] = useState("");
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<ModuleItem | null>(null);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  });
-
+  const [formData, setFormData] = useState({ name: "", description: "" });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  // --------------------------------------------------
-  // Get Token
-  // --------------------------------------------------
-
-  // const getToken = () => {
-  //   if (typeof window === "undefined") return "";
-
-  //   const cookie = document.cookie
-  //     .split("; ")
-  //     .find((row) => row.startsWith("accessToken="));
-
-  //   if (!cookie) return "";
-
-  //   return decodeURIComponent(cookie.substring("accessToken=".length));
-  // };
-
-  // --------------------------------------------------
-  // Common Headers
-  // --------------------------------------------------
-
-  // const getHeaders = () => {
-  //   const token = getToken();
-
-  //   return {
-  //     "Content-Type": "application/json",
-  //     ...(token
-  //       ? {
-  //           Authorization: `Bearer ${token}`,
-  //         }
-  //       : {}),
-  //   };
-  // };
-
-  // --------------------------------------------------
-  // GET ALL MODULES
-  // GET /modules
-  // --------------------------------------------------
 
   const fetchModules = async () => {
     try {
@@ -141,21 +99,12 @@ export default function ModuleManagementPage() {
     }
   };
 
-  // --------------------------------------------------
-  // Initial Load
-  // --------------------------------------------------
-
   useEffect(() => {
     fetchModules();
   }, []);
 
-  // --------------------------------------------------
-  // Search
-  // --------------------------------------------------
-
   const filteredModules = useMemo(() => {
     const searchText = search.toLowerCase().trim();
-
     if (!searchText) return moduleList;
 
     return moduleList.filter(
@@ -166,18 +115,9 @@ export default function ModuleManagementPage() {
     );
   }, [moduleList, search]);
 
-  // --------------------------------------------------
-  // Open Add Modal
-  // --------------------------------------------------
-
   const handleOpenAddModal = () => {
     setEditingModule(null);
-
-    setFormData({
-      name: "",
-      description: "",
-    });
-
+    setFormData({ name: "", description: "" });
     setError("");
     setIsModalOpen(true);
   };
@@ -186,7 +126,6 @@ export default function ModuleManagementPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/modules/${id}`, {
         method: "GET",
-        // headers: getHeaders(),
       });
 
       const result: ModuleResponse = await response.json();
@@ -201,10 +140,6 @@ export default function ModuleManagementPage() {
       throw err;
     }
   };
-
-  // --------------------------------------------------
-  // Open Edit Modal
-  // --------------------------------------------------
 
   const handleOpenEditModal = async (module: ModuleItem) => {
     try {
@@ -225,12 +160,10 @@ export default function ModuleManagementPage() {
       const selectedModule = singleModule ?? module;
 
       setEditingModule(selectedModule);
-
       setFormData({
         name: selectedModule.name,
         description: selectedModule.description,
       });
-
       setIsModalOpen(true);
       setActiveDropdownId(null);
 
@@ -263,11 +196,9 @@ export default function ModuleManagementPage() {
       setError("");
 
       const isEditing = Boolean(editingModule);
-
       const url = isEditing
         ? `${API_BASE_URL}/modules/${editingModule!.id}`
         : `${API_BASE_URL}/modules`;
-
       const method = isEditing ? "PATCH" : "POST";
 
       const payload = {
@@ -275,73 +206,51 @@ export default function ModuleManagementPage() {
         description: moduleDescription,
       };
 
-      // const token = getToken();
-
-      // if (!token) {
-      //   throw new Error("Authentication token not found. Please login again.");
-      // }
-
-      // ---------------------------------------------
-      // API Request
-      // ---------------------------------------------
-
       const response = await fetch(url, {
         method,
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          // Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
 
       const responseText = await response.text();
-
       let result: any = null;
 
       try {
         result = responseText ? JSON.parse(responseText) : null;
       } catch (parseError) {
         console.error("Response JSON parse error:", parseError);
-
         throw new Error(
           `Server returned an invalid response (${response.status}).`,
         );
       }
 
-      // ---------------------------------------------
-      // API Error Handling
-      // ---------------------------------------------
-
       if (!response.ok || !result?.success) {
         console.error("MODULE API ERROR:", JSON.stringify(result, null, 2));
 
-        // 401 Unauthorized
         if (response.status === 401) {
           throw new Error(
             "Unauthorized. Your session may have expired. Please login again.",
           );
         }
 
-        // 403 Forbidden
         if (response.status === 403) {
           throw new Error(
             "You do not have permission to create or update modules.",
           );
         }
 
-        // 400 Validation
         if (response.status === 400) {
           const validationMessage =
             result?.message ||
             result?.error ||
             result?.errors?.[0]?.message ||
             "Invalid module data.";
-
           throw new Error(validationMessage);
         }
 
-        // Other errors
         throw new Error(
           result?.message ||
             result?.error ||
@@ -351,31 +260,18 @@ export default function ModuleManagementPage() {
       }
 
       await fetchModules();
-
       setIsModalOpen(false);
-
       setEditingModule(null);
-
-      setFormData({
-        name: "",
-        description: "",
-      });
-
+      setFormData({ name: "", description: "" });
       setError("");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to save module.";
-
       setError(errorMessage);
     } finally {
       setSaving(false);
     }
   };
-
-  // --------------------------------------------------
-  // DELETE
-  // DELETE /modules/{id}
-  // --------------------------------------------------
 
   const handleDeleteModule = async (id: string) => {
     const module = moduleList.find((item) => item.id === id);
@@ -392,7 +288,6 @@ export default function ModuleManagementPage() {
 
       const response = await fetch(`${API_BASE_URL}/modules/${id}`, {
         method: "DELETE",
-        // headers: getHeaders(),
       });
 
       const result = await response.json();
@@ -402,7 +297,6 @@ export default function ModuleManagementPage() {
       }
 
       await fetchModules();
-
       setActiveDropdownId(null);
     } catch (err) {
       if (err instanceof Error) {
@@ -414,6 +308,17 @@ export default function ModuleManagementPage() {
     }
   };
 
+  const focusHandlers = {
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = primaryColor;
+      e.currentTarget.style.boxShadow = `0 0 0 3px ${primaryColor}20`;
+    },
+    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = "";
+      e.currentTarget.style.boxShadow = "";
+    },
+  };
+
   return (
     <div className="mx-auto max-w-[1600px] p-4">
       {/* Header */}
@@ -423,7 +328,10 @@ export default function ModuleManagementPage() {
         className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end"
       >
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#1D6BB2]">
+          <p
+            className="mb-1 text-xs font-semibold uppercase tracking-[0.14em]"
+            style={{ color: primaryColor }}
+          >
             System Management
           </p>
 
@@ -439,7 +347,8 @@ export default function ModuleManagementPage() {
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1D6BB2] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#185d9c]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+          style={{ backgroundColor: primaryColor }}
         >
           <Plus className="h-4 w-4" />
           Add Module
@@ -461,7 +370,13 @@ export default function ModuleManagementPage() {
           className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1D6BB2]/10 text-[#1D6BB2]">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-lg"
+              style={{
+                backgroundColor: `${primaryColor}1A`,
+                color: primaryColor,
+              }}
+            >
               <Boxes className="h-5 w-5" />
             </div>
 
@@ -469,7 +384,6 @@ export default function ModuleManagementPage() {
               <p className="text-xs font-medium text-slate-400">
                 Total Modules
               </p>
-
               <p className="mt-0.5 text-xl font-bold text-slate-900">
                 {moduleList.length}
               </p>
@@ -485,7 +399,6 @@ export default function ModuleManagementPage() {
         >
           <div>
             <p className="text-xs font-medium text-slate-400">API Status</p>
-
             <p className="mt-1 text-sm font-semibold text-emerald-600">
               Connected
             </p>
@@ -500,7 +413,6 @@ export default function ModuleManagementPage() {
         >
           <div>
             <p className="text-xs font-medium text-slate-400">Showing</p>
-
             <p className="mt-1 text-sm font-semibold text-slate-700">
               {filteredModules.length} modules
             </p>
@@ -519,7 +431,6 @@ export default function ModuleManagementPage() {
         <div className="flex flex-col gap-4 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-sm font-bold text-slate-900">System Modules</h2>
-
             <p className="mt-1 text-xs text-slate-400">
               Configure and manage platform modules.
             </p>
@@ -527,13 +438,20 @@ export default function ModuleManagementPage() {
 
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search modules..."
-              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#1D6BB2] focus:bg-white focus:ring-4 focus:ring-[#1D6BB2]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:bg-white"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
             />
           </div>
         </div>
@@ -583,48 +501,57 @@ export default function ModuleManagementPage() {
                     transition={{ delay: index * 0.04 }}
                     className="transition hover:bg-slate-50/70"
                   >
-                    {/* ID */}
                     <td className="px-5 py-4">
                       <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
                         #{module.id}
                       </span>
                     </td>
 
-                    {/* Module */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1D6BB2]/10 text-[#1D6BB2]">
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-lg"
+                          style={{
+                            backgroundColor: `${primaryColor}1A`,
+                            color: primaryColor,
+                          }}
+                        >
                           <Boxes className="h-4 w-4" />
                         </div>
-
                         <p className="text-sm font-semibold text-slate-800">
                           {module.name}
                         </p>
                       </div>
                     </td>
 
-                    {/* Description */}
                     <td className="px-5 py-4">
                       <p className="max-w-xl truncate text-sm text-slate-500">
                         {module.description || "No description"}
                       </p>
                     </td>
 
-                    {/* Actions */}
                     <td className="px-5 py-4">
                       <div className="relative flex items-center gap-1">
-                        {/* Edit */}
                         <button
                           type="button"
                           title="Edit"
                           disabled={saving}
                           onClick={() => handleOpenEditModal(module)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2] disabled:opacity-50"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 disabled:opacity-50"
+                          onMouseEnter={(e) => {
+                            if (!saving) {
+                              e.currentTarget.style.color = primaryColor;
+                              e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
 
-                        {/* More */}
                         <div className="relative">
                           <button
                             type="button"
@@ -678,7 +605,6 @@ export default function ModuleManagementPage() {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -687,20 +613,17 @@ export default function ModuleManagementPage() {
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
 
-            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               className="relative z-10 w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
             >
-              {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900">
                     {editingModule ? "Edit Module" : "Add New Module"}
                   </h3>
-
                   {editingModule && (
                     <p className="mt-1 text-xs text-slate-400">
                       Module ID: #{editingModule.id}
@@ -718,14 +641,11 @@ export default function ModuleManagementPage() {
                 </button>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleSaveModule} className="mt-4 space-y-4">
-                {/* Module Name */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Module Name
                   </label>
-
                   <input
                     type="text"
                     required
@@ -737,16 +657,15 @@ export default function ModuleManagementPage() {
                       }))
                     }
                     placeholder="e.g. HRMS"
-                    className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#1D6BB2] focus:ring-2 focus:ring-[#1D6BB2]/20"
+                    className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none"
+                    {...focusHandlers}
                   />
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Description
                   </label>
-
                   <textarea
                     rows={4}
                     value={formData.description}
@@ -757,24 +676,22 @@ export default function ModuleManagementPage() {
                       }))
                     }
                     placeholder="Brief description of the module..."
-                    className="mt-1 w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-[#1D6BB2] focus:ring-2 focus:ring-[#1D6BB2]/20"
+                    className="mt-1 w-full rounded-lg border border-slate-200 p-3 text-sm outline-none"
+                    {...focusHandlers}
                   />
                 </div>
 
-                {/* API Information */}
                 {editingModule && (
                   <div className="rounded-lg bg-slate-50 p-3">
                     <p className="text-xs font-medium text-slate-500">
                       Update endpoint
                     </p>
-
                     <p className="mt-1 break-all font-mono text-xs text-slate-700">
                       PATCH /modules/{editingModule.id}
                     </p>
                   </div>
                 )}
 
-                {/* Buttons */}
                 <div className="mt-6 flex justify-end gap-3 pt-2">
                   <button
                     type="button"
@@ -788,7 +705,8 @@ export default function ModuleManagementPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="h-10 rounded-lg bg-[#1D6BB2] px-4 text-sm font-semibold text-white hover:bg-[#185d9c] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-10 rounded-lg px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{ backgroundColor: primaryColor }}
                   >
                     {saving
                       ? "Saving..."

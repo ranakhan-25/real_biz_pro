@@ -23,8 +23,11 @@ import {
   updateFeature,
   type Feature,
 } from "@/services/featureService";
+import { useTheme } from "@/lib/theme";
 
 export default function FeaturesPage() {
+  const { primaryColor } = useTheme();
+
   const [features, setFeatures] = useState<Feature[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -59,22 +62,18 @@ export default function FeaturesPage() {
   const loadRequestIdRef = useRef(0);
   const viewRequestIdRef = useRef(0);
 
-  // Debounce only free-text search.
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(1);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Module filter applies immediately.
   useEffect(() => {
     setPage(1);
   }, [moduleId]);
 
-  // Load features.
   const loadFeatures = useCallback(async () => {
     const requestId = ++loadRequestIdRef.current;
 
@@ -98,7 +97,6 @@ export default function FeaturesPage() {
       if (requestId !== loadRequestIdRef.current) return;
 
       setError(err instanceof Error ? err.message : "Failed to load features.");
-
       setFeatures([]);
       setTotal(0);
       setTotalPages(1);
@@ -113,7 +111,6 @@ export default function FeaturesPage() {
     loadFeatures();
   }, [loadFeatures]);
 
-  // Close row action menu on outside click or Escape.
   useEffect(() => {
     if (menuId === null) return;
 
@@ -124,9 +121,7 @@ export default function FeaturesPage() {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMenuId(null);
-      }
+      if (event.key === "Escape") setMenuId(null);
     };
 
     document.addEventListener("mousedown", handlePointerDown);
@@ -138,7 +133,6 @@ export default function FeaturesPage() {
     };
   }, [menuId]);
 
-  // View feature.
   const openView = async (feature: Feature) => {
     const requestId = ++viewRequestIdRef.current;
 
@@ -150,15 +144,11 @@ export default function FeaturesPage() {
 
     try {
       const data = await getFeature(feature.id);
-
       if (requestId !== viewRequestIdRef.current) return;
-
       setViewFeature(data);
     } catch (err) {
       if (requestId !== viewRequestIdRef.current) return;
-
       setViewFeature(feature);
-
       setViewError(
         err instanceof Error
           ? err.message
@@ -171,34 +161,29 @@ export default function FeaturesPage() {
     }
   };
 
-  // Create.
   const openCreate = () => {
     setEditingFeature(null);
     setShowForm(true);
   };
 
-  // Edit.
   const openEdit = (feature: Feature) => {
     setMenuId(null);
     setEditingFeature(feature);
     setShowForm(true);
   };
 
-  // Form success.
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingFeature(null);
     loadFeatures();
   };
 
-  // Delete request.
   const requestDelete = (feature: Feature) => {
     setMenuId(null);
     setDeleteError("");
     setFeatureToDelete(feature);
   };
 
-  // Confirm delete.
   const confirmDelete = async () => {
     if (!featureToDelete) return;
 
@@ -207,7 +192,6 @@ export default function FeaturesPage() {
 
     try {
       await deleteFeature(featureToDelete.id);
-
       setFeatureToDelete(null);
 
       if (features.length === 1 && page > 1) {
@@ -232,7 +216,6 @@ export default function FeaturesPage() {
           <h1 className="text-2xl font-bold text-slate-900">
             Feature Management
           </h1>
-
           <p className="mt-1 text-sm text-slate-500">
             Manage system features and their module associations.
           </p>
@@ -241,7 +224,8 @@ export default function FeaturesPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1D6BB2] px-4 text-sm font-semibold text-white transition hover:bg-[#185d9c]"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition hover:opacity-90"
+          style={{ backgroundColor: primaryColor }}
         >
           <Plus className="h-4 w-4" />
           Add Feature
@@ -254,24 +238,36 @@ export default function FeaturesPage() {
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center">
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search features..."
               aria-label="Search features"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-[#1D6BB2] focus:bg-white focus:ring-4 focus:ring-[#1D6BB2]/10"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:bg-white"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
             />
           </div>
 
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-400" />
-
             <select
               value={moduleId}
               onChange={(e) => setModuleId(e.target.value)}
               aria-label="Filter by module"
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-[#1D6BB2]"
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+              }}
             >
               <option value="all">All Modules</option>
               <option value="1">Module 1</option>
@@ -319,8 +315,10 @@ export default function FeaturesPage() {
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-16 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
-
+                    <Loader2
+                      className="mx-auto h-6 w-6 animate-spin"
+                      style={{ color: primaryColor }}
+                    />
                     <p className="mt-2 text-sm text-slate-400">
                       Loading features...
                     </p>
@@ -330,7 +328,6 @@ export default function FeaturesPage() {
                 <tr>
                   <td colSpan={6} className="px-5 py-16 text-center">
                     <KeyRound className="mx-auto h-8 w-8 text-slate-300" />
-
                     <p className="mt-2 text-sm font-medium text-slate-500">
                       No features found.
                     </p>
@@ -345,18 +342,21 @@ export default function FeaturesPage() {
                     transition={{ delay: index * 0.02 }}
                     className="hover:bg-slate-50/70"
                   >
-                    {/* FEATURE */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1D6BB2]/10 text-[#1D6BB2]">
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                          style={{
+                            backgroundColor: `${primaryColor}1A`,
+                            color: primaryColor,
+                          }}
+                        >
                           <KeyRound className="h-4 w-4" />
                         </div>
-
                         <div>
                           <p className="text-sm font-semibold text-slate-800">
                             {feature.name}
                           </p>
-
                           <p className="mt-0.5 text-xs text-slate-400">
                             ID: {feature.id}
                           </p>
@@ -364,31 +364,32 @@ export default function FeaturesPage() {
                       </div>
                     </td>
 
-                    {/* DESCRIPTION */}
                     <td className="px-5 py-4">
                       <p className="max-w-sm truncate text-sm text-slate-500">
                         {feature.description || "—"}
                       </p>
                     </td>
 
-                    {/* MODULE */}
                     <td className="px-5 py-4">
-                      <span className="rounded-lg bg-[#1D6BB2]/10 px-2.5 py-1 text-xs font-medium text-[#1D6BB2]">
+                      <span
+                        className="rounded-lg px-2.5 py-1 text-xs font-medium"
+                        style={{
+                          backgroundColor: `${primaryColor}1A`,
+                          color: primaryColor,
+                        }}
+                      >
                         {feature.module?.name || "Module"}
                       </span>
                     </td>
 
-                    {/* MODULE ID */}
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {feature.moduleId}
                     </td>
 
-                    {/* CREATED */}
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {formatDate(feature.createdAt)}
                     </td>
 
-                    {/* ACTIONS */}
                     <td className="relative px-5 py-4">
                       <div className="flex items-center gap-1">
                         <button
@@ -396,7 +397,15 @@ export default function FeaturesPage() {
                           onClick={() => openView(feature)}
                           title="View"
                           aria-label={`View ${feature.name}`}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2]"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = primaryColor;
+                            e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -406,7 +415,15 @@ export default function FeaturesPage() {
                           onClick={() => openEdit(feature)}
                           title="Edit"
                           aria-label={`Edit ${feature.name}`}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#1D6BB2]"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = primaryColor;
+                            e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
@@ -481,9 +498,14 @@ export default function FeaturesPage() {
                       aria-label={`Page ${item}`}
                       className={`h-9 min-w-9 rounded-lg px-2 text-sm font-medium transition ${
                         page === item
-                          ? "bg-[#1D6BB2] text-white"
+                          ? "text-white"
                           : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                       }`}
+                      style={
+                        page === item
+                          ? { backgroundColor: primaryColor }
+                          : undefined
+                      }
                     >
                       {item}
                     </button>
@@ -519,12 +541,10 @@ export default function FeaturesPage() {
                 >
                   Feature Details
                 </h2>
-
                 <p className="text-sm text-slate-500">
                   Complete feature information
                 </p>
               </div>
-
               <button
                 type="button"
                 onClick={() => setViewOpen(false)}
@@ -537,7 +557,10 @@ export default function FeaturesPage() {
 
             {viewLoading ? (
               <div className="py-12 text-center">
-                <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
+                <Loader2
+                  className="mx-auto h-6 w-6 animate-spin"
+                  style={{ color: primaryColor }}
+                />
               </div>
             ) : viewFeature ? (
               <>
@@ -552,25 +575,18 @@ export default function FeaturesPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Detail label="ID" value={viewFeature.id} />
-
                   <Detail label="Name" value={viewFeature.name} />
-
                   <Detail label="Description" value={viewFeature.description} />
-
                   <Detail label="Module" value={viewFeature.module?.name} />
-
                   <Detail label="Module ID" value={viewFeature.moduleId} />
-
                   <Detail
                     label="Created"
                     value={formatDate(viewFeature.createdAt)}
                   />
-
                   <Detail
                     label="Updated"
                     value={formatDate(viewFeature.updatedAt)}
                   />
-
                   <Detail label="UUID" value={viewFeature.uuid} />
                 </div>
               </>
@@ -597,14 +613,12 @@ export default function FeaturesPage() {
               >
                 {editingFeature ? "Edit Feature" : "Create Feature"}
               </h2>
-
               <p className="mt-1 text-sm text-slate-500">
                 {editingFeature
                   ? "Update this feature's details."
                   : "Add a new feature to a module."}
               </p>
             </div>
-
             <button
               type="button"
               onClick={() => {
@@ -645,7 +659,6 @@ export default function FeaturesPage() {
             >
               Delete feature?
             </h2>
-
             <p className="text-sm text-slate-500">
               This will permanently remove{" "}
               <span className="font-semibold text-slate-700">
@@ -654,7 +667,6 @@ export default function FeaturesPage() {
               . Any permissions tied to it may be affected. This action cannot
               be undone.
             </p>
-
             {deleteError && (
               <p
                 role="alert"
@@ -663,7 +675,6 @@ export default function FeaturesPage() {
                 {deleteError}
               </p>
             )}
-
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -673,7 +684,6 @@ export default function FeaturesPage() {
               >
                 Cancel
               </button>
-
               <button
                 type="button"
                 onClick={confirmDelete}
@@ -704,14 +714,13 @@ function FeatureForm({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { primaryColor } = useTheme();
+
   const [name, setName] = useState(feature?.name ?? "");
-
   const [description, setDescription] = useState(feature?.description ?? "");
-
   const [moduleId, setModuleId] = useState(
     feature?.moduleId !== undefined ? String(feature.moduleId) : "",
   );
-
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -749,6 +758,17 @@ function FeatureForm({
     }
   };
 
+  const focusHandlers = {
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = primaryColor;
+      e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+    },
+    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.currentTarget.style.borderColor = "";
+      e.currentTarget.style.boxShadow = "";
+    },
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {formError && (
@@ -761,7 +781,6 @@ function FeatureForm({
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* NAME */}
         <div>
           <label
             htmlFor="feature-name"
@@ -769,17 +788,16 @@ function FeatureForm({
           >
             Name
           </label>
-
           <input
             id="feature-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10"
+            className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none"
+            {...focusHandlers}
           />
         </div>
 
-        {/* MODULE ID */}
         <div>
           <label
             htmlFor="feature-module"
@@ -787,23 +805,21 @@ function FeatureForm({
           >
             Module ID
           </label>
-
           <input
             id="feature-module"
             type="number"
             value={moduleId}
             onChange={(e) => setModuleId(e.target.value)}
             required
-            className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10"
+            className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none"
+            {...focusHandlers}
           />
-
           <p className="mt-1 text-xs text-slate-400">
             Placeholder until a real module picker is wired up.
           </p>
         </div>
       </div>
 
-      {/* DESCRIPTION */}
       <div>
         <label
           htmlFor="feature-description"
@@ -811,17 +827,16 @@ function FeatureForm({
         >
           Description
         </label>
-
         <textarea
           id="feature-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none"
+          {...focusHandlers}
         />
       </div>
 
-      {/* BUTTONS */}
       <div className="flex justify-end gap-2 pt-2">
         <button
           type="button"
@@ -835,10 +850,10 @@ function FeatureForm({
         <button
           type="submit"
           disabled={saving}
-          className="flex h-10 items-center gap-2 rounded-xl bg-[#1D6BB2] px-4 text-sm font-semibold text-white transition hover:bg-[#185d9c] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: primaryColor }}
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-
           {feature ? "Save Changes" : "Create Feature"}
         </button>
       </div>
@@ -860,7 +875,6 @@ function Detail({
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
-
       <p className="mt-1 break-words text-sm font-semibold text-slate-700">
         {value === undefined || value === null || value === "" ? "—" : value}
       </p>
@@ -883,16 +897,11 @@ function Modal({
 }) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
@@ -902,9 +911,7 @@ function Modal({
   return (
     <div
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
+        if (event.target === event.currentTarget) onClose();
       }}
       role="dialog"
       aria-modal="true"
@@ -927,13 +934,8 @@ function Modal({
 
 function formatDate(date?: string) {
   if (!date) return "—";
-
   const parsed = new Date(date);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return "—";
-  }
-
+  if (Number.isNaN(parsed.getTime())) return "—";
   return parsed.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",

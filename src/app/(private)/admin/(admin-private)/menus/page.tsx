@@ -19,6 +19,7 @@ import {
   Typography,
   message,
 } from "antd";
+
 import type { DataNode, TreeProps } from "antd/es/tree";
 import {
   DeleteOutlined,
@@ -31,10 +32,10 @@ import {
 
 import type { MenuTreeNode } from "@/types/interface/menuServices";
 import { generateSlug } from "@/lib/generateSlug";
+import { useTheme } from "@/lib/theme";
 
 const { Text } = Typography;
 
-const PRIMARY_COLOR = "#1677ff";
 const BORDER_COLOR = "#e5e7eb";
 
 const STATIC_MODULE_ID = 1;
@@ -133,9 +134,7 @@ const STATIC_MENU_TREE: MenuTreeNode[] = [
 function cloneTree(nodes: MenuTreeNode[]): MenuTreeNode[] {
   return nodes.map((node) => ({
     ...node,
-    children: node.children?.length
-      ? cloneTree(node.children)
-      : [],
+    children: node.children?.length ? cloneTree(node.children) : [],
   }));
 }
 
@@ -144,7 +143,6 @@ function flattenTree(nodes: MenuTreeNode[]): MenuTreeNode[] {
 
   nodes.forEach((node) => {
     result.push(node);
-
     if (node.children?.length) {
       result.push(...flattenTree(node.children));
     }
@@ -153,45 +151,29 @@ function flattenTree(nodes: MenuTreeNode[]): MenuTreeNode[] {
   return result;
 }
 
-function findNode(
-  nodes: MenuTreeNode[],
-  id: number,
-): MenuTreeNode | undefined {
+function findNode(nodes: MenuTreeNode[], id: number): MenuTreeNode | undefined {
   for (const node of nodes) {
-    if (Number(node.id) === Number(id)) {
-      return node;
-    }
-
+    if (Number(node.id) === Number(id)) return node;
     if (node.children?.length) {
       const found = findNode(node.children, id);
-
-      if (found) {
-        return found;
-      }
+      if (found) return found;
     }
   }
-
   return undefined;
 }
 
 function getAllTreeKeys(nodes: MenuTreeNode[]): React.Key[] {
   const keys: React.Key[] = [];
-
   nodes.forEach((node) => {
     keys.push(node.id);
-
     if (node.children?.length) {
       keys.push(...getAllTreeKeys(node.children));
     }
   });
-
   return keys;
 }
 
-function containsNode(
-  nodes: MenuTreeNode[],
-  targetId: number,
-): boolean {
+function containsNode(nodes: MenuTreeNode[], targetId: number): boolean {
   return Boolean(findNode(nodes, targetId));
 }
 
@@ -203,7 +185,6 @@ function removeNode(
   removedNode?: MenuTreeNode;
 } {
   let removedNode: MenuTreeNode | undefined;
-
   const nextNodes: MenuTreeNode[] = [];
 
   for (const node of nodes) {
@@ -213,30 +194,15 @@ function removeNode(
     }
 
     let nextNode = node;
-
     if (node.children?.length) {
-      const result = removeNode(
-        node.children,
-        targetId,
-      );
-
-      if (result.removedNode) {
-        removedNode = result.removedNode;
-      }
-
-      nextNode = {
-        ...node,
-        children: result.nodes,
-      };
+      const result = removeNode(node.children, targetId);
+      if (result.removedNode) removedNode = result.removedNode;
+      nextNode = { ...node, children: result.nodes };
     }
-
     nextNodes.push(nextNode);
   }
 
-  return {
-    nodes: nextNodes,
-    removedNode,
-  };
+  return { nodes: nextNodes, removedNode };
 }
 
 function normalizeParentIds(
@@ -248,26 +214,15 @@ function normalizeParentIds(
     parentId,
     order: index + 1,
     children: node.children?.length
-      ? normalizeParentIds(
-          node.children,
-          Number(node.id),
-        )
+      ? normalizeParentIds(node.children, Number(node.id))
       : [],
   }));
 }
 
 function getNextMenuId(nodes: MenuTreeNode[]): number {
   const allNodes = flattenTree(nodes);
-
-  if (!allNodes.length) {
-    return 1;
-  }
-
-  return (
-    Math.max(
-      ...allNodes.map((node) => Number(node.id)),
-    ) + 1
-  );
+  if (!allNodes.length) return 1;
+  return Math.max(...allNodes.map((node) => Number(node.id))) + 1;
 }
 
 function updateNodeInTree(
@@ -276,18 +231,11 @@ function updateNodeInTree(
   updater: (node: MenuTreeNode) => MenuTreeNode,
 ): MenuTreeNode[] {
   return nodes.map((node) => {
-    if (Number(node.id) === Number(targetId)) {
-      return updater(node);
-    }
-
+    if (Number(node.id) === Number(targetId)) return updater(node);
     return {
       ...node,
       children: node.children?.length
-        ? updateNodeInTree(
-            node.children,
-            targetId,
-            updater,
-          )
+        ? updateNodeInTree(node.children, targetId, updater)
         : [],
     };
   });
@@ -297,31 +245,16 @@ function findNodeContext(
   nodes: MenuTreeNode[],
   targetId: number,
   parentId: number | null = null,
-): {
-  node: MenuTreeNode;
-  parentId: number | null;
-} | null {
+): { node: MenuTreeNode; parentId: number | null } | null {
   for (const node of nodes) {
     if (Number(node.id) === Number(targetId)) {
-      return {
-        node,
-        parentId,
-      };
+      return { node, parentId };
     }
-
     if (node.children?.length) {
-      const result = findNodeContext(
-        node.children,
-        targetId,
-        Number(node.id),
-      );
-
-      if (result) {
-        return result;
-      }
+      const result = findNodeContext(node.children, targetId, Number(node.id));
+      if (result) return result;
     }
   }
-
   return null;
 }
 
@@ -348,157 +281,82 @@ interface MenuFormValues {
 ========================================================= */
 
 export default function MenuManagementPage() {
-  const [form] =
-    Form.useForm<MenuFormValues>();
+  const [form] = Form.useForm<MenuFormValues>();
+  const { primaryColor } = useTheme();
 
-  const [treeNodes, setTreeNodes] =
-    useState<MenuTreeNode[]>(
-      cloneTree(STATIC_MENU_TREE),
-    );
-
-  const [selectedMenuId, setSelectedMenuId] =
-    useState<number | undefined>();
-
-  const [editingMenu, setEditingMenu] =
-    useState<MenuTreeNode | null>(null);
-
-  const [expandedKeys, setExpandedKeys] =
-    useState<React.Key[]>(
-      getAllTreeKeys(STATIC_MENU_TREE),
-    );
-
-  const [isDragging, setIsDragging] =
-    useState(false);
-
-  const [isSaving, setIsSaving] =
-    useState(false);
-
-  /* =========================================================
-     SELECTED MENU
-  ========================================================= */
+  const [treeNodes, setTreeNodes] = useState<MenuTreeNode[]>(
+    cloneTree(STATIC_MENU_TREE),
+  );
+  const [selectedMenuId, setSelectedMenuId] = useState<number | undefined>();
+  const [editingMenu, setEditingMenu] = useState<MenuTreeNode | null>(null);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(
+    getAllTreeKeys(STATIC_MENU_TREE),
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const selectedMenu = useMemo(() => {
-    if (!selectedMenuId) {
-      return undefined;
-    }
-
-    return findNode(
-      treeNodes,
-      selectedMenuId,
-    );
+    if (!selectedMenuId) return undefined;
+    return findNode(treeNodes, selectedMenuId);
   }, [treeNodes, selectedMenuId]);
 
-  /* =========================================================
-     MODULE OPTIONS
-  ========================================================= */
-
   const moduleOptions = useMemo(
-    () => [
-      {
-        label: STATIC_MODULE_NAME,
-        value: STATIC_MODULE_ID,
-      },
-    ],
+    () => [{ label: STATIC_MODULE_NAME, value: STATIC_MODULE_ID }],
     [],
   );
 
-  /* =========================================================
-     PARENT OPTIONS
-  ========================================================= */
-
   const parentOptions = useMemo(() => {
-    const allNodes =
-      flattenTree(treeNodes);
-
+    const allNodes = flattenTree(treeNodes);
     return [
-      {
-        label: "Root",
-        value: null,
-      },
+      { label: "Root", value: null },
       ...allNodes
-        .filter(
-          (node) =>
-            Number(node.id) !==
-            Number(selectedMenuId),
-        )
+        .filter((node) => Number(node.id) !== Number(selectedMenuId))
         .map((node) => ({
           label: node.title,
           value: Number(node.id),
         })),
     ];
-  }, [
-    treeNodes,
-    selectedMenuId,
-  ]);
+  }, [treeNodes, selectedMenuId]);
 
-  /* =========================================================
-     TREE DATA
-  ========================================================= */
-
-  const treeData = useMemo<DataNode[]>(
-    () => {
-      const convert = (
-        nodes: MenuTreeNode[],
-      ): DataNode[] =>
-        nodes.map((node) => ({
-          key: node.id,
-          title: (
-            <div className="flex w-full items-center justify-between gap-3 py-1">
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className={
-                    node.isVisible
-                      ? "font-medium text-foreground"
-                      : "font-medium text-muted-foreground line-through"
-                  }
-                >
-                  {node.title}
-                </span>
-
-                {node.url ? (
-                  <span className="truncate text-xs text-muted-foreground">
-                    {node.url}
-                  </span>
-                ) : null}
-              </div>
-
-              <span className="shrink-0 text-xs text-muted-foreground">
-                #{node.order}
+  const treeData = useMemo<DataNode[]>(() => {
+    const convert = (nodes: MenuTreeNode[]): DataNode[] =>
+      nodes.map((node) => ({
+        key: node.id,
+        title: (
+          <div className="flex w-full items-center justify-between gap-3 py-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={
+                  node.isVisible
+                    ? "font-medium text-foreground"
+                    : "font-medium text-muted-foreground line-through"
+                }
+              >
+                {node.title}
               </span>
+              {node.url ? (
+                <span className="truncate text-xs text-muted-foreground">
+                  {node.url}
+                </span>
+              ) : null}
             </div>
-          ),
-          children:
-            node.children?.length
-              ? convert(node.children)
-              : undefined,
-        }));
+            <span className="shrink-0 text-xs text-muted-foreground">
+              #{node.order}
+            </span>
+          </div>
+        ),
+        children: node.children?.length ? convert(node.children) : undefined,
+      }));
 
-      return convert(treeNodes);
-    },
-    [treeNodes],
-  );
+    return convert(treeNodes);
+  }, [treeNodes]);
 
-  /* =========================================================
-     SELECT MENU
-  ========================================================= */
-
-  const handleSelect: TreeProps["onSelect"] = (
-    keys,
-  ) => {
+  const handleSelect: TreeProps["onSelect"] = (keys) => {
     const id = Number(keys[0]);
+    if (!id) return;
 
-    if (!id) {
-      return;
-    }
-
-    const node = findNode(
-      treeNodes,
-      id,
-    );
-
-    if (!node) {
-      return;
-    }
+    const node = findNode(treeNodes, id);
+    if (!node) return;
 
     setSelectedMenuId(id);
     setEditingMenu(node);
@@ -506,39 +364,22 @@ export default function MenuManagementPage() {
     form.setFieldsValue({
       title: node.title,
       url: node.url ?? "",
-      target:
-        node.target === "_blank"
-          ? "_blank"
-          : "_self",
-      elementClass:
-        node.elementClass ?? "",
-      elementId:
-        node.elementId ?? "",
+      target: node.target === "_blank" ? "_blank" : "_self",
+      elementClass: node.elementClass ?? "",
+      elementId: node.elementId ?? "",
       icon: node.icon ?? "",
-      description:
-        node.description ?? "",
-      parentId:
-        node.parentId ?? null,
-      moduleId:
-        node.moduleId ??
-        STATIC_MODULE_ID,
-      isVisible:
-        node.isVisible ?? true,
-      isPublic:
-        node.isPublic ?? false,
+      description: node.description ?? "",
+      parentId: node.parentId ?? null,
+      moduleId: node.moduleId ?? STATIC_MODULE_ID,
+      isVisible: node.isVisible ?? true,
+      isPublic: node.isPublic ?? false,
     });
   };
-
-  /* =========================================================
-     CREATE NEW
-  ========================================================= */
 
   const handleCreate = useCallback(() => {
     setSelectedMenuId(undefined);
     setEditingMenu(null);
-
     form.resetFields();
-
     form.setFieldsValue({
       title: "",
       url: "",
@@ -554,569 +395,244 @@ export default function MenuManagementPage() {
     });
   }, [form]);
 
-  /* =========================================================
-     EDIT
-  ========================================================= */
-
   const handleEdit = useCallback(
     (node: MenuTreeNode) => {
-      setSelectedMenuId(
-        Number(node.id),
-      );
-
+      setSelectedMenuId(Number(node.id));
       setEditingMenu(node);
-
       form.setFieldsValue({
         title: node.title,
         url: node.url ?? "",
-        target:
-          node.target === "_blank"
-            ? "_blank"
-            : "_self",
-        elementClass:
-          node.elementClass ?? "",
-        elementId:
-          node.elementId ?? "",
+        target: node.target === "_blank" ? "_blank" : "_self",
+        elementClass: node.elementClass ?? "",
+        elementId: node.elementId ?? "",
         icon: node.icon ?? "",
-        description:
-          node.description ?? "",
-        parentId:
-          node.parentId ?? null,
-        moduleId:
-          node.moduleId ??
-          STATIC_MODULE_ID,
-        isVisible:
-          node.isVisible ?? true,
-        isPublic:
-          node.isPublic ?? false,
+        description: node.description ?? "",
+        parentId: node.parentId ?? null,
+        moduleId: node.moduleId ?? STATIC_MODULE_ID,
+        isVisible: node.isVisible ?? true,
+        isPublic: node.isPublic ?? false,
       });
     },
     [form],
   );
 
-  /* =========================================================
-     DELETE
-  ========================================================= */
-
   const handleDelete = useCallback(
     (id: number) => {
-      const result = removeNode(
-        treeNodes,
-        id,
-      );
+      const result = removeNode(treeNodes, id);
+      const normalizedTree = normalizeParentIds(result.nodes);
+      setTreeNodes(normalizedTree);
 
-      const normalizedTree =
-        normalizeParentIds(
-          result.nodes,
-        );
-
-      setTreeNodes(
-        normalizedTree,
-      );
-
-      if (
-        Number(selectedMenuId) ===
-        Number(id)
-      ) {
-        setSelectedMenuId(
-          undefined,
-        );
-
+      if (Number(selectedMenuId) === Number(id)) {
+        setSelectedMenuId(undefined);
         setEditingMenu(null);
-
         form.resetFields();
       }
 
-      message.success(
-        "Menu deleted successfully.",
-      );
+      message.success("Menu deleted successfully.");
     },
-    [
-      treeNodes,
-      selectedMenuId,
-      form,
-    ],
+    [treeNodes, selectedMenuId, form],
   );
-
-  /* =========================================================
-     SAVE
-  ========================================================= */
 
   const handleSave = async () => {
     try {
-      const values =
-        await form.validateFields();
-
+      const values = await form.validateFields();
       setIsSaving(true);
 
-      const title =
-        values.title.trim();
+      const title = values.title.trim();
+      const url = values.url?.trim() || generateSlug(title);
 
-      const url =
-        values.url?.trim() ||
-        generateSlug(title);
-
-      /* UPDATE */
       if (editingMenu) {
-        const updatedTree =
-          updateNodeInTree(
-            treeNodes,
-            Number(
-              editingMenu.id,
-            ),
-            (node) => ({
-              ...node,
-              title,
-              url,
-              target:
-                values.target,
-              elementClass:
-                values.elementClass?.trim() ||
-                "",
-              elementId:
-                values.elementId?.trim() ||
-                "",
-              icon:
-                values.icon?.trim() ||
-                "",
-              description:
-                values.description?.trim() ||
-                "",
-              moduleId:
-                values.moduleId ??
-                STATIC_MODULE_ID,
-              isVisible:
-                values.isVisible,
-              isPublic:
-                values.isPublic,
-            }),
-          );
-
-        const normalizedTree =
-          normalizeParentIds(
-            updatedTree,
-          );
-
-        setTreeNodes(
-          normalizedTree,
+        const updatedTree = updateNodeInTree(
+          treeNodes,
+          Number(editingMenu.id),
+          (node) => ({
+            ...node,
+            title,
+            url,
+            target: values.target,
+            elementClass: values.elementClass?.trim() || "",
+            elementId: values.elementId?.trim() || "",
+            icon: values.icon?.trim() || "",
+            description: values.description?.trim() || "",
+            moduleId: values.moduleId ?? STATIC_MODULE_ID,
+            isVisible: values.isVisible,
+            isPublic: values.isPublic,
+          }),
         );
 
-        const updatedNode =
-          findNode(
-            normalizedTree,
-            Number(
-              editingMenu.id,
-            ),
-          );
+        const normalizedTree = normalizeParentIds(updatedTree);
+        setTreeNodes(normalizedTree);
 
-        if (updatedNode) {
-          setEditingMenu(
-            updatedNode,
-          );
-        }
+        const updatedNode = findNode(normalizedTree, Number(editingMenu.id));
+        if (updatedNode) setEditingMenu(updatedNode);
 
-        message.success(
-          "Menu updated successfully.",
-        );
+        message.success("Menu updated successfully.");
       } else {
-        /* CREATE */
-
-        const newId =
-          getNextMenuId(
-            treeNodes,
-          );
-
-        const parentId =
-          values.parentId
-            ? Number(
-                values.parentId,
-              )
-            : null;
+        const newId = getNextMenuId(treeNodes);
+        const parentId = values.parentId ? Number(values.parentId) : null;
 
         const newMenu: MenuTreeNode = {
           id: newId,
           title,
           url,
-          target:
-            values.target,
-          moduleId:
-            values.moduleId ??
-            STATIC_MODULE_ID,
+          target: values.target,
+          moduleId: values.moduleId ?? STATIC_MODULE_ID,
           parentId,
           order: 0,
-          isVisible:
-            values.isVisible,
-          isPublic:
-            values.isPublic,
-          elementClass:
-            values.elementClass?.trim() ||
-            "",
-          elementId:
-            values.elementId?.trim() ||
-            "",
-          icon:
-            values.icon?.trim() ||
-            "",
-          description:
-            values.description?.trim() ||
-            "",
+          isVisible: values.isVisible,
+          isPublic: values.isPublic,
+          elementClass: values.elementClass?.trim() || "",
+          elementId: values.elementId?.trim() || "",
+          icon: values.icon?.trim() || "",
+          description: values.description?.trim() || "",
           children: [],
           location: "SIDEBAR",
         };
 
-        let nextTree:
-          MenuTreeNode[];
+        let nextTree: MenuTreeNode[];
 
         if (parentId) {
-          nextTree =
-            updateNodeInTree(
-              treeNodes,
-              parentId,
-              (node) => ({
-                ...node,
-                children: [
-                  ...(node.children ??
-                    []),
-                  newMenu,
-                ],
-              }),
-            );
+          nextTree = updateNodeInTree(treeNodes, parentId, (node) => ({
+            ...node,
+            children: [...(node.children ?? []), newMenu],
+          }));
         } else {
-          nextTree = [
-            ...treeNodes,
-            newMenu,
-          ];
+          nextTree = [...treeNodes, newMenu];
         }
 
-        const normalizedTree =
-          normalizeParentIds(
-            nextTree,
-          );
+        const normalizedTree = normalizeParentIds(nextTree);
+        setTreeNodes(normalizedTree);
+        setSelectedMenuId(newId);
 
-        setTreeNodes(
-          normalizedTree,
-        );
+        const createdNode = findNode(normalizedTree, newId);
+        setEditingMenu(createdNode ?? null);
 
-        setSelectedMenuId(
-          newId,
-        );
-
-        const createdNode =
-          findNode(
-            normalizedTree,
-            newId,
-          );
-
-        setEditingMenu(
-          createdNode ?? null,
-        );
-
-        message.success(
-          "Menu created successfully.",
-        );
+        message.success("Menu created successfully.");
       }
     } catch {
-      message.error(
-        "Please check the form fields.",
-      );
+      message.error("Please check the form fields.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  /* =========================================================
-     RESET
-  ========================================================= */
-
   const handleReset = () => {
-    const freshTree =
-      cloneTree(
-        STATIC_MENU_TREE,
-      );
-
-    setTreeNodes(
-      freshTree,
-    );
-
-    setSelectedMenuId(
-      undefined,
-    );
-
+    const freshTree = cloneTree(STATIC_MENU_TREE);
+    setTreeNodes(freshTree);
+    setSelectedMenuId(undefined);
     setEditingMenu(null);
-
-    setExpandedKeys(
-      getAllTreeKeys(
-        freshTree,
-      ),
-    );
-
+    setExpandedKeys(getAllTreeKeys(freshTree));
     form.resetFields();
-
-    message.success(
-      "Static menu reset successfully.",
-    );
+    message.success("Static menu reset successfully.");
   };
-
-  /* =========================================================
-     REFRESH
-  ========================================================= */
 
   const handleRefresh = () => {
-    const freshTree =
-      cloneTree(
-        STATIC_MENU_TREE,
-      );
-
-    setTreeNodes(
-      freshTree,
-    );
-
-    setExpandedKeys(
-      getAllTreeKeys(
-        freshTree,
-      ),
-    );
-
-    setSelectedMenuId(
-      undefined,
-    );
-
+    const freshTree = cloneTree(STATIC_MENU_TREE);
+    setTreeNodes(freshTree);
+    setExpandedKeys(getAllTreeKeys(freshTree));
+    setSelectedMenuId(undefined);
     setEditingMenu(null);
-
     form.resetFields();
-
-    message.success(
-      "Menu refreshed.",
-    );
+    message.success("Menu refreshed.");
   };
 
-  /* =========================================================
-     DRAG & DROP
-  ========================================================= */
+  const handleDrop: TreeProps["onDrop"] = (info) => {
+    const dragKey = Number(info.dragNode.key);
+    const dropKey = Number(info.node.key);
 
-  const handleDrop: TreeProps["onDrop"] =
-    (info) => {
-      const dragKey =
-        Number(
-          info.dragNode.key,
+    if (dragKey === dropKey) return;
+
+    const draggedOriginal = findNode(treeNodes, dragKey);
+    if (!draggedOriginal) return;
+
+    if (containsNode(draggedOriginal.children ?? [], dropKey)) {
+      message.warning("A menu cannot be moved inside its own child.");
+      return;
+    }
+
+    const result = removeNode(treeNodes, dragKey);
+    const draggedNode = result.removedNode;
+    if (!draggedNode) return;
+
+    let nextTree = result.nodes;
+
+    if (info.dropToGap) {
+      const context = findNodeContext(nextTree, dropKey);
+      if (!context) return;
+
+      const parentId = context.parentId;
+
+      if (parentId === null) {
+        const dropIndex = nextTree.findIndex(
+          (node) => Number(node.id) === Number(dropKey),
         );
-
-      const dropKey =
-        Number(
-          info.node.key,
-        );
-
-      if (
-        dragKey === dropKey
-      ) {
-        return;
-      }
-
-      const draggedOriginal =
-        findNode(
-          treeNodes,
-          dragKey,
-        );
-
-      if (!draggedOriginal) {
-        return;
-      }
-
-      if (
-        containsNode(
-          draggedOriginal.children ??
-            [],
-          dropKey,
-        )
-      ) {
-        message.warning(
-          "A menu cannot be moved inside its own child.",
-        );
-
-        return;
-      }
-
-      const result =
-        removeNode(
-          treeNodes,
-          dragKey,
-        );
-
-      const draggedNode =
-        result.removedNode;
-
-      if (!draggedNode) {
-        return;
-      }
-
-      let nextTree =
-        result.nodes;
-
-      if (info.dropToGap) {
-        const context =
-          findNodeContext(
-            nextTree,
-            dropKey,
-          );
-
-        if (!context) {
-          return;
-        }
-
-        const parentId =
-          context.parentId;
-
-        if (parentId === null) {
-          const dropIndex =
-            nextTree.findIndex(
-              (node) =>
-                Number(node.id) ===
-                Number(dropKey),
-            );
-
-          if (dropIndex !== -1) {
-            nextTree.splice(
-              dropIndex + 1,
-              0,
-              {
-                ...draggedNode,
-                parentId: null,
-              },
-            );
-          }
-        } else {
-          nextTree =
-            updateNodeInTree(
-              nextTree,
-              parentId,
-              (node) => {
-                const children =
-                  [
-                    ...(node.children ??
-                      []),
-                  ];
-
-                const dropIndex =
-                  children.findIndex(
-                    (child) =>
-                      Number(
-                        child.id,
-                      ) ===
-                      Number(
-                        dropKey,
-                      ),
-                  );
-
-                if (
-                  dropIndex ===
-                  -1
-                ) {
-                  return node;
-                }
-
-                children.splice(
-                  dropIndex + 1,
-                  0,
-                  {
-                    ...draggedNode,
-                    parentId:
-                      Number(
-                        parentId,
-                      ),
-                  },
-                );
-
-                return {
-                  ...node,
-                  children,
-                };
-              },
-            );
+        if (dropIndex !== -1) {
+          nextTree.splice(dropIndex + 1, 0, {
+            ...draggedNode,
+            parentId: null,
+          });
         }
       } else {
-        nextTree =
-          updateNodeInTree(
-            nextTree,
-            dropKey,
-            (node) => ({
-              ...node,
-              children: [
-                ...(node.children ??
-                  []),
-                {
-                  ...draggedNode,
-                  parentId:
-                    Number(dropKey),
-                },
-              ],
-            }),
+        nextTree = updateNodeInTree(nextTree, parentId, (node) => {
+          const children = [...(node.children ?? [])];
+          const dropIndex = children.findIndex(
+            (child) => Number(child.id) === Number(dropKey),
           );
+          if (dropIndex === -1) return node;
+
+          children.splice(dropIndex + 1, 0, {
+            ...draggedNode,
+            parentId: Number(parentId),
+          });
+
+          return { ...node, children };
+        });
       }
+    } else {
+      nextTree = updateNodeInTree(nextTree, dropKey, (node) => ({
+        ...node,
+        children: [
+          ...(node.children ?? []),
+          { ...draggedNode, parentId: Number(dropKey) },
+        ],
+      }));
+    }
 
-      const normalizedTree =
-        normalizeParentIds(
-          nextTree,
-        );
-
-      setTreeNodes(
-        normalizedTree,
-      );
-
-      setIsDragging(false);
-
-      message.success(
-        "Menu order updated.",
-      );
-    };
-
-  /* =========================================================
-     RENDER
-  ========================================================= */
+    const normalizedTree = normalizeParentIds(nextTree);
+    setTreeNodes(normalizedTree);
+    setIsDragging(false);
+    message.success("Menu order updated.");
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="mx-auto max-w-[1600px]">
-
         {/* HEADER */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Menu Management
             </h1>
-
             <p className="mt-1 text-sm text-muted-foreground">
               Manage your static sidebar menu structure.
             </p>
           </div>
 
           <Space wrap>
-            <Button
-              icon={
-                <ReloadOutlined />
-              }
-              onClick={
-                handleRefresh
-              }
-            >
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
               Refresh
             </Button>
 
-            <Button
-              onClick={
-                handleReset
-              }
-            >
-              Reset
-            </Button>
+            <Button onClick={handleReset}>Reset</Button>
 
             <Button
               type="primary"
-              icon={
-                <PlusOutlined />
-              }
-              onClick={
-                handleCreate
-              }
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+              style={{
+                backgroundColor: primaryColor,
+                borderColor: primaryColor,
+              }}
             >
               Add Menu
             </Button>
@@ -1124,118 +640,52 @@ export default function MenuManagementPage() {
         </div>
 
         {/* CONTENT */}
-        <Row
-          gutter={[
-            16,
-            16,
-          ]}
-        >
-
+        <Row gutter={[16, 16]}>
           {/* LEFT SIDE */}
-          <Col
-            xs={24}
-            lg={10}
-            xl={9}
-          >
+          <Col xs={24} lg={10} xl={9}>
             <Card
               title={
                 <div className="flex items-center justify-between">
-                  <span>
-                    Menu Structure
-                  </span>
-
+                  <span>Menu Structure</span>
                   <Text type="secondary">
-                    {
-                      flattenTree(
-                        treeNodes,
-                      ).length
-                    }{" "}
-                    items
+                    {flattenTree(treeNodes).length} items
                   </Text>
                 </div>
               }
-              styles={{
-                body: {
-                  padding: 12,
-                },
-              }}
-              style={{
-                borderColor:
-                  BORDER_COLOR,
-              }}
+              styles={{ body: { padding: 12 } }}
+              style={{ borderColor: BORDER_COLOR }}
             >
               {treeNodes.length > 0 ? (
                 <Tree
                   blockNode
                   draggable
                   showLine
-                  switcherIcon={
-                    <DownOutlined />
-                  }
-                  selectedKeys={
-                    selectedMenuId
-                      ? [
-                          selectedMenuId,
-                        ]
-                      : []
-                  }
-                  expandedKeys={
-                    expandedKeys
-                  }
-                  treeData={
-                    treeData
-                  }
-                  onSelect={
-                    handleSelect
-                  }
-                  onExpand={(keys) =>
-                    setExpandedKeys(
-                      keys,
-                    )
-                  }
-                  onDragStart={() =>
-                    setIsDragging(
-                      true,
-                    )
-                  }
-                  onDragEnd={() =>
-                    setIsDragging(
-                      false,
-                    )
-                  }
-                  onDrop={
-                    handleDrop
-                  }
-                  className={
-                    isDragging
-                      ? "opacity-70"
-                      : ""
-                  }
+                  switcherIcon={<DownOutlined />}
+                  selectedKeys={selectedMenuId ? [selectedMenuId] : []}
+                  expandedKeys={expandedKeys}
+                  treeData={treeData}
+                  onSelect={handleSelect}
+                  onExpand={(keys) => setExpandedKeys(keys)}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragEnd={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={isDragging ? "opacity-70" : ""}
                 />
               ) : (
-                <Empty
-                  description="No menus found"
-                />
+                <Empty description="No menus found" />
               )}
             </Card>
           </Col>
 
           {/* RIGHT SIDE */}
-          <Col
-            xs={24}
-            lg={14}
-            xl={15}
-          >
+          <Col xs={24} lg={14} xl={15}>
             <Card
               title={
                 editingMenu
                   ? `Edit Menu: ${editingMenu.title}`
                   : "Create New Menu"
               }
-              style={{
-                borderColor:
-                  BORDER_COLOR,
-              }}
+              style={{ borderColor: BORDER_COLOR }}
               extra={
                 editingMenu ? (
                   <Space>
@@ -1245,23 +695,10 @@ export default function MenuManagementPage() {
                         description="This action cannot be undone."
                         okText="Delete"
                         cancelText="Cancel"
-                        okButtonProps={{
-                          danger: true,
-                        }}
-                        onConfirm={() =>
-                          handleDelete(
-                            Number(
-                              editingMenu.id,
-                            ),
-                          )
-                        }
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => handleDelete(Number(editingMenu.id))}
                       >
-                        <Button
-                          danger
-                          icon={
-                            <DeleteOutlined />
-                          }
-                        />
+                        <Button danger icon={<DeleteOutlined />} />
                       </Popconfirm>
                     </Tooltip>
                   </Space>
@@ -1273,209 +710,105 @@ export default function MenuManagementPage() {
                 layout="vertical"
                 initialValues={{
                   target: "_self",
-                  moduleId:
-                    STATIC_MODULE_ID,
+                  moduleId: STATIC_MODULE_ID,
                   parentId: null,
                   isVisible: true,
                   isPublic: false,
                 }}
               >
-                <Row
-                  gutter={[
-                    16,
-                    0,
-                  ]}
-                >
-
-                  {/* TITLE */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
+                <Row gutter={[16, 0]}>
+                  <Col xs={24} md={12}>
                     <Form.Item
                       label="Menu Title"
                       name="title"
                       rules={[
                         {
                           required: true,
-                          message:
-                            "Please enter menu title.",
+                          message: "Please enter menu title.",
                         },
                       ]}
                     >
                       <Input
                         placeholder="e.g. Users"
                         onChange={(event) => {
-                          const title =
-                            event.target.value;
-
-                          if (
-                            !editingMenu &&
-                            title.trim()
-                          ) {
-                            form.setFieldValue(
-                              "url",
-                              generateSlug(
-                                title,
-                              ),
-                            );
+                          const title = event.target.value;
+                          if (!editingMenu && title.trim()) {
+                            form.setFieldValue("url", generateSlug(title));
                           }
                         }}
                       />
                     </Form.Item>
                   </Col>
 
-                  {/* URL */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
+                  <Col xs={24} md={12}>
                     <Form.Item
                       label="URL"
                       name="url"
                       rules={[
                         {
                           required: true,
-                          message:
-                            "Please enter URL.",
+                          message: "Please enter URL.",
                         },
                       ]}
                     >
-                      <Input
-                        placeholder="/users"
-                      />
+                      <Input placeholder="/users" />
                     </Form.Item>
                   </Col>
 
-                  {/* PARENT */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Parent Menu"
-                      name="parentId"
-                    >
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Parent Menu" name="parentId">
                       <Select
                         showSearch
                         allowClear
                         placeholder="Select parent"
-                        options={
-                          parentOptions
-                        }
+                        options={parentOptions}
                         optionFilterProp="label"
                       />
                     </Form.Item>
                   </Col>
 
-                  {/* MODULE */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Module"
-                      name="moduleId"
-                    >
-                      <Select
-                        options={
-                          moduleOptions
-                        }
-                      />
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Module" name="moduleId">
+                      <Select options={moduleOptions} />
                     </Form.Item>
                   </Col>
 
-                  {/* TARGET */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Target"
-                      name="target"
-                    >
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Target" name="target">
                       <Select
                         options={[
-                          {
-                            label:
-                              "Same Window",
-                            value:
-                              "_self",
-                          },
-                          {
-                            label:
-                              "New Window",
-                            value:
-                              "_blank",
-                          },
+                          { label: "Same Window", value: "_self" },
+                          { label: "New Window", value: "_blank" },
                         ]}
                       />
                     </Form.Item>
                   </Col>
 
-                  {/* ICON */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Icon"
-                      name="icon"
-                    >
-                      <Input
-                        placeholder="e.g. UserOutlined"
-                      />
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Icon" name="icon">
+                      <Input placeholder="e.g. UserOutlined" />
                     </Form.Item>
                   </Col>
 
-                  {/* ELEMENT CLASS */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Element Class"
-                      name="elementClass"
-                    >
-                      <Input
-                        placeholder="Optional CSS class"
-                      />
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Element Class" name="elementClass">
+                      <Input placeholder="Optional CSS class" />
                     </Form.Item>
                   </Col>
 
-                  {/* ELEMENT ID */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
-                    <Form.Item
-                      label="Element ID"
-                      name="elementId"
-                    >
-                      <Input
-                        placeholder="Optional element ID"
-                      />
+                  <Col xs={24} md={12}>
+                    <Form.Item label="Element ID" name="elementId">
+                      <Input placeholder="Optional element ID" />
                     </Form.Item>
                   </Col>
 
-                  {/* DESCRIPTION */}
                   <Col xs={24}>
-                    <Form.Item
-                      label="Description"
-                      name="description"
-                    >
-                      <Input.TextArea
-                        rows={4}
-                        placeholder="Menu description"
-                      />
+                    <Form.Item label="Description" name="description">
+                      <Input.TextArea rows={4} placeholder="Menu description" />
                     </Form.Item>
                   </Col>
 
-                  {/* VISIBLE */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
+                  <Col xs={24} md={12}>
                     <Form.Item
                       label="Visible"
                       name="isVisible"
@@ -1485,11 +818,7 @@ export default function MenuManagementPage() {
                     </Form.Item>
                   </Col>
 
-                  {/* PUBLIC */}
-                  <Col
-                    xs={24}
-                    md={12}
-                  >
+                  <Col xs={24} md={12}>
                     <Form.Item
                       label="Public"
                       name="isPublic"
@@ -1502,37 +831,19 @@ export default function MenuManagementPage() {
 
                 {/* ACTIONS */}
                 <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-                  <Button
-                    onClick={
-                      handleCreate
-                    }
-                  >
-                    Clear
-                  </Button>
+                  <Button onClick={handleCreate}>Clear</Button>
 
                   <Button
                     type="primary"
-                    icon={
-                      isSaving ? (
-                        <Spin size="small" />
-                      ) : (
-                        <SaveOutlined />
-                      )
-                    }
-                    loading={
-                      isSaving
-                    }
-                    onClick={
-                      handleSave
-                    }
+                    icon={isSaving ? <Spin size="small" /> : <SaveOutlined />}
+                    loading={isSaving}
+                    onClick={handleSave}
                     style={{
-                      backgroundColor:
-                        PRIMARY_COLOR,
+                      backgroundColor: primaryColor,
+                      borderColor: primaryColor,
                     }}
                   >
-                    {editingMenu
-                      ? "Update Menu"
-                      : "Create Menu"}
+                    {editingMenu ? "Update Menu" : "Create Menu"}
                   </Button>
                 </div>
               </Form>
@@ -1546,12 +857,10 @@ export default function MenuManagementPage() {
             <span className="font-medium text-foreground">
               Static Menu Mode
             </span>
-
             <span className="text-sm text-muted-foreground">
-              This page currently uses local static
-              menu data. Create, edit, delete and
-              drag-and-drop changes are maintained
-              locally during the current session.
+              This page currently uses local static menu data. Create, edit,
+              delete and drag-and-drop changes are maintained locally during the
+              current session.
             </span>
           </div>
         </div>

@@ -24,6 +24,7 @@ import {
 
 import RoleDetails from "@/components/modules/roles/RoleDetails";
 import RoleForm from "@/components/modules/roles/RoleForm";
+import { useTheme } from "@/lib/theme";
 
 const DEMO_ROLES: Role[] = [
   {
@@ -62,6 +63,8 @@ const DEMO_ROLES: Role[] = [
 ];
 
 export default function RolesPage() {
+  const { primaryColor } = useTheme();
+
   const [roles, setRoles] = useState<Role[]>([]);
   const [search, setSearch] = useState("");
 
@@ -78,11 +81,7 @@ export default function RolesPage() {
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [deleteError, setDeleteError] = useState("");
 
-  // Guards against out-of-order responses when loadRoles is called
-  // in quick succession (e.g. right after a delete).
   const loadRequestIdRef = useRef(0);
-  // Guards against a stale "view" response overwriting a newer one
-  // if the user clicks View on two different rows in quick succession.
   const viewRequestIdRef = useRef(0);
 
   const loadRoles = useCallback(async () => {
@@ -169,9 +168,7 @@ export default function RolesPage() {
 
   const filteredRoles = useMemo(() => {
     const query = search.toLowerCase().trim();
-
     if (!query) return roles;
-
     return roles.filter((role) =>
       `${role.name} ${role.description || ""}`.toLowerCase().includes(query),
     );
@@ -184,15 +181,20 @@ export default function RolesPage() {
         <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1D6BB2]/10">
-                <Shield className="h-5 w-5 text-[#1D6BB2]" />
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{
+                  backgroundColor: `${primaryColor}1A`,
+                  color: primaryColor,
+                }}
+              >
+                <Shield className="h-5 w-5" />
               </div>
 
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                   Role Management
                 </h1>
-
                 <p className="mt-0.5 text-sm text-slate-500">
                   Manage roles and their assigned permissions.
                 </p>
@@ -206,7 +208,8 @@ export default function RolesPage() {
               setEditingRole(null);
               setShowForm(true);
             }}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#1D6BB2] px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#185d9c] hover:shadow-md active:scale-[0.98]"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md active:scale-[0.98]"
+            style={{ backgroundColor: primaryColor }}
           >
             <Plus className="h-4 w-4" />
             Add Role
@@ -223,7 +226,6 @@ export default function RolesPage() {
           className="mb-5 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
         >
           <span>{error}</span>
-
           <button
             type="button"
             onClick={() => setError("")}
@@ -243,7 +245,6 @@ export default function RolesPage() {
             <h2 className="text-sm font-semibold text-slate-800">
               System Roles
             </h2>
-
             <p className="mt-0.5 text-xs text-slate-400">
               {filteredRoles.length}{" "}
               {filteredRoles.length === 1 ? "role" : "roles"} available
@@ -252,13 +253,20 @@ export default function RolesPage() {
 
           <div className="relative w-full sm:w-[280px]">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search roles..."
               aria-label="Search roles"
-              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-[#1D6BB2] focus:bg-white focus:ring-4 focus:ring-[#1D6BB2]/10"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:bg-white"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
             />
           </div>
         </div>
@@ -274,28 +282,24 @@ export default function RolesPage() {
                 >
                   Role
                 </th>
-
                 <th
                   scope="col"
                   className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400"
                 >
                   Description
                 </th>
-
                 <th
                   scope="col"
                   className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400"
                 >
                   Permissions
                 </th>
-
                 <th
                   scope="col"
                   className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400"
                 >
                   Created
                 </th>
-
                 <th
                   scope="col"
                   className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400"
@@ -306,29 +310,27 @@ export default function RolesPage() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {/* Loading */}
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-20 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
-
+                    <Loader2
+                      className="mx-auto h-6 w-6 animate-spin"
+                      style={{ color: primaryColor }}
+                    />
                     <p className="mt-3 text-sm font-medium text-slate-500">
                       Loading roles...
                     </p>
                   </td>
                 </tr>
               ) : filteredRoles.length === 0 ? (
-                /* Empty */
                 <tr>
                   <td colSpan={5} className="px-5 py-20 text-center">
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
                       <Shield className="h-6 w-6 text-slate-300" />
                     </div>
-
                     <p className="mt-3 text-sm font-semibold text-slate-600">
                       No roles found
                     </p>
-
                     <p className="mt-1 text-xs text-slate-400">
                       {search
                         ? "Try changing your search query."
@@ -342,24 +344,25 @@ export default function RolesPage() {
                     key={role.id}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.2,
-                      delay: index * 0.025,
-                    }}
+                    transition={{ duration: 0.2, delay: index * 0.025 }}
                     className="group transition-colors hover:bg-slate-50/80"
                   >
                     {/* Role */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1D6BB2]/10 text-[#1D6BB2]">
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                          style={{
+                            backgroundColor: `${primaryColor}1A`,
+                            color: primaryColor,
+                          }}
+                        >
                           <Shield className="h-4 w-4" />
                         </div>
-
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-800">
                             {role.name}
                           </p>
-
                           <p className="mt-0.5 text-xs text-slate-400">
                             ID: {role.id}
                           </p>
@@ -376,14 +379,16 @@ export default function RolesPage() {
 
                     {/* Permissions */}
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#1D6BB2]/10 px-2.5 py-1.5 text-xs font-semibold text-[#1D6BB2]">
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
+                        style={{
+                          backgroundColor: `${primaryColor}1A`,
+                          color: primaryColor,
+                        }}
+                      >
                         <KeyRound className="h-3.5 w-3.5" />
-
                         {role.permissions?.length ?? 0}
-
-                        <span className="font-normal text-[#1D6BB2]/70">
-                          permissions
-                        </span>
+                        <span style={{ opacity: 0.7 }}>permissions</span>
                       </span>
                     </td>
 
@@ -401,9 +406,19 @@ export default function RolesPage() {
                           type="button"
                           onClick={() => handleView(role)}
                           disabled={viewingId === role.id}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                           title="View role"
                           aria-label={`View ${role.name}`}
+                          onMouseEnter={(e) => {
+                            if (viewingId !== role.id) {
+                              e.currentTarget.style.color = primaryColor;
+                              e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           {viewingId === role.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -415,9 +430,17 @@ export default function RolesPage() {
                         <button
                           type="button"
                           onClick={() => handleEdit(role)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2]"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
                           title="Edit role"
                           aria-label={`Edit ${role.name}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = primaryColor;
+                            e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
@@ -480,14 +503,12 @@ export default function RolesPage() {
               >
                 {editingRole ? "Edit Role" : "Create Role"}
               </h2>
-
               <p className="mt-1 text-sm text-slate-500">
                 {editingRole
                   ? "Update role information."
                   : "Create a new system role."}
               </p>
             </div>
-
             <button
               type="button"
               onClick={() => {
@@ -540,7 +561,6 @@ export default function RolesPage() {
             >
               Delete role?
             </h2>
-
             <p className="text-sm text-slate-500">
               This will permanently remove{" "}
               <span className="font-semibold text-slate-700">
@@ -549,7 +569,6 @@ export default function RolesPage() {
               . Any users currently assigned this role may lose its permissions.
               This action cannot be undone.
             </p>
-
             {deleteError && (
               <p
                 role="alert"
@@ -558,7 +577,6 @@ export default function RolesPage() {
                 {deleteError}
               </p>
             )}
-
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -568,7 +586,6 @@ export default function RolesPage() {
               >
                 Cancel
               </button>
-
               <button
                 type="button"
                 onClick={confirmDelete}
@@ -603,12 +620,9 @@ function Modal({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;

@@ -22,6 +22,7 @@ import {
   BgColorsOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import { useTheme } from "@/lib/theme";
 
 const { Title, Text } = Typography;
 
@@ -40,30 +41,39 @@ export default function WebManagementPage() {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
-  // Load initial settings (Replace with your actual API / Redux fetching logic)
+  const { primaryColor, setPrimaryColor } = useTheme();
+
+  // Load initial settings + current theme primary color
   useEffect(() => {
     form.setFieldsValue({
       siteName: "My Enterprise App",
       tagline: "Building scalable web solutions",
       logoUrl: "https://example.com/logo.png",
       faviconUrl: "https://example.com/favicon.ico",
-      primaryColor: "#1d6bb2",
+      primaryColor: primaryColor || "#2ed573",
       footerText: "© 2026 Enterprise Corp. All rights reserved.",
       maintenanceMode: false,
     });
-  }, [form]);
+  }, [form, primaryColor]);
 
   const handleSaveSettings = async (values: WebSettingsFormValues) => {
     setLoading(true);
     try {
-      // Normalize color value if selected via ColorPicker object
+      // Normalize color value (ColorPicker can return object)
+      const nextPrimaryColor =
+        typeof values.primaryColor === "object"
+          ? (values.primaryColor as any).toHexString()
+          : values.primaryColor;
+
       const payload = {
         ...values,
-        primaryColor:
-          typeof values.primaryColor === "object"
-            ? (values.primaryColor as any).toHexString()
-            : values.primaryColor,
+        primaryColor: nextPrimaryColor,
       };
+
+      // ✅ Update global theme primary color
+      if (nextPrimaryColor) {
+        setPrimaryColor(nextPrimaryColor);
+      }
 
       // API call placeholder:
       // await updateWebSettings(payload).unwrap();
@@ -94,14 +104,12 @@ export default function WebManagementPage() {
             Web Management
           </Title>
           <Text type="secondary">
-            Configure site identity, branding assets, and overall website preferences.
+            Configure site identity, branding assets, and overall website
+            preferences.
           </Text>
         </div>
 
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={() => form.resetFields()}
-        >
+        <Button icon={<ReloadOutlined />} onClick={() => form.resetFields()}>
           Reset Form
         </Button>
       </div>
@@ -124,7 +132,9 @@ export default function WebManagementPage() {
               <Form.Item
                 label="Website Name"
                 name="siteName"
-                rules={[{ required: true, message: "Please enter website name" }]}
+                rules={[
+                  { required: true, message: "Please enter website name" },
+                ]}
               >
                 <Input size="large" placeholder="e.g. My Website" />
               </Form.Item>
@@ -145,7 +155,11 @@ export default function WebManagementPage() {
                   placeholder="https://example.com/logo.png"
                   suffix={
                     <Upload showUploadList={false}>
-                      <Button icon={<UploadOutlined />} type="text" size="small">
+                      <Button
+                        icon={<UploadOutlined />}
+                        type="text"
+                        size="small"
+                      >
                         Upload
                       </Button>
                     </Upload>
@@ -168,12 +182,23 @@ export default function WebManagementPage() {
 
           {/* THEME & APPEARANCE SECTION */}
           <Title level={5} style={{ marginBottom: 16 }}>
-            <BgColorsOutlined style={{ marginRight: 8 }} /> Appearance & Controls
+            <BgColorsOutlined style={{ marginRight: 8 }} /> Appearance &
+            Controls
           </Title>
 
           <Row gutter={16}>
             <Col xs={24} md={12}>
-              <Form.Item label="Primary Brand Color" name="primaryColor">
+              <Form.Item
+                label="Primary Brand Color"
+                name="primaryColor"
+                getValueFromEvent={(color) => {
+                  // ColorPicker returns Color object → convert to hex string
+                  if (color && typeof color === "object" && color.toHexString) {
+                    return color.toHexString();
+                  }
+                  return color;
+                }}
+              >
                 <ColorPicker
                   showText
                   format="hex"
@@ -190,7 +215,10 @@ export default function WebManagementPage() {
                 valuePropName="checked"
                 extra="Enabling this will restrict public access to the website."
               >
-                <Switch checkedChildren="Enabled" unCheckedChildren="Disabled" />
+                <Switch
+                  checkedChildren="Enabled"
+                  unCheckedChildren="Disabled"
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -211,8 +239,8 @@ export default function WebManagementPage() {
             loading={loading}
             size="large"
             style={{
-              background: "#1d6bb2",
-              borderColor: "#1d6bb2",
+              background: primaryColor,
+              borderColor: primaryColor,
               paddingLeft: 32,
               paddingRight: 32,
             }}

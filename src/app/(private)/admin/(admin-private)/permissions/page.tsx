@@ -28,6 +28,7 @@ import {
 } from "@/services/permissionService";
 
 import { adminAuthStorage } from "@/lib/admin-auth/adminAuthStorage";
+import { useTheme } from "@/lib/theme";
 
 const DEMO_PERMISSIONS: Permission[] = [
   {
@@ -145,16 +146,12 @@ function normalizeFeatureOptions(payload: unknown): FeatureOption[] {
   const unique = new Map<string, FeatureOption>();
 
   for (const item of list) {
-    if (!item || typeof item !== "object") {
-      continue;
-    }
+    if (!item || typeof item !== "object") continue;
 
     const object = item as Record<string, unknown>;
     const id = object.id ?? object.featureId ?? object.value ?? object._id;
 
-    if (id === undefined || id === null) {
-      continue;
-    }
+    if (id === undefined || id === null) continue;
 
     const name =
       object.name ?? object.title ?? object.label ?? object.displayName ?? id;
@@ -223,7 +220,6 @@ async function fetchFeatures(): Promise<FeatureOption[]> {
 }
 
 const ACTIONS = ["create", "read", "update", "delete", "list"] as const;
-
 const CONTEXTS = ["own", "any", "team", "department"] as const;
 
 type PermissionFormValues = {
@@ -237,6 +233,8 @@ type PermissionFormValues = {
 };
 
 export default function PermissionsPage() {
+  const { primaryColor } = useTheme();
+
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -271,39 +269,18 @@ export default function PermissionsPage() {
   const loadRequestIdRef = useRef(0);
   const viewRequestIdRef = useRef(0);
 
-  // ---------------------------------------------------------
-  // Search debounce
-  // ---------------------------------------------------------
-
   useEffect(() => {
     const timer = setTimeout(() => {
       const trimmed = searchInput.trim();
-
-      setSearch((current) => {
-        if (current === trimmed) {
-          return current;
-        }
-
-        return trimmed;
-      });
-
+      setSearch((current) => (current === trimmed ? current : trimmed));
       setPage(1);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  // ---------------------------------------------------------
-  // Reset pagination when filters change
-  // ---------------------------------------------------------
 
   useEffect(() => {
     setPage(1);
   }, [action, context]);
-
-  // ---------------------------------------------------------
-  // Load permissions
-  // ---------------------------------------------------------
 
   const loadPermissions = useCallback(async () => {
     const requestId = ++loadRequestIdRef.current;
@@ -322,9 +299,7 @@ export default function PermissionsPage() {
         sortOrder: "DESC",
       });
 
-      if (requestId !== loadRequestIdRef.current) {
-        return;
-      }
+      if (requestId !== loadRequestIdRef.current) return;
 
       const permissionList = Array.isArray(response?.data) ? response.data : [];
 
@@ -342,9 +317,7 @@ export default function PermissionsPage() {
       setTotal(Number(response?.meta?.total ?? permissionList.length));
       setTotalPages(Math.max(Number(response?.meta?.totalPages ?? 1), 1));
     } catch (err) {
-      if (requestId !== loadRequestIdRef.current) {
-        return;
-      }
+      if (requestId !== loadRequestIdRef.current) return;
 
       setError(
         err instanceof Error
@@ -366,61 +339,35 @@ export default function PermissionsPage() {
     loadPermissions();
   }, [loadPermissions]);
 
-  // ---------------------------------------------------------
-  // Pagination
-  // ---------------------------------------------------------
-
   const goToPage = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages || loading || newPage === page) {
       return;
     }
-
     setPage(newPage);
   };
-
-  // ---------------------------------------------------------
-  // Create
-  // ---------------------------------------------------------
 
   const openCreate = () => {
     setEditingPermission(null);
     setShowForm(true);
   };
 
-  // ---------------------------------------------------------
-  // Edit
-  // ---------------------------------------------------------
-
   const openEdit = (permission: Permission) => {
     setEditingPermission(permission);
     setShowForm(true);
   };
 
-  // ---------------------------------------------------------
-  // View
-  // ---------------------------------------------------------
-
   const openView = async (permission: Permission) => {
     const requestId = ++viewRequestIdRef.current;
-
     setViewingId(permission.id);
     setViewError("");
 
     try {
       const full = await getPermission(permission.id);
-
-      if (requestId !== viewRequestIdRef.current) {
-        return;
-      }
-
+      if (requestId !== viewRequestIdRef.current) return;
       setSelectedPermission(full);
     } catch (err) {
-      if (requestId !== viewRequestIdRef.current) {
-        return;
-      }
-
+      if (requestId !== viewRequestIdRef.current) return;
       setSelectedPermission(permission);
-
       setViewError(
         err instanceof Error
           ? err.message
@@ -433,28 +380,20 @@ export default function PermissionsPage() {
     }
   };
 
-  // ---------------------------------------------------------
-  // Delete
-  // ---------------------------------------------------------
-
   const requestDelete = (permission: Permission) => {
     setDeleteError("");
     setPermissionToDelete(permission);
   };
 
   const confirmDelete = async () => {
-    if (!permissionToDelete) {
-      return;
-    }
+    if (!permissionToDelete) return;
 
     const id = permissionToDelete.id;
-
     setDeletingId(id);
     setDeleteError("");
 
     try {
       await deletePermission(id);
-
       setPermissionToDelete(null);
 
       if (permissions.length === 1 && page > 1) {
@@ -471,33 +410,18 @@ export default function PermissionsPage() {
     }
   };
 
-  // ---------------------------------------------------------
-  // Form success
-  // ---------------------------------------------------------
-
   const handleFormSuccess = async () => {
     setShowForm(false);
     setEditingPermission(null);
-
     await loadPermissions();
   };
 
-  // ---------------------------------------------------------
-  // Pagination information
-  // ---------------------------------------------------------
-
   const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
-
   const endItem = Math.min(page * limit, total);
-
   const pageNumbers = useMemo(
     () => getPageNumbers(page, totalPages),
     [page, totalPages],
   );
-
-  // ---------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------
 
   return (
     <div className="mx-auto max-w-[1600px]">
@@ -507,7 +431,6 @@ export default function PermissionsPage() {
           <h1 className="text-2xl font-bold text-slate-900">
             Permission Management
           </h1>
-
           <p className="mt-1 text-sm text-slate-500">
             Define granular permissions for platform resources.
           </p>
@@ -516,7 +439,8 @@ export default function PermissionsPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1D6BB2] px-4 text-sm font-semibold text-white transition hover:bg-[#185d9c]"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition hover:opacity-90"
+          style={{ backgroundColor: primaryColor }}
         >
           <Plus className="h-4 w-4" />
           Add Permission
@@ -527,31 +451,40 @@ export default function PermissionsPage() {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {/* FILTERS */}
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center">
-          {/* SEARCH */}
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search permissions..."
               aria-label="Search permissions"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-[#1D6BB2] focus:bg-white focus:ring-4 focus:ring-[#1D6BB2]/10"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:bg-white"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
             />
           </div>
 
-          {/* ACTION FILTER */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-400" />
-
             <select
               value={action}
               onChange={(e) => setAction(e.target.value)}
               aria-label="Filter by action"
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-[#1D6BB2]"
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none"
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primaryColor;
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "";
+              }}
             >
               <option value="all">All Actions</option>
-
               {ACTIONS.map((value) => (
                 <option key={value} value={value}>
                   {capitalize(value)}
@@ -560,15 +493,19 @@ export default function PermissionsPage() {
             </select>
           </div>
 
-          {/* CONTEXT FILTER */}
           <select
             value={context}
             onChange={(e) => setContext(e.target.value)}
             aria-label="Filter by context"
-            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none focus:border-[#1D6BB2]"
+            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none"
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = primaryColor;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "";
+            }}
           >
             <option value="all">All Contexts</option>
-
             {CONTEXTS.map((value) => (
               <option key={value} value={value}>
                 {capitalize(value)}
@@ -617,8 +554,10 @@ export default function PermissionsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-16 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#1D6BB2]" />
-
+                    <Loader2
+                      className="mx-auto h-6 w-6 animate-spin"
+                      style={{ color: primaryColor }}
+                    />
                     <p className="mt-2 text-sm text-slate-400">
                       Loading permissions...
                     </p>
@@ -628,11 +567,9 @@ export default function PermissionsPage() {
                 <tr>
                   <td colSpan={8} className="px-5 py-16 text-center">
                     <KeyRound className="mx-auto h-8 w-8 text-slate-300" />
-
                     <p className="mt-2 text-sm font-medium text-slate-500">
                       No permissions found.
                     </p>
-
                     {(search || action !== "all" || context !== "all") && (
                       <button
                         type="button"
@@ -643,7 +580,8 @@ export default function PermissionsPage() {
                           setContext("all");
                           setPage(1);
                         }}
-                        className="mt-3 text-sm font-semibold text-[#1D6BB2] hover:underline"
+                        className="mt-3 text-sm font-semibold hover:underline"
+                        style={{ color: primaryColor }}
                       >
                         Clear filters
                       </button>
@@ -654,31 +592,26 @@ export default function PermissionsPage() {
                 permissions.map((permission, index) => (
                   <motion.tr
                     key={permission.id}
-                    initial={{
-                      opacity: 0,
-                      y: 4,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    transition={{
-                      delay: index * 0.02,
-                    }}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.02 }}
                     className="hover:bg-slate-50/70"
                   >
-                    {/* PERMISSION */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1D6BB2]/10 text-[#1D6BB2]">
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                          style={{
+                            backgroundColor: `${primaryColor}1A`,
+                            color: primaryColor,
+                          }}
+                        >
                           <KeyRound className="h-4 w-4" />
                         </div>
-
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-slate-800">
                             {permission.name}
                           </p>
-
                           {permission.description && (
                             <p className="mt-0.5 max-w-xs truncate text-xs text-slate-400">
                               {permission.description}
@@ -688,55 +621,63 @@ export default function PermissionsPage() {
                       </div>
                     </td>
 
-                    {/* KEY */}
                     <td className="px-5 py-4">
                       <code className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">
                         {permission.key}
                       </code>
                     </td>
 
-                    {/* MODULE */}
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {permission.feature?.module?.name || "—"}
                     </td>
 
-                    {/* FEATURE */}
                     <td className="px-5 py-4 text-sm text-slate-500">
                       {permission.feature?.name || "—"}
                     </td>
 
-                    {/* RESOURCE */}
                     <td className="px-5 py-4">
                       <span className="text-sm text-slate-500">
                         {permission.resource || "—"}
                       </span>
                     </td>
 
-                    {/* ACTION */}
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-[#1D6BB2]/10 px-2.5 py-1 text-xs font-medium capitalize text-[#1D6BB2]">
+                      <span
+                        className="rounded-full px-2.5 py-1 text-xs font-medium capitalize"
+                        style={{
+                          backgroundColor: `${primaryColor}1A`,
+                          color: primaryColor,
+                        }}
+                      >
                         {permission.action || "—"}
                       </span>
                     </td>
 
-                    {/* CONTEXT */}
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium capitalize text-slate-600">
                         {permission.context || "—"}
                       </span>
                     </td>
 
-                    {/* ACTIONS */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1">
-                        {/* VIEW */}
                         <button
                           type="button"
                           onClick={() => openView(permission)}
                           disabled={viewingId === permission.id}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[#1D6BB2] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                           title="View"
                           aria-label={`View ${permission.name}`}
+                          onMouseEnter={(e) => {
+                            if (viewingId !== permission.id) {
+                              e.currentTarget.style.color = primaryColor;
+                              e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           {viewingId === permission.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -745,18 +686,24 @@ export default function PermissionsPage() {
                           )}
                         </button>
 
-                        {/* EDIT */}
                         <button
                           type="button"
                           onClick={() => openEdit(permission)}
-                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-[#1D6BB2]"
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
                           title="Edit"
                           aria-label={`Edit ${permission.name}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = primaryColor;
+                            e.currentTarget.style.backgroundColor = `${primaryColor}15`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                            e.currentTarget.style.backgroundColor = "";
+                          }}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
 
-                        {/* DELETE */}
                         <button
                           type="button"
                           onClick={() => requestDelete(permission)}
@@ -818,11 +765,16 @@ export default function PermissionsPage() {
                     disabled={loading}
                     aria-current={page === pageNumber ? "page" : undefined}
                     aria-label={`Page ${pageNumber}`}
-                    className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium transition ${
+                    className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium transition disabled:cursor-not-allowed ${
                       page === pageNumber
-                        ? "bg-[#1D6BB2] text-white"
+                        ? "text-white"
                         : "text-slate-600 hover:bg-slate-100"
-                    } disabled:cursor-not-allowed`}
+                    }`}
+                    style={
+                      page === pageNumber
+                        ? { backgroundColor: primaryColor }
+                        : undefined
+                    }
                   >
                     {pageNumber}
                   </button>
@@ -861,14 +813,12 @@ export default function PermissionsPage() {
               >
                 {editingPermission ? "Edit Permission" : "Create Permission"}
               </h2>
-
               <p className="mt-1 text-sm text-slate-500">
                 {editingPermission
                   ? "Update this permission's details."
                   : "Define a new permission for a resource."}
               </p>
             </div>
-
             <button
               type="button"
               onClick={() => {
@@ -913,12 +863,10 @@ export default function PermissionsPage() {
               >
                 Permission Details
               </h2>
-
               <p className="mt-1 text-sm text-slate-500">
                 Detailed information about this permission.
               </p>
             </div>
-
             <button
               type="button"
               onClick={() => {
@@ -944,31 +892,23 @@ export default function PermissionsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Detail label="Name" value={selectedPermission.name} />
-
               <Detail label="Key" value={selectedPermission.key} mono />
-
               <Detail
                 label="Module"
                 value={selectedPermission.feature?.module?.name}
               />
-
               <Detail
                 label="Feature"
                 value={selectedPermission.feature?.name}
               />
-
               <Detail
                 label="Feature ID"
                 value={selectedPermission.featureId}
                 mono
               />
-
               <Detail label="Resource" value={selectedPermission.resource} />
-
               <Detail label="Action" value={selectedPermission.action} />
-
               <Detail label="Context" value={selectedPermission.context} />
-
               <Detail label="UUID" value={selectedPermission.uuid} mono />
             </div>
 
@@ -1001,7 +941,6 @@ export default function PermissionsPage() {
               >
                 Delete permission?
               </h2>
-
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 This will permanently remove{" "}
                 <span className="font-semibold text-slate-700">
@@ -1030,7 +969,6 @@ export default function PermissionsPage() {
               >
                 Cancel
               </button>
-
               <button
                 type="button"
                 onClick={confirmDelete}
@@ -1050,9 +988,9 @@ export default function PermissionsPage() {
   );
 }
 
-// =========================================================
-// PERMISSION FORM
-// =========================================================
+/* =========================================================
+   PERMISSION FORM
+========================================================= */
 
 function PermissionForm({
   permission,
@@ -1063,6 +1001,8 @@ function PermissionForm({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { primaryColor } = useTheme();
+
   const [values, setValues] = useState<PermissionFormValues>({
     name: permission?.name ?? "",
     key: permission?.key ?? "",
@@ -1082,7 +1022,6 @@ function PermissionForm({
   const [featuresLoading, setFeaturesLoading] = useState(true);
   const [featuresError, setFeaturesError] = useState("");
 
-  // Load features for the Feature dropdown.
   useEffect(() => {
     let cancelled = false;
 
@@ -1090,12 +1029,8 @@ function PermissionForm({
       try {
         setFeaturesLoading(true);
         setFeaturesError("");
-
         const loaded = await fetchFeatures();
-
-        if (!cancelled) {
-          setFeatures(loaded);
-        }
+        if (!cancelled) setFeatures(loaded);
       } catch (err) {
         if (!cancelled) {
           setFeatures([]);
@@ -1104,35 +1039,25 @@ function PermissionForm({
           );
         }
       } finally {
-        if (!cancelled) {
-          setFeaturesLoading(false);
-        }
+        if (!cancelled) setFeaturesLoading(false);
       }
     };
 
     loadFeatures();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Keep the current feature visible while editing even if it is not present
-  // in the first dropdown response.
   const featureOptions = useMemo(() => {
-    if (!permission?.featureId) {
-      return features;
-    }
+    if (!permission?.featureId) return features;
 
     const currentId = String(permission.featureId);
-
     if (features.some((feature) => String(feature.id) === currentId)) {
       return features;
     }
 
-    if (!permission.feature?.name) {
-      return features;
-    }
+    if (!permission.feature?.name) return features;
 
     return [
       {
@@ -1146,7 +1071,6 @@ function PermissionForm({
     ];
   }, [features, permission]);
 
-  // Update form when permission changes
   useEffect(() => {
     setValues({
       name: permission?.name ?? "",
@@ -1160,19 +1084,13 @@ function PermissionForm({
           ? String(permission.featureId)
           : "",
     });
-
     setFormError("");
   }, [permission]);
 
-  // Generic form update
   const update = (field: keyof PermissionFormValues, value: string) => {
-    setValues((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setValues((current) => ({ ...current, [field]: value }));
   };
 
-  // Submit
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -1184,7 +1102,6 @@ function PermissionForm({
     const context = values.context.trim();
     const featureIdText = values.featureId.trim();
 
-    // Basic validation
     if (!name || !key) {
       setFormError("Name and key are required.");
       return;
@@ -1195,14 +1112,12 @@ function PermissionForm({
       return;
     }
 
-    // Feature validation
     if (!featureIdText) {
       setFormError("Feature is required.");
       return;
     }
 
     const featureId = Number(featureIdText);
-
     if (!Number.isInteger(featureId) || featureId <= 0) {
       setFormError("Please select a valid feature.");
       return;
@@ -1213,7 +1128,6 @@ function PermissionForm({
 
     try {
       if (permission) {
-        // UPDATE
         await updatePermission(permission.id, {
           name,
           key,
@@ -1224,7 +1138,6 @@ function PermissionForm({
           featureId,
         });
       } else {
-        // CREATE
         await createPermission({
           name,
           key,
@@ -1235,7 +1148,6 @@ function PermissionForm({
           featureId,
         });
       }
-
       onSuccess();
     } catch (err) {
       setFormError(
@@ -1250,6 +1162,25 @@ function PermissionForm({
     }
   };
 
+  const focusHandlers = {
+    onFocus: (
+      e: React.FocusEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
+      e.currentTarget.style.borderColor = primaryColor;
+      e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
+    },
+    onBlur: (
+      e: React.FocusEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
+      e.currentTarget.style.borderColor = "";
+      e.currentTarget.style.boxShadow = "";
+    },
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {formError && (
@@ -1261,7 +1192,6 @@ function PermissionForm({
         </p>
       )}
 
-      {/* NAME + KEY */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Name" htmlFor="perm-name">
           <input
@@ -1271,7 +1201,8 @@ function PermissionForm({
             required
             disabled={saving}
             placeholder="e.g. Create User"
-            className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10 disabled:bg-slate-50"
+            className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition disabled:bg-slate-50"
+            {...focusHandlers}
           />
         </Field>
 
@@ -1287,12 +1218,12 @@ function PermissionForm({
             required
             disabled={saving}
             placeholder="e.g. users.create"
-            className="h-11 w-full rounded-lg border border-slate-200 px-3 font-mono text-sm outline-none transition focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10 disabled:bg-slate-50"
+            className="h-11 w-full rounded-lg border border-slate-200 px-3 font-mono text-sm outline-none transition disabled:bg-slate-50"
+            {...focusHandlers}
           />
         </Field>
       </div>
 
-      {/* DESCRIPTION */}
       <Field label="Description" htmlFor="perm-description">
         <textarea
           id="perm-description"
@@ -1301,11 +1232,11 @@ function PermissionForm({
           rows={3}
           disabled={saving}
           placeholder="Describe what this permission allows..."
-          className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10 disabled:bg-slate-50"
+          className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition disabled:bg-slate-50"
+          {...focusHandlers}
         />
       </Field>
 
-      {/* ACTION + CONTEXT */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field label="Action" htmlFor="perm-action">
           <select
@@ -1313,7 +1244,8 @@ function PermissionForm({
             value={values.action}
             onChange={(e) => update("action", e.target.value)}
             disabled={saving}
-            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1D6BB2] disabled:bg-slate-50"
+            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none disabled:bg-slate-50"
+            {...focusHandlers}
           >
             {ACTIONS.map((value) => (
               <option key={value} value={value}>
@@ -1329,7 +1261,8 @@ function PermissionForm({
             value={values.context}
             onChange={(e) => update("context", e.target.value)}
             disabled={saving}
-            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#1D6BB2] disabled:bg-slate-50"
+            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none disabled:bg-slate-50"
+            {...focusHandlers}
           >
             {CONTEXTS.map((value) => (
               <option key={value} value={value}>
@@ -1340,7 +1273,6 @@ function PermissionForm({
         </Field>
       </div>
 
-      {/* RESOURCE + FEATURE ID */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field
           label={`Resource${permission ? "" : " *"}`}
@@ -1354,7 +1286,8 @@ function PermissionForm({
             required={!permission}
             disabled={saving}
             placeholder="e.g. users"
-            className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10 disabled:bg-slate-50"
+            className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none transition disabled:bg-slate-50"
+            {...focusHandlers}
           />
         </Field>
 
@@ -1371,12 +1304,12 @@ function PermissionForm({
               onChange={(e) => update("featureId", e.target.value)}
               required
               disabled={saving || featuresLoading}
-              className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-10 text-sm outline-none transition focus:border-[#1D6BB2] focus:ring-4 focus:ring-[#1D6BB2]/10 disabled:cursor-not-allowed disabled:bg-slate-50"
+              className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-10 text-sm outline-none transition disabled:cursor-not-allowed disabled:bg-slate-50"
+              {...focusHandlers}
             >
               <option value="">
                 {featuresLoading ? "Loading features..." : "Select Feature"}
               </option>
-
               {featureOptions.map((feature) => (
                 <option
                   key={`feature-${String(feature.id)}`}
@@ -1387,20 +1320,17 @@ function PermissionForm({
                 </option>
               ))}
             </select>
-
             <ChevronDown
               aria-hidden="true"
               className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
             />
           </div>
-
           {featuresError && (
             <p className="mt-1 text-xs text-red-500">{featuresError}</p>
           )}
         </Field>
       </div>
 
-      {/* BUTTONS */}
       <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
         <button
           type="button"
@@ -1414,10 +1344,10 @@ function PermissionForm({
         <button
           type="submit"
           disabled={saving || featuresLoading}
-          className="flex h-11 items-center gap-2 rounded-xl bg-[#1D6BB2] px-5 text-sm font-semibold text-white transition hover:bg-[#185d9c] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: primaryColor }}
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-
           {permission ? "Save Changes" : "Create Permission"}
         </button>
       </div>
@@ -1425,9 +1355,9 @@ function PermissionForm({
   );
 }
 
-// =========================================================
-// FIELD
-// =========================================================
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function Field({
   label,
@@ -1448,17 +1378,11 @@ function Field({
       >
         {label}
       </label>
-
       {children}
-
       {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
     </div>
   );
 }
-
-// =========================================================
-// DETAIL
-// =========================================================
 
 function Detail({
   label,
@@ -1474,7 +1398,6 @@ function Detail({
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
-
       <p
         className={`mt-1 break-words text-sm font-semibold text-slate-700 ${
           mono ? "font-mono" : ""
@@ -1485,10 +1408,6 @@ function Detail({
     </div>
   );
 }
-
-// =========================================================
-// MODAL
-// =========================================================
 
 function Modal({
   children,
@@ -1503,20 +1422,13 @@ function Modal({
 }) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     const previousOverflow = document.body.style.overflow;
-
     document.body.style.overflow = "hidden";
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-
       document.body.style.overflow = previousOverflow;
     };
   }, [onClose]);
@@ -1524,9 +1436,7 @@ function Modal({
   return (
     <div
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
+        if (event.target === event.currentTarget) onClose();
       }}
       role="dialog"
       aria-modal="true"
@@ -1534,16 +1444,8 @@ function Modal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[2px]"
     >
       <motion.div
-        initial={{
-          opacity: 0,
-          scale: 0.97,
-          y: 8,
-        }}
-        animate={{
-          opacity: 1,
-          scale: 1,
-          y: 0,
-        }}
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
         onMouseDown={(event) => event.stopPropagation()}
         className={`max-h-[calc(100vh-32px)] w-full ${maxWidthClass} overflow-hidden rounded-2xl bg-white shadow-2xl`}
       >
@@ -1552,10 +1454,6 @@ function Modal({
     </div>
   );
 }
-
-// =========================================================
-// HELPERS
-// =========================================================
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -1568,11 +1466,9 @@ function getPageNumbers(
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
-
   if (currentPage <= 4) {
     return [1, 2, 3, 4, 5, "...", totalPages];
   }
-
   if (currentPage >= totalPages - 3) {
     return [
       1,
@@ -1584,7 +1480,6 @@ function getPageNumbers(
       totalPages,
     ];
   }
-
   return [
     1,
     "...",
