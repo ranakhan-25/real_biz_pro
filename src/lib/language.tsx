@@ -223,6 +223,8 @@ const translations: Translations = {
 
     "legacy.eyebrow": "THE REALBIZ STORY",
     "legacy.title": "Built by Operators, for Operators",
+    "legacy.titleLine1": "The Blueprint of",
+    "legacy.titleAccent": "Growth",
     "legacy.paragraph1":
       "RealBiz started with a simple observation: real estate teams were running multi-crore operations out of spreadsheets and group chats. Leads got lost, follow-ups were missed, and owners had no single view of the business.",
     "legacy.paragraph2":
@@ -269,6 +271,40 @@ const translations: Translations = {
     "partner.customerDescription":
       "Manage your own leads, visits, and deals without needing a full team rollout.",
     "latest.title": "The platform, module by module",
+    "landowner.eyebrow": "FOR LAND OWNERS",
+    "landowner.titleLine1": "Turn Your Land Into a",
+    "landowner.titleAccent": "Legacy",
+    "landowner.description":
+      "List your plot, track every offer, and manage the full acquisition process \u2014 negotiation, legal verification, and documentation \u2014 without losing sight of a single detail.",
+    "landowner.point1": "Get matched with verified agencies actively looking for land",
+    "landowner.point2": "Track negotiation status and offers in real time",
+    "landowner.point3": "Legal document verification built into every step",
+    "landowner.point4": "Follow-up scheduling so no conversation goes cold",
+    "landowner.cta": "List Your Land",
+    "agency.eyebrow": "FOR AGENCIES",
+    "agency.titleLine1": "Run Your Whole",
+    "agency.titleAccent": "Business",
+    "agency.description":
+      "From the first lead to the final handover, give your entire team one shared system for sales, billing, and reporting \u2014 no more juggling five different tools.",
+    "agency.point1": "Assign and track leads across every agent automatically",
+    "agency.point2": "Manage flats, land, and bookings in one inventory",
+    "agency.point3": "Generate invoices and track payments without spreadsheets",
+    "agency.point4": "See team performance and pipeline health at a glance",
+    "agency.cta": "Start Free Trial",
+    "process.eyebrow": "HOW IT WORKS",
+    "process.title": "From sign-up to your first closed deal",
+    "process.step1.title": "Set up your workspace",
+    "process.step1.description":
+      "Add your company, branches, and team in minutes with a guided setup.",
+    "process.step2.title": "Import or add your data",
+    "process.step2.description":
+      "Bring in existing leads and property listings, or start fresh with our templates.",
+    "process.step3.title": "Assign and automate",
+    "process.step3.description":
+      "Route new leads automatically and let approval layers handle the rest.",
+    "process.step4.title": "Track, close, and grow",
+    "process.step4.description":
+      "Follow every deal to close with reports that show exactly where to focus.",
   },
   bn: {
     "nav.home": "হোম",
@@ -473,6 +509,8 @@ const translations: Translations = {
 
     "legacy.eyebrow": "রিয়েলবিজের গল্প",
     "legacy.title": "অপারেটরদের দ্বারা, অপারেটরদের জন্য তৈরি",
+    "legacy.titleLine1": "প্রবৃদ্ধির",
+    "legacy.titleAccent": "নীলনকশা",
     "legacy.paragraph1":
       "RealBiz শুরু হয়েছিল একটি সাধারণ পর্যবেক্ষণ থেকে: রিয়েল এস্টেট টিমগুলো কোটি টাকার কার্যক্রম চালাচ্ছিল স্প্রেডশিট আর গ্রুপ চ্যাটের উপর ভিত্তি করে। লিড হারিয়ে যেত, ফলো-আপ মিস হতো, আর মালিকদের ব্যবসার কোনো একক দৃষ্টিভঙ্গি ছিল না।",
     "legacy.paragraph2":
@@ -519,6 +557,40 @@ const translations: Translations = {
     "partner.customerDescription":
       "পুরো টিম রোলআউট ছাড়াই নিজের লিড, ভিজিট এবং ডিল পরিচালনা করুন।",
     "latest.title": "প্ল্যাটফর্ম, মডিউল অনুযায়ী",
+    "landowner.eyebrow": "জমির মালিকদের জন্য",
+    "landowner.titleLine1": "আপনার জমিকে একটি",
+    "landowner.titleAccent": "উত্তরাধিকার",
+    "landowner.description":
+      "আপনার প্লট তালিকাভুক্ত করুন, প্রতিটি অফার ট্র্যাক করুন এবং সম্পূর্ণ অধিগ্রহণ প্রক্রিয়া \u2014 নেগোসিয়েশন, আইনি যাচাই এবং ডকুমেন্টেশন \u2014 কোনো বিবরণ না হারিয়ে পরিচালনা করুন।",
+    "landowner.point1": "যাচাইকৃত এজেন্সির সাথে মিলিত হন যারা সক্রিয়ভাবে জমি খুঁজছে",
+    "landowner.point2": "রিয়েল-টাইমে নেগোসিয়েশন স্ট্যাটাস এবং অফার ট্র্যাক করুন",
+    "landowner.point3": "প্রতিটি ধাপে আইনি নথি যাচাই অন্তর্ভুক্ত",
+    "landowner.point4": "ফলো-আপ শিডিউলিং যাতে কোনো কথোপকথন ঠান্ডা না হয়",
+    "landowner.cta": "আপনার জমি তালিকাভুক্ত করুন",
+    "agency.eyebrow": "এজেন্সিদের জন্য",
+    "agency.titleLine1": "আপনার পুরো ব্যবসা",
+    "agency.titleAccent": "পরিচালনা করুন",
+    "agency.description":
+      "প্রথম লিড থেকে চূড়ান্ত হ্যান্ডওভার পর্যন্ত, আপনার পুরো টিমকে সেলস, বিলিং এবং রিপোর্টিংয়ের জন্য একটি ভাগ করা সিস্টেম দিন \u2014 পাঁচটি ভিন্ন টুল আর জাগল করতে হবে না।",
+    "agency.point1": "প্রতিটি এজেন্ট জুড়ে স্বয়ংক্রিয়ভাবে লিড বরাদ্দ ও ট্র্যাক করুন",
+    "agency.point2": "একটি ইনভেন্টরিতে ফ্ল্যাট, জমি এবং বুকিং পরিচালনা করুন",
+    "agency.point3": "স্প্রেডশিট ছাড়াই ইনভয়েস তৈরি এবং পেমেন্ট ট্র্যাক করুন",
+    "agency.point4": "এক নজরে টিমের কর্মক্ষমতা এবং পাইপলাইনের অবস্থা দেখুন",
+    "agency.cta": "ফ্রি ট্রায়াল শুরু করুন",
+    "process.eyebrow": "কিভাবে কাজ করে",
+    "process.title": "সাইন-আপ থেকে আপনার প্রথম বন্ধ হওয়া ডিল পর্যন্ত",
+    "process.step1.title": "আপনার ওয়ার্কস্পেস সেট আপ করুন",
+    "process.step1.description":
+      "গাইডেড সেটআপের মাধ্যমে মিনিটের মধ্যে আপনার কোম্পানি, শাখা এবং টিম যোগ করুন।",
+    "process.step2.title": "আপনার ডেটা আমদানি বা যোগ করুন",
+    "process.step2.description":
+      "বিদ্যমান লিড এবং প্রপার্টি লিস্টিং নিয়ে আসুন, বা আমাদের টেমপ্লেট দিয়ে নতুন করে শুরু করুন।",
+    "process.step3.title": "বরাদ্দ এবং অটোমেট করুন",
+    "process.step3.description":
+      "নতুন লিড স্বয়ংক্রিয়ভাবে রুট করুন এবং বাকিটা অনুমোদন স্তরকে করতে দিন।",
+    "process.step4.title": "ট্র্যাক করুন, বন্ধ করুন এবং বাড়ান",
+    "process.step4.description":
+      "রিপোর্টের সাহায্যে প্রতিটি ডিল বন্ধ পর্যন্ত অনুসরণ করুন যা দেখায় ঠিক কোথায় মনোযোগ দিতে হবে।",
   },
 };
 

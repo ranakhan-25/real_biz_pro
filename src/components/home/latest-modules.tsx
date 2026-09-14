@@ -10,7 +10,7 @@ export default function LatestModules() {
   const modules = tArray("projects.list");
 
   return (
-    <section className="px-5 py-20 sm:px-8">
+    <section className="bg-background px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -43,8 +43,10 @@ export default function LatestModules() {
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
               }}
+              initial="rest"
               whileHover="hover"
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card dark:bg-card/50 dark:hover:border-accent/40 transition-colors"
+              animate="rest"
+              className="group relative overflow-hidden rounded-2xl border border-border"
             >
               <div className="relative aspect-[4/5]">
                 {mod.image && (
@@ -56,19 +58,32 @@ export default function LatestModules() {
                     <Image src={mod.image} alt={mod.title} fill sizes="360px" className="object-cover" />
                   </motion.div>
                 )}
-                {/* Gradient overlay calibrated for both themes */}
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/25 to-transparent dark:from-black/95 dark:via-black/40 dark:to-transparent" />
 
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <p className="font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] text-white/70 dark:text-muted-foreground">
+                {/* Default bottom shadow gradient */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
+
+                {/* Bottom-to-Top Solid Cover using Accent Theme Color */}
+                <motion.div
+                  className="absolute inset-x-0 bottom-0 z-20 bg-accent"
+                  variants={{
+                    rest: { height: "0%" },
+                    hover: { height: "100%" },
+                  }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                />
+
+                {/* Content Container */}
+                <div className="absolute inset-x-0 bottom-0 z-30 p-5">
+                  <p className="font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] text-white/70 transition-colors duration-300 group-hover:text-accent-foreground/75">
                     {mod.description}
                   </p>
-                  <h3 className="mt-1.5 font-[family-name:var(--font-display)] text-xl font-semibold text-white dark:text-foreground">
+                  <h3 className="mt-1.5 font-[family-name:var(--font-display)] text-xl font-semibold text-white transition-colors duration-300 group-hover:text-accent-foreground">
                     {mod.title}
                   </h3>
                   <motion.span
                     variants={{ hover: { x: 4 } }}
-                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white dark:text-accent"
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white transition-colors duration-300 group-hover:text-accent-foreground"
                   >
                     {t("projects.viewProject")}
                     <ArrowUpRight className="h-3.5 w-3.5" />

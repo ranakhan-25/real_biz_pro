@@ -11,7 +11,7 @@ export default function FeaturesPage() {
   const items = tArray("features.list");
 
   return (
-    <section className="px-5 py-20 sm:px-8">
+    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
