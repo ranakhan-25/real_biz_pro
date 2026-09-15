@@ -60,7 +60,7 @@ export default function LatestModules() {
                 )}
 
                 {/* Default bottom shadow gradient */}
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent dark:from-black/95 dark:via-black/50" />
 
                 {/* Bottom-to-Top Solid Cover using Accent Theme Color */}
                 <motion.div
