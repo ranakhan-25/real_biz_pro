@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+
 import {
   BarChart,
   Bar,
@@ -15,74 +17,178 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
 import {
   FolderKanban,
   ListChecks,
   ShieldCheck,
   AlertTriangle,
   TrendingUp,
+  TrendingDown,
+  Calendar,
+  Users,
+  ArrowUpRight,
+  Sparkles,
+  Layers,
+  Activity,
 } from "lucide-react";
+
+// =====================================================
+// Types
+// =====================================================
 
 interface Project {
   id: number;
   name: string;
-  status: "Completed" | "In Progress" | "Pending";
+  status: "On Track" | "At Risk" | "In Trouble";
   progress: number;
-  date: string;
+  duration: string;
+  membersCount: number;
+  totalTasks: number;
+  completedTasks: number;
+  budgetProgress: number;
+  href: string;
 }
 
 interface DashboardData {
   totalProjects: number;
-  totalUsers: number;
+  totalTasks: number;
   completedProjects: number;
   pendingProjects: number;
+  runningProjects: number;
+  materialRequisitions: number;
+  serviceRequisitions: number;
+  unsoldFlatLand: number;
+
   projectStats: {
     month: string;
     projects: number;
   }[];
+
   projectStatus: {
     name: string;
     value: number;
   }[];
+
   recentProjects: Project[];
 }
 
+// =====================================================
+// Dashboard Data
+// =====================================================
+
 const dashboardData: DashboardData = {
-  totalProjects: 6,
-  totalUsers: 50,
-  completedProjects: 6,
+  totalProjects: 4,
+  totalTasks: 50,
+  completedProjects: 4,
   pendingProjects: 0,
+  runningProjects: 4,
+  materialRequisitions: 0,
+  serviceRequisitions: 0,
+  unsoldFlatLand: 0,
 
   projectStats: [
-    { month: "Rifat Eyecon City", projects: 0 },
-    { month: "Hena Heights", projects: 0 },
-    { month: "Sheba Eyecon Tower", projects: 2 },
-    { month: "Estern 19", projects: 0 },
-    { month: "Lake Garden", projects: 0 },
-    { month: "Head Office", projects: 0 },
+    {
+      month: "Rifat Eyecon City",
+      projects: 0,
+    },
+    {
+      month: "Hena Heights",
+      projects: 0,
+    },
+    {
+      month: "Sheba Eyecon Tower",
+      projects: 2,
+    },
+    {
+      month: "Estern 19",
+      projects: 0,
+    },
   ],
 
   projectStatus: [
-    { name: "On Track", value: 6 },
-    { name: "At Risk", value: 0 },
-    { name: "In Trouble", value: 0 },
+    {
+      name: "On Track",
+      value: 4,
+    },
+    {
+      name: "At Risk",
+      value: 0,
+    },
+    {
+      name: "In Trouble",
+      value: 0,
+    },
   ],
 
   recentProjects: [
-    { id: 1, name: "Rifat Eyecon City", status: "In Progress", progress: 0, date: "51 Months" },
-    { id: 2, name: "Hena Heights", status: "In Progress", progress: 0, date: "15 Months" },
-    { id: 3, name: "Sheba Eyecon Tower", status: "In Progress", progress: 0, date: "0 Months" },
-    { id: 4, name: "Estern 19", status: "In Progress", progress: 0, date: "0 Months" },
+    {
+      id: 1,
+      name: "Rifat Eyecon City",
+      status: "On Track",
+      progress: 0,
+      duration: "51 Months",
+      membersCount: 3,
+      totalTasks: 1,
+      completedTasks: 0,
+      budgetProgress: 0,
+      href: "/dashboard/project/dashboard/rifat",
+    },
+
+    {
+      id: 2,
+      name: "Hena Heights",
+      status: "On Track",
+      progress: 0,
+      duration: "15 Months",
+      membersCount: 1,
+      totalTasks: 1,
+      completedTasks: 0,
+      budgetProgress: 0,
+      href: "/dashboard/project/dashboard/hena-heights",
+    },
+
+    {
+      id: 3,
+      name: "Sheba Eyecon Tower",
+      status: "On Track",
+      progress: 0,
+      duration: "0 Months",
+      membersCount: 0,
+      totalTasks: 1,
+      completedTasks: 0,
+      budgetProgress: 0,
+      href: "/dashboard/project/dashboard/sheba",
+    },
+
+    {
+      id: 4,
+      name: "Estern 19",
+      status: "On Track",
+      progress: 0,
+      duration: "0 Months",
+      membersCount: 1,
+      totalTasks: 1,
+      completedTasks: 0,
+      budgetProgress: 0,
+      href: "/dashboard/project/dashboard/estern",
+    },
   ],
 };
 
-const statusColors = ["#10b981", "#f59e0b", "#ef4444"];
+// =====================================================
+// Chart Colors
+// =====================================================
 
-const statusBadgeStyles: Record<Project["status"], string> = {
-  Completed: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:ring-emerald-800",
-  "In Progress": "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:ring-blue-800",
-  Pending: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:ring-amber-800",
-};
+const statusColors = [
+  "#3b82f6",
+  "#f59e0b",
+  "#ef4444",
+];
+
+// =====================================================
+// Custom Tooltip
+// =====================================================
 
 function CustomTooltip({
   active,
@@ -90,183 +196,496 @@ function CustomTooltip({
   label,
 }: {
   active?: boolean;
-  payload?: { value: number; name: string; color: string }[];
+  payload?: {
+    value: number;
+    name: string;
+    color: string;
+  }[];
   label?: string;
 }) {
-  if (!active || !payload || !payload.length) return null;
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
   return (
-    <div className="rounded-xl border border-gray-100 bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 px-4 py-3 shadow-xl backdrop-blur-sm">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} className="mt-1 text-sm font-bold text-gray-900 dark:text-white">
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-2xl">
+      {label && (
+        <p className="mb-1 text-xs font-semibold text-slate-400">
+          {label}
+        </p>
+      )}
+
+      {payload.map((item, index) => (
+        <p
+          key={index}
+          className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-900"
+        >
           <span
-            className="mr-2 inline-block h-2 w-2 rounded-full"
-            style={{ backgroundColor: p.color }}
+            className="inline-block h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: item.color,
+            }}
           />
-          {p.value}
+
+          {item.value}
         </p>
       ))}
     </div>
   );
 }
 
+// =====================================================
+// Dashboard Page
+// =====================================================
+
 const DashboardPage = () => {
   const data = dashboardData;
 
+  // ===================================================
+  // Top Statistics
+  // ===================================================
+
   const stats = [
     {
+      id: 1,
       title: "Total Projects",
       value: data.totalProjects,
-      description: "6 running currently",
+      description: "Running currently",
+      href: "/dashboard/project/dashboard/totalprojects",
+      trend: "+12%",
+      isPositive: true,
       icon: FolderKanban,
-      accent: "from-indigo-500 to-violet-600",
-      glow: "shadow-indigo-200 dark:shadow-none",
+      miniChartType: "area" as const,
+      gradient: "from-blue-600 via-indigo-600 to-violet-700",
+      bgGlow: "bg-blue-500/15",
+      chartData: [
+        { v: 2 },
+        { v: 4 },
+        { v: 3 },
+        { v: 5 },
+        { v: 4 },
+      ],
     },
+
     {
-      title: "Total Tasks",
-      value: data.totalUsers,
-      description: "Across all projects",
+      id: 2,
+      title: "Running Project",
+      value: data.runningProjects,
+      description: "Currently in progress",
+      href: "/dashboard/project/dashboard/running",
+      trend: "+0%",
+      isPositive: true,
+      icon: Activity,
+      miniChartType: "area" as const,
+      gradient: "from-teal-600 via-cyan-600 to-sky-700",
+      bgGlow: "bg-teal-500/15",
+      chartData: [
+        { v: 3 },
+        { v: 4 },
+        { v: 5 },
+        { v: 4 },
+        { v: 6 },
+      ],
+    },
+
+    {
+      id: 3,
+      title: "Material Req.",
+      value: data.materialRequisitions,
+      description: "Pending requisitions",
+      href: "/dashboard/project/dashboard/material-requisition",
+      trend: "0.0%",
+      isPositive: false,
       icon: ListChecks,
-      accent: "from-sky-500 to-blue-600",
-      glow: "shadow-sky-200 dark:shadow-none",
+      miniChartType: "bar" as const,
+      gradient: "from-emerald-600 via-green-600 to-teal-700",
+      bgGlow: "bg-emerald-500/15",
+      chartData: [
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+      ],
     },
+
     {
-      title: "On Track",
-      value: data.completedProjects,
-      description: "Projects on schedule",
+      id: 4,
+      title: "Service Req.",
+      value: data.serviceRequisitions,
+      description: "Pending service requests",
+      href: "/dashboard/project/dashboard/service-work-requisition",
+      trend: "0.0%",
+      isPositive: false,
       icon: ShieldCheck,
-      accent: "from-emerald-500 to-teal-600",
-      glow: "shadow-emerald-200 dark:shadow-none",
+      miniChartType: "bar" as const,
+      gradient: "from-fuchsia-600 via-pink-600 to-rose-700",
+      bgGlow: "bg-fuchsia-500/15",
+      chartData: [
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+      ],
     },
+
     {
-      title: "At Risk",
-      value: data.pendingProjects,
-      description: "Needs attention",
+      id: 5,
+      title: "Task",
+      value: data.totalTasks,
+      description: "Across all projects",
+      href: "/dashboard/project/dashboard/",
+      trend: "+8.4%",
+      isPositive: true,
+      icon: ListChecks,
+      miniChartType: "bar" as const,
+      gradient: "from-orange-600 via-red-600 to-rose-700",
+      bgGlow: "bg-orange-500/15",
+      chartData: [
+        { v: 10 },
+        { v: 25 },
+        { v: 18 },
+        { v: 35 },
+        { v: 50 },
+      ],
+    },
+
+    {
+      id: 6,
+      title: "Unsold Flat/Land",
+      value: data.unsoldFlatLand,
+      description: "Available inventory",
+      href: "/dashboard/project/dashboard/flat-land",
+      trend: "0.0%",
+      isPositive: false,
       icon: AlertTriangle,
-      accent: "from-rose-500 to-orange-500",
-      glow: "shadow-rose-200 dark:shadow-none",
+      miniChartType: "bar" as const,
+      gradient: "from-blue-500 via-sky-600 to-indigo-700",
+      bgGlow: "bg-blue-500/15",
+      chartData: [
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+        { v: 0 },
+      ],
     },
   ];
 
+  // ===================================================
+  // Render
+  // ===================================================
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/60 dark:from-gray-950 dark:to-gray-900 p-6 transition-colors">
-      {/* Header */}
-      <div className="mb-8 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+    <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-900 sm:p-6 lg:p-8">
+
+      {/* =================================================
+          Header
+      ================================================= */}
+
+      <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Dashboard
+          <div className="mb-3 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-blue-600">
+              <Sparkles className="h-3.5 w-3.5" />
+              Enterprise Workspace
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+            Project Dashboard
           </h1>
-          <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-            Welcome back! Here&apos;s what&apos;s happening with your projects.
+
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
+            Real-time analytics, portfolio status, and workflow metrics.
           </p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
-          <TrendingUp className="h-3.5 w-3.5" />
-          All systems on track
+
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold text-emerald-600 shadow-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            </span>
+
+            All Systems Optimized
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* =================================================
+          Statistics Cards
+      ================================================= */}
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+
         {stats.map((item) => {
           const Icon = item.icon;
+
           return (
-            <div
-              key={item.title}
-              className={`group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${item.glow}`}
+            <Link
+              key={item.id}
+              href={item.href}
+              className="group block"
             >
-              <div
-                className={`absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br ${item.accent} opacity-10 blur-xl transition-opacity duration-300 group-hover:opacity-20`}
-              />
-              <div className="relative flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                    {item.title}
-                  </p>
-                  <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-                    {item.value}
-                  </h2>
-                  <p className="mt-2 text-xs font-medium text-gray-400 dark:text-gray-500">
-                    {item.description}
-                  </p>
-                </div>
+              <div className="relative min-h-[215px] overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10">
+
+                {/* Background Glow */}
+
                 <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.accent} shadow-md`}
-                >
-                  <Icon className="h-5 w-5 text-white" />
+                  className={`absolute -right-12 -top-12 h-36 w-36 rounded-full ${item.bgGlow} blur-3xl transition-transform duration-500 group-hover:scale-150`}
+                />
+
+                {/* Content */}
+
+                <div className="relative z-10 flex items-start justify-between gap-3">
+
+                  <div className="min-w-0">
+                    <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                      {item.title}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+                        {item.value}
+                      </h3>
+
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${
+                          item.isPositive
+                            ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
+                            : "border border-slate-200 bg-slate-50 text-slate-400"
+                        }`}
+                      >
+                        {item.isPositive ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : (
+                          <TrendingDown className="h-3 w-3" />
+                        )}
+
+                        {item.trend}
+                      </span>
+                    </div>
+
+                    <p className="mt-2 text-xs font-medium text-slate-400">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* Icon */}
+
+                  <div
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${item.gradient} text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
+                  >
+                    <Icon className="h-6 w-6 stroke-[2.2]" />
+                  </div>
+                </div>
+
+                {/* Mini Chart */}
+
+                <div className="relative mt-6 h-[48px] w-full">
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+                    {item.miniChartType === "area" ? (
+                      <AreaChart data={item.chartData}>
+                        <defs>
+                          <linearGradient
+                            id={`grad-${item.id}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#38BDF8"
+                              stopOpacity={0.45}
+                            />
+
+                            <stop
+                              offset="100%"
+                              stopColor="#38BDF8"
+                              stopOpacity={0.02}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <Area
+                          type="monotone"
+                          dataKey="v"
+                          stroke="#38BDF8"
+                          strokeWidth={2}
+                          fill={`url(#grad-${item.id})`}
+                        />
+                      </AreaChart>
+                    ) : (
+                      <BarChart data={item.chartData}>
+                        <Bar
+                          dataKey="v"
+                          fill="#38BDF8"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
 
-      {/* Charts */}
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Area Chart */}
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm lg:col-span-2">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-gray-900 dark:text-white">
-                Project Overview
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Running progress across active projects
-              </p>
+      {/* =================================================
+          Main Charts
+      ================================================= */}
+
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        {/* =================================================
+            Project Portfolio Overview
+        ================================================= */}
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-2">
+
+          <div className="mb-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <Activity className="h-4 w-4" />
+              </div>
+
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  Project Portfolio Overview
+                </h2>
+
+                <p className="text-xs text-slate-400">
+                  Active workflow velocity and distribution timeline
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[280px] sm:h-[320px]">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
               <AreaChart data={data.projectStats}>
                 <defs>
-                  <linearGradient id="colorProjects" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <linearGradient
+                    id="colorProjects"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="#38BDF8"
+                      stopOpacity={0.45}
+                    />
+
+                    <stop
+                      offset="95%"
+                      stopColor="#38BDF8"
+                      stopOpacity={0.03}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" strokeOpacity={0.1} vertical={false} />
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                  vertical={false}
+                />
+
                 <XAxis
                   dataKey="month"
-                  tick={{ fill: "#6b7280", fontSize: 11, fontWeight: 500 }}
-                  angle={-20}
+                  tick={{
+                    fill: "#94a3b8",
+                    fontSize: 10,
+                    fontWeight: 500,
+                  }}
+                  angle={-15}
                   textAnchor="end"
-                  height={60}
+                  height={55}
                   interval={0}
-                  axisLine={{ stroke: "#e5e7eb", strokeOpacity: 0.2 }}
+                  axisLine={{
+                    stroke: "#e2e8f0",
+                  }}
                   tickLine={false}
                 />
+
                 <YAxis
-                  tick={{ fill: "#6b7280", fontSize: 12 }}
+                  tick={{
+                    fill: "#94a3b8",
+                    fontSize: 11,
+                  }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<CustomTooltip />} />
+
+                <Tooltip
+                  content={<CustomTooltip />}
+                />
+
                 <Area
                   type="monotone"
                   dataKey="projects"
-                  stroke="#6366f1"
+                  stroke="#38BDF8"
                   strokeWidth={3}
                   fill="url(#colorProjects)"
-                  dot={{ r: 4, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }}
-                  activeDot={{ r: 6 }}
+                  dot={{
+                    r: 4,
+                    fill: "#38BDF8",
+                    strokeWidth: 2,
+                    stroke: "#fff",
+                  }}
+                  activeDot={{
+                    r: 6,
+                    fill: "#0EA5E9",
+                  }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Pie Chart */}
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white">
-            Project Status
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Current project distribution
-          </p>
+        {/* =================================================
+            Portfolio Health
+        ================================================= */}
 
-          <div className="relative mt-2 h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <Layers className="h-4 w-4" />
+              </div>
+
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  Portfolio Health
+                </h2>
+
+                <p className="text-xs text-slate-400">
+                  Current status distribution
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pie */}
+
+          <div className="relative my-4 h-[210px]">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
               <PieChart>
                 <Pie
                   data={data.projectStatus}
@@ -274,149 +693,363 @@ const DashboardPage = () => {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={62}
-                  outerRadius={88}
-                  paddingAngle={3}
+                  innerRadius={58}
+                  outerRadius={80}
+                  paddingAngle={4}
                   cornerRadius={6}
                   stroke="none"
                 >
                   {data.projectStatus.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={statusColors[index]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={statusColors[index]}
+                    />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+
+                <Tooltip
+                  content={<CustomTooltip />}
+                />
               </PieChart>
             </ResponsiveContainer>
+
+            {/* Center */}
+
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-extrabold text-gray-900 dark:text-white">
+              <span className="text-3xl font-black text-slate-900">
                 {data.totalProjects}
               </span>
-              <span className="text-[11px] font-medium text-gray-400">Total</span>
+
+              <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                Active
+              </span>
             </div>
           </div>
 
-          <div className="mt-3 space-y-2">
-            {data.projectStatus.map((s, i) => (
-              <div key={s.name} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 font-medium text-gray-600 dark:text-gray-400">
+          {/* Legend */}
+
+          <div className="space-y-2.5 border-t border-slate-100 pt-4">
+            {data.projectStatus.map((status, index) => (
+              <div
+                key={status.name}
+                className="flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: statusColors[i] }}
+                    style={{
+                      backgroundColor: statusColors[index],
+                    }}
                   />
-                  {s.name}
+
+                  {status.name}
                 </span>
-                <span className="font-mono font-bold text-gray-800 dark:text-gray-200">{s.value}</span>
+
+                <span className="font-mono text-sm font-bold text-slate-900">
+                  {status.value}
+                </span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Bar Chart */}
-      <div className="mt-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
-        <div className="mb-5">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white">
+      {/* =================================================
+          Working & Financial Progress
+      ================================================= */}
+
+      <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+        <div className="mb-6">
+          <h2 className="text-base font-bold text-slate-900">
             Working &amp; Financial Progress
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Financial progress by the project
+
+          <p className="mt-1 text-xs text-slate-400">
+            Financial distribution across active projects
           </p>
         </div>
 
-        <div className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.projectStats} barSize={34}>
+        <div className="h-[260px] sm:h-[300px]">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
+            <BarChart
+              data={data.projectStats}
+              barSize={32}
+            >
               <defs>
-                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#818cf8" />
-                  <stop offset="100%" stopColor="#4f46e5" />
+                <linearGradient
+                  id="colorBar"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="#38BDF8"
+                  />
+
+                  <stop
+                    offset="100%"
+                    stopColor="#2563EB"
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" strokeOpacity={0.1} vertical={false} />
+
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+                vertical={false}
+              />
+
               <XAxis
                 dataKey="month"
-                tick={{ fill: "#6b7280", fontSize: 11, fontWeight: 500 }}
-                angle={-20}
+                tick={{
+                  fill: "#94a3b8",
+                  fontSize: 10,
+                  fontWeight: 500,
+                }}
+                angle={-15}
                 textAnchor="end"
-                height={60}
+                height={55}
                 interval={0}
-                axisLine={{ stroke: "#e5e7eb", strokeOpacity: 0.2 }}
+                axisLine={{
+                  stroke: "#e2e8f0",
+                }}
                 tickLine={false}
               />
-              <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255, 255, 255, 0.05)" }} />
-              <Bar dataKey="projects" fill="url(#colorBar)" radius={[8, 8, 0, 0]} />
+
+              <YAxis
+                tick={{
+                  fill: "#94a3b8",
+                  fontSize: 11,
+                }}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{
+                  fill: "#F0F9FF",
+                }}
+              />
+
+              <Bar
+                dataKey="projects"
+                fill="url(#colorBar)"
+                radius={[7, 7, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Recent Projects */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-        <div className="border-b border-gray-100 dark:border-gray-800 p-6">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white">
-            Recent Projects
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Latest projects added to the system
-          </p>
+      {/* =================================================
+          Recent Projects
+      ================================================= */}
+
+      <div className="mt-8">
+
+        {/* Section Header */}
+
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+              Recent Projects Portfolio
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-400">
+              Interactive project cards with project insights
+            </p>
+          </div>
+
+          <span className="text-xs font-semibold text-slate-400">
+            {data.recentProjects.length} Projects
+          </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50/70 dark:bg-gray-800/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Project
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Progress
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Duration
-                </th>
-              </tr>
-            </thead>
+        {/* Project Cards */}
 
-            <tbody>
-              {data.recentProjects.map((project) => (
-                <tr
-                  key={project.id}
-                  className="border-t border-gray-50 dark:border-gray-800/60 transition-colors hover:bg-gray-50/60 dark:hover:bg-gray-800/40"
-                >
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
-                    {project.name}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeStyles[project.status]}`}
-                    >
-                      {project.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-2 w-32 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+        <div className="grid grid-cols-1 gap-4">
+
+          {data.recentProjects.map((project) => (
+            <Link
+              key={project.id}
+              href={project.href}
+              className="group relative block overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10 sm:p-5"
+            >
+
+              {/* Left Ribbon */}
+
+              <div className="absolute bottom-0 left-0 top-0 hidden w-11 items-center justify-center bg-gradient-to-b from-blue-600 via-indigo-600 to-violet-700 sm:flex">
+                <span className="rotate-180 text-[10px] font-bold uppercase tracking-[0.14em] text-white [writing-mode:vertical-lr]">
+                  {project.status}
+                </span>
+              </div>
+
+              {/* Mobile Status */}
+
+              <div className="mb-4 flex sm:hidden">
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-600">
+                  {project.status}
+                </span>
+              </div>
+
+              {/* Card Content */}
+
+              <div className="grid w-full grid-cols-1 gap-5 sm:pl-2 lg:grid-cols-12">
+
+                {/* =================================================
+                    Project Info
+                ================================================= */}
+
+                <div className="space-y-4 lg:col-span-5">
+
+                  <div>
+                    <h3 className="flex items-center gap-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600 sm:text-lg">
+                      {project.name}
+
+                      <ArrowUpRight className="h-4 w-4 shrink-0 text-blue-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    </h3>
+                  </div>
+
+                  {/* Progress */}
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+                    {/* Complete */}
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                          % Complete
+                        </span>
+
+                        <span className="text-xs font-bold text-slate-800">
+                          {project.progress.toFixed(2)}%
+                        </span>
+                      </div>
+
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
-                          style={{ width: `${project.progress}%` }}
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
+                          style={{
+                            width: `${project.progress}%`,
+                          }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {project.progress}%
-                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {project.date}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+                    {/* Budget */}
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                          Project Budget
+                        </span>
+
+                        <span className="text-xs font-bold text-slate-800">
+                          {project.budgetProgress}%
+                        </span>
+                      </div>
+
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500"
+                          style={{
+                            width: `${project.budgetProgress}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* =================================================
+                    Duration & Members
+                ================================================= */}
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-4 lg:grid-cols-1 lg:border-l lg:border-r lg:border-slate-100 lg:px-5">
+
+                  {/* Duration */}
+
+                  <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Duration
+                      </p>
+
+                      <p className="mt-0.5 truncate text-xs font-bold text-slate-800">
+                        {project.duration}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Members */}
+
+                  <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-500/20">
+                      <Users className="h-4 w-4" />
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Team Members
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-bold text-slate-800">
+                        {project.membersCount} Member
+                        {project.membersCount !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* =================================================
+                    Tasks
+                ================================================= */}
+
+                <div className="grid grid-cols-2 gap-3 lg:col-span-3 lg:self-center">
+
+                  {/* Total */}
+
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-center transition-colors group-hover:border-sky-200">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-sky-500 sm:text-[10px]">
+                      Total Tasks
+                    </p>
+
+                    <p className="mt-1 text-2xl font-black text-slate-900">
+                      {project.totalTasks}
+                    </p>
+                  </div>
+
+                  {/* Completed */}
+
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-center transition-colors group-hover:border-emerald-200">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-500 sm:text-[10px]">
+                      Completed
+                    </p>
+
+                    <p className="mt-1 text-2xl font-black text-slate-900">
+                      {project.completedTasks}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Hover Line */}
+
+              <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 transition-all duration-500 group-hover:w-full" />
+            </Link>
+          ))}
         </div>
       </div>
     </div>
