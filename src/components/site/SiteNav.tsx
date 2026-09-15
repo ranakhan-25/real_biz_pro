@@ -18,15 +18,19 @@ const links = [
   { to: "/contact", labelKey: "nav.contact" },
 ] as const;
 
+const FALLBACK_PRIMARY = "#2ed573";
+
 export function SiteNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { theme, toggle } = useTheme();
+  const { theme, toggle, primaryColor } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  
+
+  // Hydration-safe color
+  const brandColor = primaryColor || FALLBACK_PRIMARY;
+
   const navRef = useRef<HTMLElement>(null);
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -36,6 +40,11 @@ export function SiteNav() {
     if (open) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header
@@ -68,57 +77,78 @@ export function SiteNav() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          {/* Language Switcher */}
           <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
             <button
               type="button"
               onClick={() => setLanguage("en")}
+              aria-label={t("language.english")}
               className={`h-6 min-w-7 rounded px-1.5 text-[10px] font-semibold transition ${
                 language === "en"
-                  ? "bg-primary text-primary-foreground"
+                  ? "text-white"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              style={
+                language === "en" ? { backgroundColor: brandColor } : undefined
+              }
             >
               EN
             </button>
+
             <button
               type="button"
               onClick={() => setLanguage("bn")}
+              aria-label={t("language.bangla")}
               className={`h-6 min-w-7 rounded px-1.5 text-[10px] font-semibold transition ${
                 language === "bn"
-                  ? "bg-primary text-primary-foreground"
+                  ? "text-white"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              style={
+                language === "bn" ? { backgroundColor: brandColor } : undefined
+              }
             >
               BN
             </button>
           </div>
 
+          {/* Theme Toggle */}
           <button
+            type="button"
             onClick={toggle}
-            aria-label="Toggle theme"
-            className="grid h-9 w-9 place-items-center rounded-md text-foreground/70 hover:bg-foreground/5"
+            aria-label={theme === "light" ? t("theme.dark") : t("theme.light")}
+            className="grid h-9 w-9 place-items-center rounded-md text-foreground/70 transition hover:bg-foreground/5"
           >
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            {theme === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
           </button>
 
+          {/* Login — Desktop */}
           <Link
             href="/login"
-            className="hidden sm:inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            className="hidden rounded-md px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 sm:inline-flex"
+            style={{ backgroundColor: brandColor }}
           >
             {t("nav.login")}
           </Link>
 
+          {/* Mobile Menu Button */}
           <button
+            type="button"
             className="grid h-9 w-9 place-items-center rounded-md border border-border/50 md:hidden"
-            onClick={() => setOpen(!open)}
+            onClick={() => setOpen((o) => !o)}
             aria-label="Toggle Menu"
+            aria-expanded={open}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Simple Animated Mobile Menu */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -153,7 +183,8 @@ export function SiteNav() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="block w-full rounded-md bg-primary py-2 text-center text-sm font-semibold text-primary-foreground"
+                className="block w-full rounded-md py-2 text-center text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ backgroundColor: brandColor }}
               >
                 {t("nav.login")}
               </Link>
