@@ -54,7 +54,8 @@ export default function WebManagementPage() {
       footerText: "© 2026 Enterprise Corp. All rights reserved.",
       maintenanceMode: false,
     });
-  }, [form, primaryColor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]); // শুধু mount এ একবার
 
   const handleSaveSettings = async (values: WebSettingsFormValues) => {
     setLoading(true);
