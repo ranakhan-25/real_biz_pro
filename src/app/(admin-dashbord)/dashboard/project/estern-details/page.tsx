@@ -259,14 +259,14 @@ export default function ProjectOverviewReport() {
               </tr>
               <tr>
                 <td className="p-2.5">2</td>
-                <td className="p-2.5 text-indigo-600 font-medium">Safety First Suppliers</td>
+                <td className="p-2.5 text-indigo-600 font-medium">Safety First.. Suppliers</td>
                 <td className="p-2.5">52,320.00</td>
                 <td className="p-2.5">0.00</td>
                 <td className="p-2.5">0.00</td>
                 <td className="p-2.5 font-semibold">52,320.00</td>
               </tr>
               <tr className="bg-gray-50 font-semibold text-gray-800">
-                <td colSpan={2} className="p-2.5 text-right">Total :</td>
+                <td colSpan={2} className="p-2.5 text-right">Total:</td>
                 <td className="p-2.5">53,140.00</td>
                 <td className="p-2.5">0.00</td>
                 <td className="p-2.5">0.00</td>
