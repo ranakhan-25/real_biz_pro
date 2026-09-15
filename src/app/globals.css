@@ -41,6 +41,10 @@
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-script: "Petit Formal Script", cursive;
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
 }
 
 :root {
@@ -72,6 +76,8 @@
   --sidebar: var(--surface);
   --sidebar-foreground: var(--ink);
   --sidebar-border: oklch(0.2 0.012 270 / 10%);
+  --gold: oklch(0.72 0.12 78);
+  --gold-soft: oklch(0.94 0.03 78);
 }
 
 .dark {

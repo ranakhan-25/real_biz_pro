@@ -223,6 +223,8 @@ const translations: Translations = {
 
     "legacy.eyebrow": "THE REALBIZ STORY",
     "legacy.title": "Built by Operators, for Operators",
+    "legacy.titleLine1": "The Blueprint of",
+    "legacy.titleAccent": "Growth",
     "legacy.paragraph1":
       "RealBiz started with a simple observation: real estate teams were running multi-crore operations out of spreadsheets and group chats. Leads got lost, follow-ups were missed, and owners had no single view of the business.",
     "legacy.paragraph2":
@@ -269,6 +271,96 @@ const translations: Translations = {
     "partner.customerDescription":
       "Manage your own leads, visits, and deals without needing a full team rollout.",
     "latest.title": "The platform, module by module",
+    "landowner.eyebrow": "FOR LAND OWNERS",
+    "landowner.titleLine1": "Turn Your Land Into a",
+    "landowner.titleAccent": "Legacy",
+    "landowner.description":
+      "List your plot, track every offer, and manage the full acquisition process \u2014 negotiation, legal verification, and documentation \u2014 without losing sight of a single detail.",
+    "landowner.point1":
+      "Get matched with verified agencies actively looking for land",
+    "landowner.point2": "Track negotiation status and offers in real time",
+    "landowner.point3": "Legal document verification built into every step",
+    "landowner.point4": "Follow-up scheduling so no conversation goes cold",
+    "landowner.cta": "List Your Land",
+    "agency.eyebrow": "FOR AGENCIES",
+    "agency.titleLine1": "Run Your Whole",
+    "agency.titleAccent": "Business",
+    "agency.description":
+      "From the first lead to the final handover, give your entire team one shared system for sales, billing, and reporting \u2014 no more juggling five different tools.",
+    "agency.point1": "Assign and track leads across every agent automatically",
+    "agency.point2": "Manage flats, land, and bookings in one inventory",
+    "agency.point3":
+      "Generate invoices and track payments without spreadsheets",
+    "agency.point4": "See team performance and pipeline health at a glance",
+    "agency.cta": "Start Free Trial",
+    "process.eyebrow": "HOW IT WORKS",
+    "process.title": "From sign-up to your first closed deal",
+    "process.step1.title": "Set up your workspace",
+    "process.step1.description":
+      "Add your company, branches, and team in minutes with a guided setup.",
+    "process.step2.title": "Import or add your data",
+    "process.step2.description":
+      "Bring in existing leads and property listings, or start fresh with our templates.",
+    "process.step3.title": "Assign and automate",
+    "process.step3.description":
+      "Route new leads automatically and let approval layers handle the rest.",
+    "process.step4.title": "Track, close, and grow",
+    "process.step4.description":
+      "Follow every deal to close with reports that show exactly where to focus.",
+
+    "properties.eyebrow": "OUR PORTFOLIO",
+    "properties.title": "Browse properties across every stage",
+    "properties.description":
+      "From plots still under negotiation to flats ready to move in, track every property type your business handles in one catalog.",
+    "properties.construction.title": "Under Construction",
+    "properties.construction.description":
+      "Projects currently being built, tracked from foundation to handover.",
+    "properties.readyBuilding.title": "Ready Buildings",
+    "properties.readyBuilding.description":
+      "Completed buildings with units ready for occupancy.",
+    "properties.readyLand.title": "Ready Land",
+    "properties.readyLand.description":
+      "Verified plots with clear title, ready to transfer.",
+    "properties.readyFlat.title": "Ready Flats",
+    "properties.readyFlat.description":
+      "Finished flats with floor plans and pricing ready to book.",
+    "properties.cta": "Enquire Now",
+
+    "about.eyebrow": "ABOUT REALBIZ",
+    "about.title": "A platform built from the ground up for real estate",
+    "about.paragraph1":
+      "We spent months talking to agents, sales managers, and business owners before writing a single line of code. What we heard again and again: the tools that existed were either too generic to fit real estate, or too complex to actually get a team to use.",
+    "about.paragraph2":
+      "RealBiz is our answer \u2014 a platform shaped entirely around how real estate businesses in Bangladesh operate day to day, from the first lead call to the final handover.",
+    "about.missionTitle": "Our Mission",
+    "about.missionText":
+      "To give every real estate business, from a five-person agency to a multi-branch developer, the same level of operational clarity that only the biggest players used to have.",
+    "about.valuesTitle": "What We Believe",
+    "about.value1.title": "Built for operators",
+    "about.value1.description":
+      "Every feature is designed around the person who has to use it daily, not just the person buying the software.",
+    "about.value2.title": "No hidden complexity",
+    "about.value2.description":
+      "Powerful doesn't have to mean complicated. Teams should be productive within a day of signing up.",
+    "about.value3.title": "Data stays yours",
+    "about.value3.description":
+      "Export anything, anytime. We earn your business every renewal, not through lock-in.",
+
+    "contact.eyebrow": "GET IN TOUCH",
+    "contact.title": "Let's talk about your business",
+    "contact.description":
+      "Have a question about plans, a feature request, or want a live walkthrough? Send us a message and we'll get back to you within one business day.",
+    "contact.addressLabel": "Office",
+    "contact.address": "Level 6, Gulshan Avenue, Dhaka 1212, Bangladesh",
+    "contact.emailLabel": "Email",
+    "contact.email": "hello@realbiz.example",
+    "contact.phoneLabel": "Phone",
+    "contact.phone": "+880 1XXX-XXXXXX",
+    "contact.form.name": "Full name",
+    "contact.form.email": "Email address",
+    "contact.form.company": "Company name",
+    "contact.form.message": "How can we help?",
+    "contact.form.submit": "Send Message",
   },
   bn: {
     "nav.home": "হোম",
@@ -473,6 +565,8 @@ const translations: Translations = {
 
     "legacy.eyebrow": "রিয়েলবিজের গল্প",
     "legacy.title": "অপারেটরদের দ্বারা, অপারেটরদের জন্য তৈরি",
+    "legacy.titleLine1": "প্রবৃদ্ধির",
+    "legacy.titleAccent": "নীলনকশা",
     "legacy.paragraph1":
       "RealBiz শুরু হয়েছিল একটি সাধারণ পর্যবেক্ষণ থেকে: রিয়েল এস্টেট টিমগুলো কোটি টাকার কার্যক্রম চালাচ্ছিল স্প্রেডশিট আর গ্রুপ চ্যাটের উপর ভিত্তি করে। লিড হারিয়ে যেত, ফলো-আপ মিস হতো, আর মালিকদের ব্যবসার কোনো একক দৃষ্টিভঙ্গি ছিল না।",
     "legacy.paragraph2":
@@ -519,6 +613,97 @@ const translations: Translations = {
     "partner.customerDescription":
       "পুরো টিম রোলআউট ছাড়াই নিজের লিড, ভিজিট এবং ডিল পরিচালনা করুন।",
     "latest.title": "প্ল্যাটফর্ম, মডিউল অনুযায়ী",
+    "landowner.eyebrow": "জমির মালিকদের জন্য",
+    "landowner.titleLine1": "আপনার জমিকে একটি",
+    "landowner.titleAccent": "উত্তরাধিকার",
+    "landowner.description":
+      "আপনার প্লট তালিকাভুক্ত করুন, প্রতিটি অফার ট্র্যাক করুন এবং সম্পূর্ণ অধিগ্রহণ প্রক্রিয়া \u2014 নেগোসিয়েশন, আইনি যাচাই এবং ডকুমেন্টেশন \u2014 কোনো বিবরণ না হারিয়ে পরিচালনা করুন।",
+    "landowner.point1":
+      "যাচাইকৃত এজেন্সির সাথে মিলিত হন যারা সক্রিয়ভাবে জমি খুঁজছে",
+    "landowner.point2":
+      "রিয়েল-টাইমে নেগোসিয়েশন স্ট্যাটাস এবং অফার ট্র্যাক করুন",
+    "landowner.point3": "প্রতিটি ধাপে আইনি নথি যাচাই অন্তর্ভুক্ত",
+    "landowner.point4": "ফলো-আপ শিডিউলিং যাতে কোনো কথোপকথন ঠান্ডা না হয়",
+    "landowner.cta": "আপনার জমি তালিকাভুক্ত করুন",
+    "agency.eyebrow": "এজেন্সিদের জন্য",
+    "agency.titleLine1": "আপনার পুরো ব্যবসা",
+    "agency.titleAccent": "পরিচালনা করুন",
+    "agency.description":
+      "প্রথম লিড থেকে চূড়ান্ত হ্যান্ডওভার পর্যন্ত, আপনার পুরো টিমকে সেলস, বিলিং এবং রিপোর্টিংয়ের জন্য একটি ভাগ করা সিস্টেম দিন \u2014 পাঁচটি ভিন্ন টুল আর জাগল করতে হবে না।",
+    "agency.point1":
+      "প্রতিটি এজেন্ট জুড়ে স্বয়ংক্রিয়ভাবে লিড বরাদ্দ ও ট্র্যাক করুন",
+    "agency.point2": "একটি ইনভেন্টরিতে ফ্ল্যাট, জমি এবং বুকিং পরিচালনা করুন",
+    "agency.point3": "স্প্রেডশিট ছাড়াই ইনভয়েস তৈরি এবং পেমেন্ট ট্র্যাক করুন",
+    "agency.point4": "এক নজরে টিমের কর্মক্ষমতা এবং পাইপলাইনের অবস্থা দেখুন",
+    "agency.cta": "ফ্রি ট্রায়াল শুরু করুন",
+    "process.eyebrow": "কিভাবে কাজ করে",
+    "process.title": "সাইন-আপ থেকে আপনার প্রথম বন্ধ হওয়া ডিল পর্যন্ত",
+    "process.step1.title": "আপনার ওয়ার্কস্পেস সেট আপ করুন",
+    "process.step1.description":
+      "গাইডেড সেটআপের মাধ্যমে মিনিটের মধ্যে আপনার কোম্পানি, শাখা এবং টিম যোগ করুন।",
+    "process.step2.title": "আপনার ডেটা আমদানি বা যোগ করুন",
+    "process.step2.description":
+      "বিদ্যমান লিড এবং প্রপার্টি লিস্টিং নিয়ে আসুন, বা আমাদের টেমপ্লেট দিয়ে নতুন করে শুরু করুন।",
+    "process.step3.title": "বরাদ্দ এবং অটোমেট করুন",
+    "process.step3.description":
+      "নতুন লিড স্বয়ংক্রিয়ভাবে রুট করুন এবং বাকিটা অনুমোদন স্তরকে করতে দিন।",
+    "process.step4.title": "ট্র্যাক করুন, বন্ধ করুন এবং বাড়ান",
+    "process.step4.description":
+      "রিপোর্টের সাহায্যে প্রতিটি ডিল বন্ধ পর্যন্ত অনুসরণ করুন যা দেখায় ঠিক কোথায় মনোযোগ দিতে হবে।",
+
+    "properties.eyebrow": "আমাদের পোর্টফোলিও",
+    "properties.title": "প্রতিটি ধাপের প্রপার্টি ব্রাউজ করুন",
+    "properties.description":
+      "এখনও নেগোসিয়েশনে থাকা প্লট থেকে শুরু করে বসবাসের জন্য প্রস্তুত ফ্ল্যাট পর্যন্ত, আপনার ব্যবসার পরিচালিত প্রতিটি প্রপার্টি ধরন এক ক্যাটালগে ট্র্যাক করুন।",
+    "properties.construction.title": "নির্মাণাধীন",
+    "properties.construction.description":
+      "ফাউন্ডেশন থেকে হ্যান্ডওভার পর্যন্ত ট্র্যাক করা বর্তমানে নির্মাণাধীন প্রকল্প।",
+    "properties.readyBuilding.title": "প্রস্তুত ভবন",
+    "properties.readyBuilding.description":
+      "বসবাসের জন্য প্রস্তুত ইউনিটসহ সম্পূর্ণ ভবন।",
+    "properties.readyLand.title": "প্রস্তুত জমি",
+    "properties.readyLand.description":
+      "সুস্পষ্ট দলিলসহ হস্তান্তরযোগ্য যাচাইকৃত প্লট।",
+    "properties.readyFlat.title": "প্রস্তুত ফ্ল্যাট",
+    "properties.readyFlat.description":
+      "ফ্লোর প্ল্যান ও মূল্যসহ বুকিংয়ের জন্য প্রস্তুত সম্পূর্ণ ফ্ল্যাট।",
+    "properties.cta": "এখনই জিজ্ঞাসা করুন",
+
+    "about.eyebrow": "রিয়েলবিজ সম্পর্কে",
+    "about.title": "রিয়েল এস্টেটের জন্য শুরু থেকে তৈরি একটি প্ল্যাটফর্ম",
+    "about.paragraph1":
+      "কোড লেখার আগে আমরা মাসের পর মাস এজেন্ট, সেলস ম্যানেজার এবং ব্যবসার মালিকদের সাথে কথা বলেছি। বারবার যা শুনেছি: বিদ্যমান টুলগুলো হয় রিয়েল এস্টেটের জন্য খুব সাধারণ, নয়তো টিমকে আসলে ব্যবহার করাতে খুব জটিল ছিল।",
+    "about.paragraph2":
+      "RealBiz হলো আমাদের উত্তর \u2014 বাংলাদেশের রিয়েল এস্টেট ব্যবসাগুলো দৈনন্দিন যেভাবে কাজ করে তার উপর সম্পূর্ণভাবে গড়া একটি প্ল্যাটফর্ম, প্রথম লিড কল থেকে চূড়ান্ত হ্যান্ডওভার পর্যন্ত।",
+    "about.missionTitle": "আমাদের লক্ষ্য",
+    "about.missionText":
+      "প্রতিটি রিয়েল এস্টেট ব্যবসাকে, পাঁচজনের এজেন্সি থেকে শুরু করে মাল্টি-ব্রাঞ্চ ডেভেলপার পর্যন্ত, একই স্তরের কার্যক্রম স্বচ্ছতা দেওয়া যা আগে শুধু সবচেয়ে বড় প্রতিষ্ঠানগুলোর কাছে ছিল।",
+    "about.valuesTitle": "আমরা যা বিশ্বাস করি",
+    "about.value1.title": "অপারেটরদের জন্য তৈরি",
+    "about.value1.description":
+      "প্রতিটি ফিচার তৈরি হয়েছে যিনি প্রতিদিন এটি ব্যবহার করেন তার কথা মাথায় রেখে, শুধু যিনি সফটওয়্যারটি কেনেন তার জন্য নয়।",
+    "about.value2.title": "লুকানো জটিলতা নেই",
+    "about.value2.description":
+      "শক্তিশালী হওয়ার মানে জটিল হওয়া নয়। সাইন আপের একদিনের মধ্যেই টিমের উৎপাদনশীল হওয়া উচিত।",
+    "about.value3.title": "ডেটা আপনার থাকে",
+    "about.value3.description":
+      "যেকোনো সময় যেকোনো কিছু এক্সপোর্ট করুন। আমরা প্রতিটি নবায়নে আপনার ব্যবসা অর্জন করি, লক-ইনের মাধ্যমে নয়।",
+
+    "contact.eyebrow": "যোগাযোগ করুন",
+    "contact.title": "আপনার ব্যবসা নিয়ে কথা বলি",
+    "contact.description":
+      "প্ল্যান নিয়ে প্রশ্ন, ফিচার রিকোয়েস্ট, বা লাইভ ওয়াকথ্রু চান? আমাদের একটি বার্তা পাঠান, আমরা এক কার্যদিবসের মধ্যে ফিরে আসব।",
+    "contact.addressLabel": "অফিস",
+    "contact.address": "লেভেল ৬, গুলশান অ্যাভিনিউ, ঢাকা ১২১২, বাংলাদেশ",
+    "contact.emailLabel": "ইমেল",
+    "contact.email": "hello@realbiz.example",
+    "contact.phoneLabel": "ফোন",
+    "contact.phone": "+৮৮০ ১XXX-XXXXXX",
+    "contact.form.name": "পূর্ণ নাম",
+    "contact.form.email": "ইমেল ঠিকানা",
+    "contact.form.company": "কোম্পানির নাম",
+    "contact.form.message": "আমরা কীভাবে সাহায্য করতে পারি?",
+    "contact.form.submit": "বার্তা পাঠান",
   },
 };
 
