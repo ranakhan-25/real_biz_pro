@@ -26,6 +26,7 @@ const translations: Translations = {
     "nav.pricing": "Pricing",
     "nav.about": "About",
     "nav.contact": "Contact",
+    "nav.services": "Services",
     "nav.login": "Log in",
     "language.english": "English",
     "language.bangla": "বাংলা",
@@ -361,6 +362,254 @@ const translations: Translations = {
     "contact.form.company": "Company name",
     "contact.form.message": "How can we help?",
     "contact.form.submit": "Send Message",
+
+    "modules.eyebrow": "Modules",
+    "modules.title":
+      "Complete ERP Modules for Construction & Real Estate Business",
+    "modules.subtitle": "Comprehensive tools designed to streamline operations",
+    "modules.showMore": "Show More",
+    "modules.showLess": "Show Less",
+
+    "modules.landAcquisition.title": "Land Acquisition CRM",
+    "modules.landAcquisition.tagline": "Manage Land Acquisition & Payments",
+    "modules.landAcquisition.bullet1": "Land Payment Tracking",
+    "modules.landAcquisition.bullet2": "Installment Scheduling",
+    "modules.landAcquisition.bullet3": "Profit/Loss Analysis",
+    "modules.landAcquisition.bullet4": "Expense Ledger Management",
+
+    "modules.projectManagement.title": "Project Management",
+    "modules.projectManagement.tagline": "Project Progress & Material Tracking",
+    "modules.projectManagement.bullet1": "Work Scheduling",
+    "modules.projectManagement.bullet2": "Budget Management",
+    "modules.projectManagement.bullet3": "Material Usage Tracking",
+    "modules.projectManagement.bullet4": "Progress Dashboard",
+
+    "modules.crm.title": "CRM",
+    "modules.crm.tagline": "Sales, Property Listing & Client CRM",
+    "modules.crm.bullet1": "Lead & Opportunity Management",
+    "modules.crm.bullet2": "Client Communication & Follow-up",
+    "modules.crm.bullet3": "Property Listing & Booking",
+    "modules.crm.bullet4": "Sales Pipeline Tracking",
+
+    "modules.salesCustomer.title": "Sales & Customer",
+    "modules.salesCustomer.tagline": "Sales, Property Listing & Client CRM",
+    "modules.salesCustomer.bullet1": "Lead Management",
+    "modules.salesCustomer.bullet2": "Client Communication Logs",
+    "modules.salesCustomer.bullet3": "Property Booking",
+    "modules.salesCustomer.bullet4": "Sales Agreements",
+
+    "modules.creditRealization.title": "Credit Realization / Collection (CR)",
+    "modules.creditRealization.tagline": "Credit & Collection Management",
+    "modules.creditRealization.bullet1": "Customer Credit Tracking",
+    "modules.creditRealization.bullet2": "Collection Automation",
+    "modules.creditRealization.bullet3": "Due Date Alerts",
+    "modules.creditRealization.bullet4": "Profit/Loss Reporting",
+
+    "modules.materialsProcurement.title": "Materials & Procurement",
+    "modules.materialsProcurement.tagline": "Material/Procurement Tracking",
+    "modules.materialsProcurement.bullet1": "Material Request",
+    "modules.materialsProcurement.bullet2": "Procurement Approval",
+    "modules.materialsProcurement.bullet3": "Usage Tracking",
+    "modules.materialsProcurement.bullet4": "Stock Reorder Alerts",
+
+    "modules.accountsFinance.title": "Accounts & Finance",
+    "modules.accountsFinance.tagline": "Financial Management",
+    "modules.accountsFinance.bullet1": "Invoice Automation",
+    "modules.accountsFinance.bullet2": "Expense Management",
+    "modules.accountsFinance.bullet3": "Installment Tracking",
+    "modules.accountsFinance.bullet4": "Financial Reports",
+
+    "modules.hrPayroll.title": "HR & Payroll",
+    "modules.hrPayroll.tagline": "Human Resources & Payroll",
+    "modules.hrPayroll.bullet1": "Attendance & Leave",
+    "modules.hrPayroll.bullet2": "Salary & Bonus",
+    "modules.hrPayroll.bullet3": "Advance & Overtime",
+    "modules.hrPayroll.bullet4": "Auto Payroll System",
+
+    "modules.inventory.title": "Inventory",
+    "modules.inventory.tagline": "Inventory & Stock Management",
+    "modules.inventory.bullet1": "Stock Management",
+    "modules.inventory.bullet2": "Inventory Reports",
+    "modules.inventory.bullet3": "Low Stock Alerts",
+    "modules.inventory.bullet4": "Item Tracking",
+
+    "modules.purchaseVendor.title": "Purchase & Vendor",
+    "modules.purchaseVendor.tagline": "Procurement & Supplier Management",
+    "modules.purchaseVendor.bullet1": "Purchase Requests",
+    "modules.purchaseVendor.bullet2": "Vendor Bill Payments",
+    "modules.purchaseVendor.bullet3": "Stock Alerts",
+    "modules.purchaseVendor.bullet4": "Variance Analysis",
+
+    "modules.customerService.title": "Customer Service / After-Sales",
+    "modules.customerService.tagline": "Client Support & Service",
+    "modules.customerService.bullet1": "Client Issue Tracking",
+    "modules.customerService.bullet2": "Feedback Management",
+    "modules.customerService.bullet3": "Follow-up Notifications",
+    "modules.customerService.bullet4": "Service Reports",
+
+    "modules.reportsAnalytics.title": "Reports & Analytics",
+    "modules.reportsAnalytics.tagline": "Business Dashboard & Reports",
+    "modules.reportsAnalytics.bullet1": "Financial Statements",
+    "modules.reportsAnalytics.bullet2": "Cost Analysis",
+    "modules.reportsAnalytics.bullet3": "Cash Flow Reports",
+    "modules.reportsAnalytics.bullet4": "Project-wise Profit Reports",
+
+    "modules.boq.title": "BOQ",
+    "modules.boq.tagline": "Bill of Quantities & Project Documentation",
+    "modules.boq.bullet1": "Detailed Bill of Quantities Creation",
+    "modules.boq.bullet2": "Material & Cost Estimation",
+    "modules.boq.bullet3": "Version Control & Document History",
+    "modules.boq.bullet4": "Secure Storage & Sharing",
+
+    "modules.settingsSecurity.title": "Settings & Security",
+    "modules.settingsSecurity.tagline": "System Setup & Access Control",
+    "modules.settingsSecurity.bullet1": "User Role Management",
+    "modules.settingsSecurity.bullet2": "Data Backup & Security",
+    "modules.settingsSecurity.bullet3": "Module Customization",
+    "modules.settingsSecurity.bullet4": "Audit Logs",
+
+    "modules.documentManagement.title": "Document Management",
+    "modules.documentManagement.tagline": "Document & File Management",
+    "modules.documentManagement.bullet1": "Centralized Storage",
+    "modules.documentManagement.bullet2": "Version Control",
+    "modules.documentManagement.bullet3": "Secure Sharing",
+    "modules.documentManagement.bullet4": "Easy Retrieval",
+
+    "whyRealBiz.eyebrow": "Features",
+    "whyRealBiz.title": "Why RealBiz?",
+    "whyRealBiz.subtitle":
+      "Powerful capabilities built for modern construction and real estate operations",
+
+    "whyRealBiz.accountsFinance.title":
+      "Accounts, Installment & Finance Control",
+    "whyRealBiz.accountsFinance.desc":
+      "Automatically and accurately manage installments, invoices, receipts, payments, ledgers, and balance sheets.",
+
+    "whyRealBiz.purchaseVendor.title": "Purchase & Vendor Management",
+    "whyRealBiz.purchaseVendor.desc":
+      "Track everything in the system—what materials are needed, when, total costs, and supplier details.",
+
+    "whyRealBiz.salesCrm.title": "Sales, Property Listing & CRM",
+    "whyRealBiz.salesCrm.desc":
+      "Manage everything in one place, from incoming leads to signed contracts. Never lose a potential lead again.",
+
+    "whyRealBiz.projectTracking.title": "Project Progress & Material Tracking",
+    "whyRealBiz.projectTracking.desc":
+      "Monitor project schedules, costing, material usage records, and real-time site progress instantly.",
+
+    "whyRealBiz.hrPayroll.title": "HR & Payroll Management",
+    "whyRealBiz.hrPayroll.desc":
+      "Automate staff attendance, leave management, salaries, advances, and overtime all in one payroll system.",
+
+    "whyRealBiz.autoReminders.title": "Auto Reminders & Follow-up System",
+    "whyRealBiz.autoReminders.desc":
+      "Send automated SMS/Email updates for client payments, scheduled meetings, or contract milestones.",
+
+    "whyRealBiz.dashboardReports.title": "Business Dashboard & Reports",
+    "whyRealBiz.dashboardReports.desc":
+      "View profit/loss, cost breakdown, cash flow, and sales reports in a single click.",
+
+    "whyRealBiz.anytimeAccess.title": "Access Anytime, Anywhere",
+    "whyRealBiz.anytimeAccess.desc":
+      "Access your full system at the office, on site, at home, or while traveling via mobile or laptop.",
+
+    "solutions.eyebrow": "Solutions",
+    "solutions.title": "Working in Real Estate, Construction, or Development?",
+    "solutions.subtitle":
+      "Say goodbye to manual work today and make your business smart & systematic.",
+
+    "solutions.accountsFinance.title":
+      "1. Accounts, Installment & Finance Control",
+    "solutions.accountsFinance.desc":
+      "Installments, invoices, receipts, payments, ledgers, and balance sheets—everything managed automatically and accurately.",
+
+    "solutions.purchaseVendor.title": "2. Purchase & Vendor Management",
+    "solutions.purchaseVendor.desc":
+      "Track everything in the system: what materials are needed, when, total costs, and supplier details.",
+
+    "solutions.salesCrm.title": "3. Sales, Property Listing & Client CRM",
+    "solutions.salesCrm.desc":
+      "Manage everything in one place, from incoming leads to signed contracts. Never lose a lead again.",
+
+    "solutions.projectTracking.title":
+      "4. Project Progress & Material Tracking",
+    "solutions.projectTracking.desc":
+      "Monitor project schedules, costing, material usage records, and site progress in real time.",
+
+    "solutions.hrPayroll.title": "5. HR & Payroll Management",
+    "solutions.hrPayroll.desc":
+      "Attendance, leave, salary, advance, and overtime—everything automated in a single payroll system.",
+
+    "solutions.autoReminders.title": "6. Auto Reminders & Follow-up System",
+    "solutions.autoReminders.desc":
+      "Send automated SMS/Email updates for client payments, meetings, or contract milestones.",
+
+    "solutions.dashboardReports.title": "7. Business Dashboard & Reports",
+    "solutions.dashboardReports.desc":
+      "View profit & loss, cost breakdown, cash flow, and sales reports in a single click.",
+
+    "solutions.anytimeAccess.title": "8. Access Anytime, Anywhere",
+    "solutions.anytimeAccess.desc":
+      "Access your entire system on mobile or laptop—whether at the office, site, home, or traveling.",
+
+    "solutions.documentManagement.title": "9. Document Management",
+    "solutions.documentManagement.desc":
+      "Store and easily access contracts, reports, and all other important documents in one secure location.",
+
+    "services.hero.eyebrow": "End-to-End Real Estate ERP",
+    "services.hero.title": "Services & Capabilities",
+    "services.hero.subtitle":
+      "Discover how our specialized software modules streamline land sourcing, site engineering, customer management, and financial control.",
+
+    "services.landAcquisition.title": "1. Land Acquisition & Plotting",
+    "services.landAcquisition.desc":
+      "Manage land sourcing, landowner agreements, legal documentation, and automated plot allocation in a single integrated workflow.",
+    "services.landAcquisition.feat1": "Plot mapping & tracking",
+    "services.landAcquisition.feat2": "Agreement & deed history",
+    "services.landAcquisition.feat3": "Landowner payment schedules",
+    "services.landAcquisition.feat4": "Document approval pipeline",
+
+    "services.projectManagement.title": "2. Construction & Site Operations",
+    "services.projectManagement.desc":
+      "Monitor project milestones, material consumption on-site, contractor bills, and daily work progress with real-time field tracking.",
+    "services.projectManagement.feat1": "Milestone & schedule tracking",
+    "services.projectManagement.feat2": "Contractor measurement sheets",
+    "services.projectManagement.feat3": "Material requisition logs",
+    "services.projectManagement.feat4": "On-site progress photos & audits",
+
+    "services.crmSales.title": "3. Sales, Lead & CRM Operations",
+    "services.crmSales.desc":
+      "Accelerate customer conversion, track leads from inquiry to booking, manage customer interactions, and automate follow-up tasks.",
+    "services.crmSales.feat1": "Omnichannel lead capture",
+    "services.crmSales.feat2": "Automated sales pipelines",
+    "services.crmSales.feat3": "Unit booking & hold status",
+    "services.crmSales.feat4": "Customer communication history",
+
+    "services.financeAccounts.title": "4. Financial Control & Accounting",
+    "services.financeAccounts.desc":
+      "Gain total visibility over project budgets, customer installments, ledger entries, tax compliance, and automated financial forecasting.",
+    "services.financeAccounts.feat1": "Real-time ledger updates",
+    "services.financeAccounts.feat2": "Installment & penalty automation",
+    "services.financeAccounts.feat3": "Project cost accounting",
+    "services.financeAccounts.feat4": "Multi-bank reconciliation",
+
+    "services.materialsInventory.title":
+      "5. Materials, Warehouse & Procurement",
+    "services.materialsInventory.desc":
+      "Prevent material leakage with strict inventory controls, vendor purchase orders, warehouse stock movement, and gate-pass tracking.",
+    "services.materialsInventory.feat1":
+      "Stock level alerts & safety thresholds",
+    "services.materialsInventory.feat2": "Vendor purchase order workflows",
+    "services.materialsInventory.feat3": "Site-to-site transfer logs",
+    "services.materialsInventory.feat4": "Gate-pass & delivery verification",
+
+    "services.analyticsReporting.title": "6. Business Intelligence & Analytics",
+    "services.analyticsReporting.desc":
+      "Make informed executive decisions with interactive dashboards, custom financial reports, project health metrics, and growth forecasts.",
+    "services.analyticsReporting.feat1": "Interactive executive dashboards",
+    "services.analyticsReporting.feat2": "Custom report generator",
+    "services.analyticsReporting.feat3": "Project ROI & margin analysis",
+    "services.analyticsReporting.feat4": "Exportable PDF/Excel insights",
   },
   bn: {
     "nav.home": "হোম",
@@ -368,6 +617,7 @@ const translations: Translations = {
     "nav.pricing": "প্রাইসিং",
     "nav.about": "সম্পর্কে",
     "nav.contact": "যোগাযোগ",
+    "nav.services": "সেবাসমূহ",
     "nav.login": "লগ ইন",
     "language.english": "ইংরেজি",
     "language.bangla": "বাংলা",
@@ -704,6 +954,255 @@ const translations: Translations = {
     "contact.form.company": "কোম্পানির নাম",
     "contact.form.message": "আমরা কীভাবে সাহায্য করতে পারি?",
     "contact.form.submit": "বার্তা পাঠান",
+
+    "modules.eyebrow": "মডিউলসমূহ",
+    "modules.title": "সম্পূর্ণ মডিউল সমূহ",
+    "modules.subtitle":
+      "কনস্ট্রাকশন ও রিয়েল এস্টেট ব্যবসার জন্য সম্পূর্ণ ইআরপি মডিউল",
+    "modules.showMore": "আরও দেখুন",
+    "modules.showLess": "কম দেখান",
+
+    "modules.landAcquisition.title": "জমি অধিগ্রহণ সিআরএম",
+    "modules.landAcquisition.tagline": "জমি অধিগ্রহণ ও পেমেন্ট ব্যবস্থাপনা",
+    "modules.landAcquisition.bullet1": "জমি সংক্রান্ত পেমেন্ট ট্র্যাকিং",
+    "modules.landAcquisition.bullet2": "কিস্তির সময়সূচী নির্ধারণ",
+    "modules.landAcquisition.bullet3": "লাভ/ক্ষতির বিশ্লেষণ",
+    "modules.landAcquisition.bullet4": "খরচের খতিয়ান ব্যবস্থাপনা",
+
+    "modules.projectManagement.title": "প্রজেক্ট ম্যানেজমেন্ট",
+    "modules.projectManagement.tagline":
+      "প্রজেক্টের অগ্রগতি ও মালামাল ট্র্যাকিং",
+    "modules.projectManagement.bullet1": "কাজের সময়সূচী",
+    "modules.projectManagement.bullet2": "বাজেট ব্যবস্থাপনা",
+    "modules.projectManagement.bullet3": "মালামাল ব্যবহারের ট্র্যাকিং",
+    "modules.projectManagement.bullet4": "অগ্রগতির ড্যাশবোর্ড",
+
+    "modules.crm.title": "সিআরএম",
+    "modules.crm.tagline": "বিক্রয়, প্রপার্টি তালিকা ও গ্রাহক সিআরএম",
+    "modules.crm.bullet1": "লিড ও সুযোগ ব্যবস্থাপনা",
+    "modules.crm.bullet2": "ক্লায়েন্ট যোগাযোগ ও ফলো-আপ",
+    "modules.crm.bullet3": "প্রপার্টি লিস্টিং ও বুকিং",
+    "modules.crm.bullet4": "সেলস পাইপলাইন ট্র্যাকিং",
+
+    "modules.salesCustomer.title": "বিক্রয় ও গ্রাহক",
+    "modules.salesCustomer.tagline": "বিক্রয়, প্রপার্টি তালিকা ও গ্রাহক সিআরএম",
+    "modules.salesCustomer.bullet1": "লিড ব্যবস্থাপনা",
+    "modules.salesCustomer.bullet2": "ক্লায়েন্ট যোগাযোগের লগসমূহ",
+    "modules.salesCustomer.bullet3": "প্রপার্টি বুকিং",
+    "modules.salesCustomer.bullet4": "বিক্রয় চুক্তিপত্র",
+
+    "modules.creditRealization.title": "ক্রেডিট আদায় / কালেকশন (CR)",
+    "modules.creditRealization.tagline": "ঋণ ও কালেকশন ব্যবস্থাপনা",
+    "modules.creditRealization.bullet1": "কাস্টমার ক্রেডিট ট্র্যাকিং",
+    "modules.creditRealization.bullet2": "অটোমেটেড কালেকশন প্রক্রিয়া",
+    "modules.creditRealization.bullet3": "বকেয়া তারিখের সতর্কবার্তা",
+    "modules.creditRealization.bullet4": "লাভ/ক্ষতির রিপোর্ট",
+
+    "modules.materialsProcurement.title": "মালামাল ও সংগ্রহ",
+    "modules.materialsProcurement.tagline": "মালামাল ও ক্রয় ট্র্যাকিং",
+    "modules.materialsProcurement.bullet1": "মালামালের রিকুয়েস্ট",
+    "modules.materialsProcurement.bullet2": "কেনাকাটার অনুমোদন",
+    "modules.materialsProcurement.bullet3": "ব্যবহারের বিবরণ",
+    "modules.materialsProcurement.bullet4": "পুনরায় স্টক অর্ডারের সতর্কতা",
+
+    "modules.accountsFinance.title": "অ্যাকাউন্টস ও ফাইন্যান্স",
+    "modules.accountsFinance.tagline": "আর্থিক ব্যবস্থাপনা",
+    "modules.accountsFinance.bullet1": "ইনভয়েস অটোমেশন",
+    "modules.accountsFinance.bullet2": "খরচ ব্যবস্থাপনা",
+    "modules.accountsFinance.bullet3": "কিস্তি ট্র্যাকিং",
+    "modules.accountsFinance.bullet4": "আর্থিক প্রতিবেদন",
+
+    "modules.hrPayroll.title": "এইচআর ও পেরোল",
+    "modules.hrPayroll.tagline": "মানবসম্পদ ও বেতন ব্যবস্থাপনা",
+    "modules.hrPayroll.bullet1": "উপস্থিতি ও ছুটি",
+    "modules.hrPayroll.bullet2": "বেতন ও বোনাস",
+    "modules.hrPayroll.bullet3": "অগ্রিম ও ওভারটাইম",
+    "modules.hrPayroll.bullet4": "স্বয়ংক্রিয় পেরোল সিস্টেম",
+
+    "modules.inventory.title": "ইনভেন্টরি",
+    "modules.inventory.tagline": "ইনভেন্টরি ও স্টক ব্যবস্থাপনা",
+    "modules.inventory.bullet1": "স্টক ব্যবস্থাপনা",
+    "modules.inventory.bullet2": "ইনভেন্টরি রিপোর্ট",
+    "modules.inventory.bullet3": "কম স্টকের সতর্কবার্তা",
+    "modules.inventory.bullet4": "আইটেম ট্র্যাকিং",
+
+    "modules.purchaseVendor.title": "ক্রয় ও সরবরাহকারী",
+    "modules.purchaseVendor.tagline": "মালামাল ক্রয় ও সরবরাহকারী ব্যবস্থাপনা",
+    "modules.purchaseVendor.bullet1": "ক্রয়ের অনুরোধ",
+    "modules.purchaseVendor.bullet2": "ভেন্ডর বিল পরিশোধ",
+    "modules.purchaseVendor.bullet3": "স্টক সতর্কবার্তা",
+    "modules.purchaseVendor.bullet4": "পার্থক্য বিশ্লেষণ",
+
+    "modules.customerService.title": "গ্রাহক সেবা / বিক্রয়োত্তর সেবা",
+    "modules.customerService.tagline": "ক্লায়েন্ট সাপোর্ট ও সেবা",
+    "modules.customerService.bullet1": "ক্লায়েন্টের সমস্যা ট্র্যাকিং",
+    "modules.customerService.bullet2": "ফিডব্যাক ব্যবস্থাপনা",
+    "modules.customerService.bullet3": "ফলো-আপ নোটিফিকেশন",
+    "modules.customerService.bullet4": "সার্ভিস রিপোর্ট",
+
+    "modules.reportsAnalytics.title": "রিপোর্ট ও অ্যানালিটিক্স",
+    "modules.reportsAnalytics.tagline": "ব্যবসায়িক ড্যাশবোর্ড ও রিপোর্টসমূহ",
+    "modules.reportsAnalytics.bullet1": "আর্থিক বিবরণী",
+    "modules.reportsAnalytics.bullet2": "খরচ বিশ্লেষণ",
+    "modules.reportsAnalytics.bullet3": "ক্যাশ ফ্লো রিপোর্ট",
+    "modules.reportsAnalytics.bullet4": "প্রজেক্টভিত্তিক লাভের রিপোর্ট",
+
+    "modules.boq.title": "বিওকিউ (BOQ)",
+    "modules.boq.tagline": "পরিমাণের বিবরণ ও প্রজেক্ট নথি",
+    "modules.boq.bullet1": "বিস্তারিত বিওকিউ তৈরি",
+    "modules.boq.bullet2": "মালামাল ও খরচের অনুমান",
+    "modules.boq.bullet3": "ভার্সন কন্ট্রোল ও ডকুমেন্টের হিস্ট্রি",
+    "modules.boq.bullet4": "নিরাপদ সংরক্ষণ ও শেয়ারিং",
+
+    "modules.settingsSecurity.title": "সেটিংস ও সিকিউরিটি",
+    "modules.settingsSecurity.tagline": "সিস্টেম সেটআপ ও অ্যাক্সেস কন্ট্রোল",
+    "modules.settingsSecurity.bullet1": "ইউজার রোল ব্যবস্থাপনা",
+    "modules.settingsSecurity.bullet2": "ডেটা ব্যাকআপ ও নিরাপত্তা",
+    "modules.settingsSecurity.bullet3": "মডিউল কাস্টমাইজেশন",
+    "modules.settingsSecurity.bullet4": "অডিট লগসমূহ",
+
+    "modules.documentManagement.title": "ডকুমেন্ট ম্যানেজমেন্ট",
+    "modules.documentManagement.tagline": "ফাইল ও নথিপত্র ব্যবস্থাপনা",
+    "modules.documentManagement.bullet1": "কেন্দ্রীয় তথ্য সংরক্ষণাগার",
+    "modules.documentManagement.bullet2": "ভার্সন কন্ট্রোল",
+    "modules.documentManagement.bullet3": "নিরাপদ শেয়ারিং",
+    "modules.documentManagement.bullet4": "সহজে তথ্য পুনরুদ্ধার",
+
+    "whyRealBiz.eyebrow": "ফিচারসমূহ",
+    "whyRealBiz.title": "কেন RealBiz?",
+    "whyRealBiz.subtitle":
+      "আধুনিক কনস্ট্রাকশন ও রিয়েল এস্টেট ব্যবস্থাপনার জন্য বিশেষ সমাধান",
+
+    "whyRealBiz.accountsFinance.title": "অ্যাকাউন্টস, কিস্তি ও ফাইন্যান্স",
+    "whyRealBiz.accountsFinance.desc":
+      "কিস্তি, ইনভয়েস, রিসিভট, পেমেন্ট, লেজার ও ব্যালান্স শিট অটোমেটিক ও নিখুঁতভাবে পরিচালনা করা যাবে।",
+
+    "whyRealBiz.purchaseVendor.title": "পারচেজ ও ভেন্ডর ম্যানেজমেন্ট",
+    "whyRealBiz.purchaseVendor.desc":
+      "কোন পণ্য কখন লাগবে, কত দাম হলো, কার থেকে আনলেন—সব কিছু সিস্টেমে ট্র্যাক করা থাকবে।",
+
+    "whyRealBiz.salesCrm.title": "সেলস, প্রপার্টি লিস্টিং ও CRM",
+    "whyRealBiz.salesCrm.desc":
+      "লিড আসা থেকে চুক্তি পর্যন্ত সব কিছু এক জায়গায়। আর হারাবেন না কোনো লিড।",
+
+    "whyRealBiz.projectTracking.title":
+      "প্রজেক্ট প্রগ্রেস ও মাল্টিরিয়াল ট্র্যাকিং",
+    "whyRealBiz.projectTracking.desc":
+      "প্রজেক্ট সিডিউল, কস্টিং, মালামাল ব্যবহারের হিসাব ও সাইট প্রগ্রেস রিয়েল-টাইমে দেখা যাবে।",
+
+    "whyRealBiz.hrPayroll.title": "এইচআর ও পেরোল ম্যানেজমেন্ট",
+    "whyRealBiz.hrPayroll.desc":
+      "স্টাফ অ্যাটেনডেন্স, ছুটি, বেতন, অগ্রিম ও ওভারটাইম সব কিছু অটোমেটেড পেরোল সিস্টেমে।",
+
+    "whyRealBiz.autoReminders.title": "অটো রিমাইন্ডার ও ফলো-আপ",
+    "whyRealBiz.autoReminders.desc":
+      "ক্লায়েন্ট পেমেন্ট, মিটিং বা কন্ট্রাক্ট আপডেট SMS/Email-এ অটোমেটিক যাবে।",
+
+    "whyRealBiz.dashboardReports.title": "ড্যাশবোর্ড ও রিপোর্ট",
+    "whyRealBiz.dashboardReports.desc":
+      "এক ক্লিকে লাভ-ক্ষতি, কস্ট ব্রেকডাউন, ক্যাশফ্লো ও সেলস রিপোর্ট দেখা যাবে।",
+
+    "whyRealBiz.anytimeAccess.title": "যেকোনো সময়, যেকোনো জায়গা থেকে অ্যাক্সেস",
+    "whyRealBiz.anytimeAccess.desc":
+      "অফিস, সাইট, বাসা বা ভ্রমণে—মোবাইল বা ল্যাপটপে লগইন করলেই পুরো সিস্টেম হাতের মুঠোয়।",
+
+    "solutions.eyebrow": "সমাধানসমূহ",
+    "solutions.title":
+      "রিয়েল এস্টেট, কনস্ট্রাকশন বা ডেভেলপিং নিয়ে কাজ করছেন?",
+    "solutions.subtitle":
+      "তাহলে এখনই সময় ম্যানুয়ালকে বিদায় জানিয়ে আপনার ব্যবসাকে করুন আরও স্মার্ট ও সিস্টেমেটিক।",
+
+    "solutions.accountsFinance.title":
+      "১. Accounts, Installment & Finance Control",
+    "solutions.accountsFinance.desc":
+      "কিস্তি, ইনভয়েস, রিসিভট, পেমেন্ট, লেজার, ব্যালান্স শিট—সব কিছু হবে অটোমেটিক ও নিখুঁতভাবে।",
+
+    "solutions.purchaseVendor.title": "২. Purchase & Vendor Management",
+    "solutions.purchaseVendor.desc":
+      "কোন পণ্য কখন লাগবে, কত দাম হলো, কার থেকে আনলেন—সব কিছু সিস্টেমে ট্র্যাক করা থাকবে।",
+
+    "solutions.salesCrm.title": "৩. Sales, Property Listing & Client CRM",
+    "solutions.salesCrm.desc":
+      "লিড আসা থেকে চুক্তি পর্যন্ত সব কিছু এক জায়গায়। আর হারাবেন না কোনো লিড।",
+
+    "solutions.projectTracking.title":
+      "৪. Project Progress & Material Tracking",
+    "solutions.projectTracking.desc":
+      "প্রজেক্ট সিডিউল, কস্টিং, মালামাল ব্যবহারের হিসাব ও সাইট প্রগ্রেস দেখা যাবে রিয়েল-টাইমে।",
+
+    "solutions.hrPayroll.title": "৫. HR & Payroll Management",
+    "solutions.hrPayroll.desc":
+      "অ্যাটেনডেন্স, ছুটি, বেতন, অগ্রিম ও ওভারটাইম—সব কিছু অটোমেটেড পেরোল সিস্টেমে।",
+
+    "solutions.autoReminders.title": "৬. Auto Reminders & Follow-up System",
+    "solutions.autoReminders.desc":
+      "ক্লায়েন্ট পেমেন্ট, মিটিং বা কন্ট্রাক্ট আপডেট যাবে SMS/Email-এ অটোমেটিকভাবে।",
+
+    "solutions.dashboardReports.title": "৭. Business Dashboard & Reports",
+    "solutions.dashboardReports.desc":
+      "এক ক্লিকে পাবেন লাভ-ক্ষতি, কস্ট ব্রেকডাউন, ক্যাশফ্লো ও সেলস রিপোর্ট।",
+
+    "solutions.anytimeAccess.title": "৮. Access Anytime, Anywhere",
+    "solutions.anytimeAccess.desc":
+      "অফিস, সাইট, বাসা বা ভ্রমণে—মোবাইল বা ল্যাপটপে লগইন করলেই পুরো সিস্টেম হাতের মুঠোয়।",
+
+    "solutions.documentManagement.title": "৯. Document Management",
+    "solutions.documentManagement.desc":
+      "চুক্তিপত্র, রিপোর্ট ও অন্যান্য গুরুত্বপূর্ণ ডকুমেন্ট এক জায়গায় সংরক্ষণ ও সহজে অ্যাক্সেস।",
+
+    "services.hero.eyebrow": "সম্পূর্ণ রিয়েল এস্টেট ইআরপি",
+    "services.hero.title": "আমাদের সেবাসমূহ ও সক্ষমতা",
+    "services.hero.subtitle":
+      "জানুন কীভাবে আমাদের বিশেষায়িত মডিউলগুলো জমি অধিগ্রহণ, নির্মাণ ব্যবস্থাপনা, গ্রাহক সেবা এবং আর্থিক নিয়ন্ত্রণকে সহজ করে।",
+
+    "services.landAcquisition.title": "১. জমি অধিগ্রহণ ও প্লটিং",
+    "services.landAcquisition.desc":
+      "জমি সোর্সিং, ভূমিমালিকের চুক্তি, আইনি কাগজপত্র এবং স্বয়ংক্রিয় প্লট বরাদ্দ পরিচালনা করুন একটি সমন্বিত সিস্টেমে।",
+    "services.landAcquisition.feat1": "প্লট ম্যাপিং ও ট্র্যাকিং",
+    "services.landAcquisition.feat2": "চুক্তি ও দলিলের ইতিহাস",
+    "services.landAcquisition.feat3": "জমির মালিকের পেমেন্ট সময়সূচী",
+    "services.landAcquisition.feat4": "ডকুমেন্ট অনুমোদন পাইপলাইন",
+
+    "services.projectManagement.title": "২. নির্মাণ ও সাইট অপারেশনস",
+    "services.projectManagement.desc":
+      "প্রকল্পের মাইলফলক, সাইটে মালামালের ব্যবহার, ঠিকাদারের বিল এবং দৈনিক কাজের অগ্রগতি ট্র্যাকিং করুন বাস্তব সময়ে।",
+    "services.projectManagement.feat1": "মাইলফলক ও সময়সূচী ট্র্যাকিং",
+    "services.projectManagement.feat2": "ঠিকাদারের পরিমাপ শীট",
+    "services.projectManagement.feat3": "মালামাল রিকুইজিশন লগ",
+    "services.projectManagement.feat4": "সাইটের কাজের অগ্রগতি ফটো ও অডিট",
+
+    "services.crmSales.title": "৩. সেলস, লিড ও সিআরএম",
+    "services.crmSales.desc":
+      "গ্রাহক রূপান্তর ত্বরান্বিত করুন, অনুসন্ধান থেকে বুকিং পর্যন্ত ট্র্যাকিং করুন এবং স্বয়ংক্রিয় ফলো-আপ পরিচালনা করুন।",
+    "services.crmSales.feat1": "মাল্টি-চ্যানেল লিড সংগ্রহ",
+    "services.crmSales.feat2": "স্বয়ংক্রিয় সেলস পাইপলাইন",
+    "services.crmSales.feat3": "ইউনিট বুকিং ও হোল্ড স্ট্যাটাস",
+    "services.crmSales.feat4": "গ্রাহকের যোগাযোগের ইতিহাস",
+
+    "services.financeAccounts.title": "৪. আর্থিক নিয়ন্ত্রণ ও হিসাবরক্ষণ",
+    "services.financeAccounts.desc":
+      "প্রজেক্ট বাজেট, গ্রাহকের কিস্তি, লেজার এন্ট্রি, ট্যাক্স হিসাব এবং আর্থিক পূর্বাভাসের সম্পূর্ণ নিয়ন্ত্রণ বজায় রাখুন।",
+    "services.financeAccounts.feat1": "রিয়েল-টাইম লেজার আপডেট",
+    "services.financeAccounts.feat2": "কিস্তি ও জরিমানা অটোমেশন",
+    "services.financeAccounts.feat3": "প্রজেক্ট খরচ হিসাবরক্ষণ",
+    "services.financeAccounts.feat4": "মাল্টি-ব্যাংক রিকনসিলিয়েশন",
+
+    "services.materialsInventory.title": "৫. মালামাল, গুদাম ও সংগ্রোহ",
+    "services.materialsInventory.desc":
+      "কঠোর ইনভেন্টরি নিয়ন্ত্রণ, ভেন্ডর পারচেজ অর্ডার, গুদাম স্টক মুভমেন্ট এবং গেট-পাস ট্র্যাকিংয়ের মাধ্যমে অপচয় রোধ করুন।",
+    "services.materialsInventory.feat1": "স্টক লেভেল অ্যালার্ট ও সুরক্ষা সীমা",
+    "services.materialsInventory.feat2": "ভেন্ডর পারচেজ অর্ডার ওয়ার্কফ্লো",
+    "services.materialsInventory.feat3": "সাইট-টু-সাইট ট্রান্সফার লগ",
+    "services.materialsInventory.feat4": "গেট-পাস ও ডেলিভারি যাচাইকরণ",
+
+    "services.analyticsReporting.title":
+      "৬. বিজনেস ইন্টেলিজেন্স ও অ্যানালিটিক্স",
+    "services.analyticsReporting.desc":
+      "ইন্টারেক্টিভ ড্যাশবোর্ড, কাস্টম আর্থিক রিপোর্ট এবং প্রজেক্টের পারফরম্যান্স বিশ্লেষণ করে সঠিক ব্যবসায়িক সিদ্ধান্ত নিন।",
+    "services.analyticsReporting.feat1": "ইন্টারেক্টিভ এক্সিকিউটিভ ড্যাশবোর্ড",
+    "services.analyticsReporting.feat2": "কাস্টম রিপোর্ট জেনারেটর",
+    "services.analyticsReporting.feat3": "প্রজেক্ট আরওআই ও মার্জিন বিশ্লেষণ",
+    "services.analyticsReporting.feat4": "পিডিএফ/এক্সেল এক্সপোর্ট সুবিধা",
   },
 };
 

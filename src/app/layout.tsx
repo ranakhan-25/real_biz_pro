@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Petit_Formal_Script, Playfair_Display, Space_Grotesk } from "next/font/google";
+import {
+  Inter,
+  JetBrains_Mono,
+  Petit_Formal_Script,
+  Playfair_Display,
+  Space_Grotesk,
+} from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
 import { LayoutShell } from "@/components/layout-shell";
+import FloatingContact from "@/components/home/floating-contact";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -17,7 +24,6 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
   display: "swap",
 });
-
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -41,7 +47,6 @@ const petitFormalScript = Petit_Formal_Script({
   display: "swap",
 });
 
-
 export const metadata: Metadata = {
   title: "RealBiz Pro",
   description: "RealBiz Pro Enterprise Management System",
@@ -61,7 +66,10 @@ export default function RootLayout({
       <body className="min-h-full antialiased" suppressHydrationWarning>
         <LanguageProvider>
           <ThemeProvider>
-            <LayoutShell>{children}</LayoutShell>
+            <LayoutShell>
+              {children}
+              <FloatingContact />
+            </LayoutShell>
           </ThemeProvider>
         </LanguageProvider>
       </body>

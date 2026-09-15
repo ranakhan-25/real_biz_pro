@@ -16,6 +16,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     "/properties",
     "/about",
     "/contact",
+    "/services",
   ];
 
   const isStandalone = standaloneRoutes.some((route) =>

@@ -17,7 +17,7 @@ export default function Agencies() {
   ];
 
   return (
-    <section className="bg-background px-5 py-14 sm:px-8 sm:py-20">
+    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <motion.span
