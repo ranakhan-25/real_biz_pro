@@ -12,7 +12,7 @@ import { SiteFooter } from "@/components/Footer";
 
 const links = [
   { to: "/", labelKey: "nav.home" },
-  { to: "/properties", labelKey: "nav.properties" },
+  { to: "/features", labelKey: "nav.features" },
   { to: "/pricing", labelKey: "nav.pricing" },
   { to: "/about", labelKey: "nav.about" },
   { to: "/contact", labelKey: "nav.contact" },

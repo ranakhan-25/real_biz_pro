@@ -4,9 +4,15 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Quote } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import { useTheme } from "@/lib/theme";
+
+const FALLBACK_PRIMARY = "#2ed573";
 
 export default function TestimonialCarousel() {
   const { t, tArray } = useLanguage();
+  const { primaryColor } = useTheme();
+  const brandColor = primaryColor || FALLBACK_PRIMARY;
+
   const items = tArray("testimonials.list");
   const [active, setActive] = useState(0);
   const current = items[active];
@@ -14,7 +20,12 @@ export default function TestimonialCarousel() {
   if (!current) return null;
 
   return (
-    <section className="bg-secondary px-5 py-20 sm:px-8">
+    <section
+      className="px-5 py-10 sm:px-8"
+      style={{
+        backgroundColor: `${brandColor}12`, // halka primary
+      }}
+    >
       <div className="mx-auto max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -32,7 +43,7 @@ export default function TestimonialCarousel() {
         </motion.div>
 
         <div className="relative mt-12 rounded-2xl border border-border bg-card px-6 py-10 sm:px-12 sm:py-14">
-          <Quote className="mx-auto h-8 w-8 text-accent" />
+          <Quote className="mx-auto h-8 w-8" style={{ color: brandColor }} />
 
           <AnimatePresence mode="wait">
             <motion.blockquote
@@ -64,7 +75,8 @@ export default function TestimonialCarousel() {
                 {active === i && (
                   <motion.span
                     layoutId="testimonial-dot"
-                    className="absolute inset-0 rounded-full bg-accent"
+                    className="absolute inset-0 rounded-full"
+                    style={{ backgroundColor: brandColor }}
                     transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                   />
                 )}

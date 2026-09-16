@@ -5,10 +5,16 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { Check, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import { useTheme } from "@/lib/theme";
 import { AnimatedHeading } from "@/components/home/animated-heading";
+
+const FALLBACK_PRIMARY = "#2ed573";
 
 export default function Agencies() {
   const { t } = useLanguage();
+  const { primaryColor } = useTheme();
+  const brandColor = primaryColor || FALLBACK_PRIMARY;
+
   const points = [
     t("agency.point1"),
     t("agency.point2"),
@@ -17,7 +23,7 @@ export default function Agencies() {
   ];
 
   return (
-    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
+    <section className="bg-secondary px-5 py-10 sm:px-8">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <motion.span
@@ -26,6 +32,11 @@ export default function Agencies() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             className="chip-kinetic"
+            style={{
+              color: brandColor,
+              borderColor: `${brandColor}40`,
+              backgroundColor: `${brandColor}12`,
+            }}
           >
             {t("agency.eyebrow")}
           </motion.span>
@@ -40,7 +51,11 @@ export default function Agencies() {
               initial={{ opacity: 0, y: 20, rotate: 2 }}
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{
+                duration: 0.6,
+                delay: 0.2,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               className="block font-[family-name:var(--font-script)] text-5xl leading-none text-gold sm:text-6xl"
             >
               {t("agency.titleAccent")}
@@ -76,7 +91,10 @@ export default function Agencies() {
                 }}
                 className="flex items-start gap-2.5"
               >
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                <Check
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                  style={{ color: brandColor }}
+                />
                 <span className="text-sm text-foreground/80">{point}</span>
               </motion.li>
             ))}
@@ -107,7 +125,7 @@ export default function Agencies() {
         >
           <div className="relative aspect-[16/16] w-full overflow-hidden rounded-2xl sm:max-h-[360px]">
             <Image
-              src="https://images.unsplash.com/photo-1556155092-490a1ba16284?q=80&w=1200&auto=format&fit=crop"
+              src="/assets/dashboard.png"
               alt="A modern real estate office environment"
               fill
               sizes="(min-width: 1024px) 480px, 90vw"

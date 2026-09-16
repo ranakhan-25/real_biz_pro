@@ -5,23 +5,36 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import { useTheme } from "@/lib/theme";
+
+const FALLBACK_PRIMARY = "#2ed573";
 
 export default function Hero() {
   const { t, language } = useLanguage();
+  const { primaryColor } = useTheme();
+  const brandColor = primaryColor || FALLBACK_PRIMARY;
 
   const isBn = language === "bn";
 
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-gold-soft sm:-right-20 dark:bg-zinc-800" />
+      <div
+        className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full sm:-right-20 dark:opacity-30"
+        style={{ backgroundColor: `${brandColor}18` }}
+      />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 pb-16 pt-16 sm:px-8 lg:grid-cols-2 lg:pt-24">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:pt-24">
         <div>
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="chip-kinetic"
+            style={{
+              color: brandColor,
+              borderColor: `${brandColor}40`,
+              backgroundColor: `${brandColor}12`,
+            }}
           >
             {t("legacy.eyebrow")}
           </motion.span>
@@ -39,6 +52,7 @@ export default function Hero() {
             >
               {t("legacy.titleLine1")}
             </motion.span>
+
             <motion.span
               initial={{ opacity: 0, y: 24, rotate: -2 }}
               animate={{ opacity: 1, y: 0, rotate: 0 }}
@@ -47,9 +61,10 @@ export default function Hero() {
                 delay: 0.3,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className={`block font-[family-name:var(--font-script)] text-6xl leading-none text-gold sm:text-7xl lg:text-8xl ${
+              className={`block font-[family-name:var(--font-script)] text-6xl leading-none sm:text-7xl lg:text-8xl ${
                 isBn ? "mt-8" : ""
               }`}
+              style={{ color: brandColor }}
             >
               {t("legacy.titleAccent")}
             </motion.span>
@@ -63,6 +78,7 @@ export default function Hero() {
           >
             {t("legacy.paragraph1")}
           </motion.p>
+
           <motion.p
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -85,9 +101,11 @@ export default function Hero() {
               {t("legacy.cta")}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
+
             <Link
               href="/login"
-              className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center rounded-md px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 hover:opacity-90"
+              style={{ backgroundColor: brandColor }}
             >
               {t("hero.cta")}
             </Link>
@@ -131,9 +149,13 @@ export default function Hero() {
             initial={{ opacity: 0, rotate: -8, scale: 0.9 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.75 }}
-            className="absolute -top-5 right-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border border-gold/40 bg-background text-center shadow-sm"
+            className="absolute -top-5 right-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border bg-background text-center shadow-sm"
+            style={{ borderColor: `${brandColor}66` }}
           >
-            <span className="font-[family-name:var(--font-serif)] text-xl font-semibold text-gold">
+            <span
+              className="font-[family-name:var(--font-serif)] text-xl font-semibold"
+              style={{ color: brandColor }}
+            >
               {t("milestones.founded")}
             </span>
             <span className="font-[family-name:var(--font-mono)] text-[8px] uppercase tracking-wide text-muted-foreground">

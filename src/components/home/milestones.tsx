@@ -9,6 +9,7 @@ import {
   animate,
 } from "motion/react";
 import { useLanguage } from "@/lib/language";
+import { useTheme } from "@/lib/theme"; // adjust path if needed
 
 const STAT_VALUES = [1240, 8600, 320, 24, 9, 99.9] as const;
 const STAT_KEYS = [
@@ -50,7 +51,6 @@ function Counter({
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
   const motionValue = useMotionValue(0);
-
   const rounded = useTransform(motionValue, (v) => {
     const formatted = v.toFixed(decimals);
     return isBangla ? toBanglaNumerals(formatted) : formatted;
@@ -70,10 +70,18 @@ function Counter({
 
 export default function Milestones() {
   const { t, language } = useLanguage();
+  const { primaryColor } = useTheme();
   const isBangla = language === "bn";
 
   return (
-    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
+    <section
+      className="px-5 py-14 sm:px-8 sm:py-20"
+      style={{
+        backgroundColor: primaryColor
+          ? `${primaryColor}15` // halka / light version (low opacity)
+          : undefined,
+      }}
+    >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-[minmax(0,280px)_1px_1fr] lg:items-center lg:gap-12">
         <motion.div
           initial={{ opacity: 0, x: -16 }}
