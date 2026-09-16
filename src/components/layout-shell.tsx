@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
+import { SiteNav } from "./site/SiteNav";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +16,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     "/properties",
     "/about",
     "/contact",
+    "/services",
   ];
 
   const isStandalone = standaloneRoutes.some((route) =>
@@ -27,7 +30,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 flex flex-col overflow-y-auto">
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );

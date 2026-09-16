@@ -14,7 +14,7 @@ export default function TestimonialCarousel() {
   if (!current) return null;
 
   return (
-    <section className="px-5 py-20 sm:px-8">
+    <section className="bg-secondary px-5 py-20 sm:px-8">
       <div className="mx-auto max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

@@ -11,7 +11,7 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="px-5 py-20 sm:px-8">
+    <section className="bg-secondary px-5 py-20 sm:px-8">
       <div className="mx-auto max-w-3xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
