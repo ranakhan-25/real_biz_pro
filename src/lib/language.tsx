@@ -22,7 +22,7 @@ type Translations = Record<string, Record<string, TranslationValue>>;
 const translations: Translations = {
   en: {
     "nav.home": "Home",
-    "nav.properties": "Properties",
+    "nav.features": "Features",
     "nav.pricing": "Pricing",
     "nav.about": "About",
     "nav.contact": "Contact",
@@ -613,7 +613,7 @@ const translations: Translations = {
   },
   bn: {
     "nav.home": "হোম",
-    "nav.properties": "প্রপার্টি",
+    "nav.features": "ফিচারস ",
     "nav.pricing": "প্রাইসিং",
     "nav.about": "সম্পর্কে",
     "nav.contact": "যোগাযোগ",
@@ -1108,47 +1108,48 @@ const translations: Translations = {
 
     "solutions.eyebrow": "সমাধানসমূহ",
     "solutions.title":
-      "রিয়েল এস্টেট, কনস্ট্রাকশন বা ডেভেলপিং নিয়ে কাজ করছেন?",
+      "আপনি কি রিয়েল এস্টেট, নির্মাণ বা ডেভেলপমেন্ট ব্যবসার সাথে যুক্ত?",
     "solutions.subtitle":
-      "তাহলে এখনই সময় ম্যানুয়ালকে বিদায় জানিয়ে আপনার ব্যবসাকে করুন আরও স্মার্ট ও সিস্টেমেটিক।",
+      "আজই ম্যানুয়াল কাজকে বিদায় জানান এবং আপনার ব্যবসাকে করুন স্মার্ট ও সুসংগঠিত।",
 
-    "solutions.accountsFinance.title":
-      "১. Accounts, Installment & Finance Control",
+    "solutions.accountsFinance.title": "১. হিসাব, কিস্তি ও আর্থিক ব্যবস্থাপনা",
     "solutions.accountsFinance.desc":
-      "কিস্তি, ইনভয়েস, রিসিভট, পেমেন্ট, লেজার, ব্যালান্স শিট—সব কিছু হবে অটোমেটিক ও নিখুঁতভাবে।",
+      "কিস্তি, ইনভয়েস, রসিদ, পেমেন্ট, লেজার এবং ব্যালেন্স শিট—সবকিছু স্বয়ংক্রিয়ভাবে ও নির্ভুলভাবে পরিচালনা করুন।",
 
-    "solutions.purchaseVendor.title": "২. Purchase & Vendor Management",
+    "solutions.purchaseVendor.title": "২. ক্রয় ও ভেন্ডর ব্যবস্থাপনা",
     "solutions.purchaseVendor.desc":
-      "কোন পণ্য কখন লাগবে, কত দাম হলো, কার থেকে আনলেন—সব কিছু সিস্টেমে ট্র্যাক করা থাকবে।",
+      "কোন উপকরণ প্রয়োজন, কখন প্রয়োজন, মোট খরচ কত এবং সরবরাহকারীর বিস্তারিত—সবকিছু এক সিস্টেমে সহজেই ট্র্যাক করুন।",
 
-    "solutions.salesCrm.title": "৩. Sales, Property Listing & Client CRM",
+    "solutions.salesCrm.title":
+      "৩. বিক্রয়, প্রপার্টি লিস্টিং ও ক্লায়েন্ট CRM",
     "solutions.salesCrm.desc":
-      "লিড আসা থেকে চুক্তি পর্যন্ত সব কিছু এক জায়গায়। আর হারাবেন না কোনো লিড।",
+      "নতুন লিড আসা থেকে শুরু করে চুক্তি সম্পন্ন হওয়া পর্যন্ত সবকিছু এক জায়গায় পরিচালনা করুন। কোনো লিড আর হারিয়ে যাবে না।",
 
-    "solutions.projectTracking.title":
-      "৪. Project Progress & Material Tracking",
+    "solutions.projectTracking.title": "৪. প্রজেক্ট অগ্রগতি ও উপকরণ ট্র্যাকিং",
     "solutions.projectTracking.desc":
-      "প্রজেক্ট সিডিউল, কস্টিং, মালামাল ব্যবহারের হিসাব ও সাইট প্রগ্রেস দেখা যাবে রিয়েল-টাইমে।",
+      "প্রজেক্টের সময়সূচি, খরচ, উপকরণ ব্যবহারের রেকর্ড এবং সাইটের অগ্রগতি রিয়েল-টাইমে পর্যবেক্ষণ করুন।",
 
-    "solutions.hrPayroll.title": "৫. HR & Payroll Management",
+    "solutions.hrPayroll.title": "৫. HR ও Payroll ব্যবস্থাপনা",
     "solutions.hrPayroll.desc":
-      "অ্যাটেনডেন্স, ছুটি, বেতন, অগ্রিম ও ওভারটাইম—সব কিছু অটোমেটেড পেরোল সিস্টেমে।",
+      "উপস্থিতি, ছুটি, বেতন, অগ্রিম এবং ওভারটাইম—সবকিছু একটি Payroll সিস্টেমের মাধ্যমে স্বয়ংক্রিয়ভাবে পরিচালনা করুন।",
 
-    "solutions.autoReminders.title": "৬. Auto Reminders & Follow-up System",
+    "solutions.autoReminders.title":
+      "৬. স্বয়ংক্রিয় রিমাইন্ডার ও ফলো-আপ সিস্টেম",
     "solutions.autoReminders.desc":
-      "ক্লায়েন্ট পেমেন্ট, মিটিং বা কন্ট্রাক্ট আপডেট যাবে SMS/Email-এ অটোমেটিকভাবে।",
+      "ক্লায়েন্টের পেমেন্ট, মিটিং বা চুক্তির গুরুত্বপূর্ণ সময়সীমা সম্পর্কে স্বয়ংক্রিয় SMS/Email আপডেট পাঠান।",
 
-    "solutions.dashboardReports.title": "৭. Business Dashboard & Reports",
+    "solutions.dashboardReports.title": "৭. ব্যবসায়িক ড্যাশবোর্ড ও রিপোর্ট",
     "solutions.dashboardReports.desc":
-      "এক ক্লিকে পাবেন লাভ-ক্ষতি, কস্ট ব্রেকডাউন, ক্যাশফ্লো ও সেলস রিপোর্ট।",
+      "এক ক্লিকেই Profit & Loss, খরচের বিস্তারিত, Cash Flow এবং Sales Report দেখুন।",
 
-    "solutions.anytimeAccess.title": "৮. Access Anytime, Anywhere",
+    "solutions.anytimeAccess.title":
+      "৮. যেকোনো সময়, যেকোনো স্থান থেকে অ্যাক্সেস",
     "solutions.anytimeAccess.desc":
-      "অফিস, সাইট, বাসা বা ভ্রমণে—মোবাইল বা ল্যাপটপে লগইন করলেই পুরো সিস্টেম হাতের মুঠোয়।",
+      "অফিস, সাইট, বাসা বা ভ্রমণে থাকা অবস্থায়—মোবাইল বা ল্যাপটপ থেকে আপনার পুরো সিস্টেমে অ্যাক্সেস করুন।",
 
-    "solutions.documentManagement.title": "৯. Document Management",
+    "solutions.documentManagement.title": "৯. ডকুমেন্ট ব্যবস্থাপনা",
     "solutions.documentManagement.desc":
-      "চুক্তিপত্র, রিপোর্ট ও অন্যান্য গুরুত্বপূর্ণ ডকুমেন্ট এক জায়গায় সংরক্ষণ ও সহজে অ্যাক্সেস।",
+      "চুক্তিপত্র, রিপোর্ট এবং অন্যান্য গুরুত্বপূর্ণ ডকুমেন্ট একটি নিরাপদ স্থানে সংরক্ষণ করুন এবং সহজেই অ্যাক্সেস করুন।",
 
     "services.hero.eyebrow": "সম্পূর্ণ রিয়েল এস্টেট ইআরপি",
     "services.hero.title": "আমাদের সেবাসমূহ ও সক্ষমতা",

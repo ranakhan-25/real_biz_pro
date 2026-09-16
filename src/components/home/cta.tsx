@@ -9,7 +9,7 @@ export default function Cta() {
   const { t } = useLanguage();
 
   return (
-    <section className="px-5 pb-20 sm:px-8">
+    <section className="px-5 pb-12 sm:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

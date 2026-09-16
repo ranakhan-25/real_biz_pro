@@ -17,7 +17,7 @@ export default function LandOwners() {
   ];
 
   return (
-    <section className="bg-background px-5 py-14 sm:px-8 sm:py-20">
+    <section className="bg-background px-5 py-10 sm:px-8 ">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start lg:gap-16">
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
