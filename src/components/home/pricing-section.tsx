@@ -27,7 +27,7 @@ export default function PricingSection() {
   const { t } = useLanguage();
 
   return (
-    <section className="bg-secondary px-5 py-14 sm:px-8 sm:py-20">
+    <section className="bg-background px-5 py-14 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

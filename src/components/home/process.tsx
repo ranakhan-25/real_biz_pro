@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { useLanguage } from "@/lib/language";
-import { AnimatedHeading } from "@/components/home/animated-heading";
 
 const STEPS = ["process.step1", "process.step2", "process.step3", "process.step4"] as const;
 
@@ -22,11 +21,11 @@ export default function Process() {
           >
             {t("process.eyebrow")}
           </motion.span>
-          <AnimatedHeading
-            text={t("process.title")}
-            as="h2"
-            className="mt-4 font-[family-name:var(--font-serif)] text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
-          />
+          <h2
+            className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+          >
+            {t("process.title")}
+          </h2>
         </div>
 
         <motion.div
