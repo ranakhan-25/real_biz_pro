@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 
 import { findNode, type MenuNode, type ModuleKey } from "@/lib/menus";
 

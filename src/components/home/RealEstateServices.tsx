@@ -12,7 +12,7 @@ export function RealEstateServices() {
   const features = [t("services.feature1"), t("services.feature2"), t("services.feature3")];
 
   return (
-    <section className="px-5 py-20 sm:px-8">
+    <section className="bg-background px-5 py-20 sm:px-8">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

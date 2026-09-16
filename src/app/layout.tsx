@@ -4,13 +4,13 @@ import {
   JetBrains_Mono,
   Petit_Formal_Script,
   Playfair_Display,
-  Poppins,
   Space_Grotesk,
 } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
 import { LayoutShell } from "@/components/layout-shell";
+import FloatingContact from "@/components/home/floating-contact";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,16 +18,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  display: "swap",
-});
-
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -66,13 +60,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${poppins.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${petitFormalScript.variable} h-full light`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${petitFormalScript.variable} h-full light`}
       suppressHydrationWarning
     >
       <body className="min-h-full antialiased" suppressHydrationWarning>
         <LanguageProvider>
           <ThemeProvider>
-            <LayoutShell>{children}</LayoutShell>
+            <LayoutShell>
+              {children}
+              <FloatingContact />
+            </LayoutShell>
           </ThemeProvider>
         </LanguageProvider>
       </body>
