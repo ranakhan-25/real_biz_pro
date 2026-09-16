@@ -11,25 +11,24 @@ import Agencies from "@/components/home/agencies";
 import Process from "@/components/home/process";
 import FeaturesPage from "@/components/home/Features";
 import TestimonialCarousel from "@/components/home/testimonials";
-import PricingSection from "@/components/home/pricing-section";
 import Faq from "@/components/home/faq";
 import Cta from "@/components/home/cta";
 import { RealEstateServices } from "@/components/home/RealEstateServices";
+import { PricingClient } from "@/components/pricing/pricing-client";
 
 export default function HomePage() {
   return (
     <SiteShell>
-      <main className="flex flex-col gap-y-12 sm:gap-y-20">
+      <main className="flex flex-col gap-y-6">
         <Hero />
         <Milestones />
 
         <SolutionsGrid />
         <WhyRealBiz />
-
+        <LandOwners />
         <ModuleGrid />
         <LatestModules />
 
-        <LandOwners />
         <Agencies />
         <RealEstateServices />
 
@@ -38,8 +37,7 @@ export default function HomePage() {
 
         <TestimonialCarousel />
 
-        <PricingSection />
-        <Faq />
+        <PricingClient/>
         <Cta />
       </main>
     </SiteShell>
