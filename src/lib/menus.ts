@@ -198,6 +198,7 @@ flat-land
 
 const accounts = `
 dashboard
+
 contract
   customer-account
   supplier-account
@@ -237,6 +238,16 @@ reports
   receive-and-payment-summary
   cash-bank-books
   general-ledger
+  income_statement
+  cash-flow-statement
+  fund-flow-summary
+  trial_balance_summary
+  balance_sheet_summary
+  profit-loss-comprehensive-income
+  statement-of-financial-position
+  statement-of-changes-equity
+  property-plant-equipment
+  budget-vs-actual-expenses-vs-collection-report
 `;
 
 const hrm = `
