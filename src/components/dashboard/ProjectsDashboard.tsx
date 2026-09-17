@@ -1506,7 +1506,7 @@ const DashboardPage = () => {
   // ===================================================
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen px-4 pb-4">
 
       {/* =================================================
           HEADER

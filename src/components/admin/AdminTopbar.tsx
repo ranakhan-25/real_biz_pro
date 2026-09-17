@@ -85,9 +85,6 @@ export default function AdminTopbar() {
         shadow-sm
         backdrop-blur-xl
 
-        dark:border-slate-800
-        dark:bg-slate-950/95
-
         sm:px-5
         md:h-[60px]
         md:px-6
@@ -126,8 +123,6 @@ export default function AdminTopbar() {
               left-3
               top-1/2
               -translate-y-1/2
-              text-slate-400
-              dark:text-slate-500
             "
           />
 
@@ -140,13 +135,9 @@ export default function AdminTopbar() {
               w-full
               rounded-lg
               border
-              border-slate-200
-              bg-slate-50
               pl-10
               pr-4
               text-sm
-              text-slate-700
-              placeholder:text-slate-400
               outline-none
               transition-all
 
@@ -154,12 +145,6 @@ export default function AdminTopbar() {
               focus:bg-white
               focus:ring-4
               focus:ring-[var(--primary-color)]/10
-
-              dark:border-slate-700
-              dark:bg-slate-900
-              dark:text-slate-200
-              dark:placeholder:text-slate-500
-              dark:focus:bg-slate-900
             "
           />
         </div>
