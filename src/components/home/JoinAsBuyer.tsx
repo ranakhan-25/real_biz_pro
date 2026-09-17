@@ -124,11 +124,8 @@ export default function JoinAsBuyer() {
                 sm:text-[52px]
                 md:text-[62px]
                 lg:text-[70px]
+                font-[family-name:var(--font-script)]
               "
-              style={{
-                fontFamily:
-                  "var(--font-playfair), Playfair Display, Georgia, serif",
-              }}
             >
               {t("buyer.title") || "Join Us as a Buyer"}
             </h2>

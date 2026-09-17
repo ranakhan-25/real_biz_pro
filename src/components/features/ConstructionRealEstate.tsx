@@ -161,12 +161,12 @@ export default function ConstructionRealEstate() {
             </p>
 
             {/* Title */}
-            <h2 className="font-[var(--font-hind-siliguri)] text-[24px] font-bold leading-[1.35] text-[#111827] sm:text-[28px] md:text-[32px] lg:text-[36px]">
+            <h2 className="font-[var(--font-hind-siliguri)] text-[24px] font-bold leading-16 text-[#111827] sm:text-[28px] md:text-[32px] lg:text-[36px]">
               {t("solutions.construction.title")}
             </h2>
 
             {/* Subtitle */}
-            <p className="mt-2 font-[var(--font-hind-siliguri)] text-xs leading-6 text-gray-700 md:text-sm md:leading-7">
+            <p className="mt-2 font-[var(--font-hind-siliguri)] text-xs leading-7 text-gray-700 md:text-sm md:leading-7">
               {t("solutions.construction.subtitle")}
             </p>
 
@@ -184,7 +184,7 @@ export default function ConstructionRealEstate() {
             </p>
 
             {/* PROCESS */}
-            <div className="relative mt-5 hidden sm:block">
+            <div className="relative my-9 hidden sm:block">
               {/* Connecting horizontal line */}
               <div
                 className="absolute left-[18px] right-[18px] top-[14px] h-px"
