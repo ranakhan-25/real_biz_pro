@@ -5,7 +5,10 @@ import {
   Petit_Formal_Script,
   Playfair_Display,
   Space_Grotesk,
+  Hind_Siliguri,
+  Allura, // ১. এখানে Allura ইমপোর্ট করা হলো
 } from "next/font/google";
+
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/language";
@@ -47,6 +50,22 @@ const petitFormalScript = Petit_Formal_Script({
   display: "swap",
 });
 
+// ২. এখানে Allura ফন্ট কনফিগার করা হলো
+const allura = Allura({
+  variable: "--font-allura",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+// Bangla Font
+const hindSiliguri = Hind_Siliguri({
+  variable: "--font-hind-siliguri",
+  subsets: ["bengali"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "RealBiz Pro",
   description: "RealBiz Pro Enterprise Management System",
@@ -60,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${petitFormalScript.variable} h-full light`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${petitFormalScript.variable} ${allura.variable} ${hindSiliguri.variable} h-full light`}
       suppressHydrationWarning
     >
       <body className="min-h-full antialiased" suppressHydrationWarning>

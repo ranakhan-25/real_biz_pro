@@ -6,6 +6,7 @@ import { Mail, MapPin, Phone, CheckCircle2 } from "lucide-react";
 import { SiteShell } from "@/components/site/SiteNav";
 import { useLanguage } from "@/lib/language";
 import { AnimatedHeading } from "@/components/home/animated-heading";
+import LocationMapSection from "@/components/contract/LocationMapSection";
 
 const INFO_ITEMS = [
   {
@@ -47,7 +48,7 @@ function ContactContent() {
   };
 
   return (
-    <section className="min-h-screen bg-background px-5 py-14 sm:px-8 sm:py-20">
+    <section className=" bg-background px-5 py-14 sm:px-8">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-14 lg:grid-cols-[1fr_1.2fr]">
         {/* Contact Information */}
         <div>
@@ -277,6 +278,7 @@ export default function ContactPage() {
   return (
     <SiteShell>
       <ContactContent />
+      <LocationMapSection/>
     </SiteShell>
   );
 }

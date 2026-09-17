@@ -19,8 +19,8 @@ export function PricingClient() {
   const PLANS = [
     {
       name: t("pricing.starter.name"),
-      monthly: "৳29",
-      yearly: "৳290",
+      monthly: "৳2900",
+      // yearly: "৳290",
       yearlyNote: "$24/mo billed yearly",
       description: t("pricing.starter.description"),
       features: [
@@ -34,8 +34,8 @@ export function PricingClient() {
     },
     {
       name: t("pricing.growth.name"),
-      monthly: "৳79",
-      yearly: "৳790",
+      monthly: "৳7900",
+      // yearly: "৳790",
       yearlyNote: t("pricing.growth.note"),
       description: t("pricing.growth.description"),
       features: [
