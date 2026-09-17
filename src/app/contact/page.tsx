@@ -12,17 +12,17 @@ const INFO_ITEMS = [
   {
     icon: MapPin,
     labelKey: "contact.addressLabel",
-    valueKey: "contact.address",
+    valueKey: "H-417, R-7, Baridhara DOHS, Dhaka-1206",
   },
   {
     icon: Mail,
     labelKey: "contact.emailLabel",
-    valueKey: "contact.email",
+    valueKey: "fleekbangladesh@gmail.com",
   },
   {
     icon: Phone,
     labelKey: "contact.phoneLabel",
-    valueKey: "contact.phone",
+    valueKey: "+8801897-621270",
   },
 ] as const;
 

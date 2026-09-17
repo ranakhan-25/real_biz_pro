@@ -20,7 +20,7 @@ export function PricingClient() {
     {
       name: t("pricing.starter.name"),
       monthly: "৳2900",
-      // yearly: "৳290",
+      yearly: "৳2900",
       yearlyNote: "$24/mo billed yearly",
       description: t("pricing.starter.description"),
       features: [
@@ -35,7 +35,7 @@ export function PricingClient() {
     {
       name: t("pricing.growth.name"),
       monthly: "৳7900",
-      // yearly: "৳790",
+      yearly: "৳7900",
       yearlyNote: t("pricing.growth.note"),
       description: t("pricing.growth.description"),
       features: [
