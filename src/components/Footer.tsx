@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLanguage } from "@/lib/language";
 import { Logo } from "./Logo";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 export function SiteFooter() {
   const { t } = useLanguage();
@@ -12,20 +13,23 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Logo & Copyright / Intro */}
           <div className="lg:col-span-1 flex flex-col items-start">
             <Logo />
-            <p className="mt-2 text-xs text-muted-foreground max-w-xs">
+            <p className="mt-3 text-xs text-muted-foreground max-w-xs">
               {t("footer.copyright").replace("{year}", year.toString())}
             </p>
           </div>
+
+          {/* Product Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Product</h4>
             <nav className="space-y-2">
               <Link
-                href="/properties"
+                href="/features"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
               >
-                Properties
+                Features
               </Link>
               <Link
                 href="/about"
@@ -41,6 +45,8 @@ export function SiteFooter() {
               </Link>
             </nav>
           </div>
+
+          {/* Company Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <nav className="space-y-2">
@@ -64,30 +70,59 @@ export function SiteFooter() {
               </Link>
             </nav>
           </div>
+
+          {/* Bangladesh Address & Contact Info (Updated from images) */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Legal</h4>
-            <nav className="space-y-2">
-              <Link
-                href="/privacy"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/terms"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                href="/cookies"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
-              >
-                Cookie Policy
-              </Link>
-            </nav>
+            <h4 className="font-semibold text-foreground mb-4">
+              Bangladesh Contact
+            </h4>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-foreground mb-1">
+                  Bangladesh Address:
+                </p>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                  <span>H-417, R-7, Baridhara DOHS, Dhaka-1206</span>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 shrink-0 text-primary" />
+                  <a
+                    href="tel:+8801897621270"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    +8801897-621270
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex flex-col space-y-1 pt-1">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 shrink-0 text-primary" />
+                  <a
+                    href="mailto:fleekbangladesh@gmail.com"
+                    className="hover:text-foreground transition-colors break-all"
+                  >
+                    fleekbangladesh@gmail.com
+                  </a>
+                </div>
+                <div className="flex items-center gap-2 pl-6">
+                  <a
+                    href="mailto:info@fleek.com.bd"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    info@fleek.com.bd
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Bottom Bar with Socials */}
         <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             {t("footer.copyright").replace("{year}", year.toString())}

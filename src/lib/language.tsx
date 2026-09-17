@@ -26,7 +26,6 @@ const translations: Translations = {
     "nav.pricing": "Pricing",
     "nav.about": "About",
     "nav.contact": "Contact",
-    "nav.services": "Services",
     "nav.login": "Log in",
     "language.english": "English",
     "language.bangla": "বাংলা",
@@ -162,6 +161,33 @@ const translations: Translations = {
     "pricing.faq3.a":
       "We accept all major credit cards, debit cards, and corporate bank transfers.",
 
+    "location.subtitle": "Our Location",
+    "location.title": "Visit Our Bangladesh Office",
+    "location.badge": "Bangladesh Address",
+    "location.officeName": "RealBiz Pro HQ",
+    "location.addressTitle": "Baridhara DOHS Office",
+    "location.details":
+      "House-417, Road-7\nBaridhara DOHS, Dhaka-1206\nBangladesh",
+    "location.button": "Get Directions on Google Maps",
+    "partner.title": "Join Us as a Partner",
+    "partner.description":
+      "Collaborate with us to build extraordinary real estate ventures. Whether you are looking to invest or partner on landmark developments, we provide the platform for enduring growth.",
+    "partner.card1.title": "For Partners",
+    "partner.card1.desc":
+      "Engage with us to discover our exclusive projects and uncover the perfect property that aligns with your lifestyle and business aspirations.",
+    "partner.card2.title": "For Customers",
+    "partner.card2.desc":
+      "Engage with us to discover our exclusive projects and uncover the perfect property that aligns with your lifestyle and business aspirations.",
+
+    "buyer.title": "Join Us as a Buyer",
+    "buyer.description":
+      "Step into your dream property with confidence. Discover our curated collection of exceptional residential and commercial spaces designed to match your lifestyle and future aspirations.",
+    "buyer.card1.title": "Prime Locations",
+    "buyer.card1.desc":
+      "Explore handpicked residential spaces situated in the most sought-after neighborhoods tailored for your comfort.",
+    "buyer.card2.title": "Exclusive Homes",
+    "buyer.card2.desc":
+      "Uncover elegant architecture and contemporary designs built to elevate your everyday living standard.",
     "stats.subtitle": "By The Numbers",
     "stats.title": "Trusted by growing real estate teams",
     "stats.label1": "Properties Managed",
@@ -264,13 +290,6 @@ const translations: Translations = {
     "milestones.stat5": "Modules in One Platform",
     "milestones.stat6": "Platform Uptime %",
 
-    "partner.title": "Join Us as a Partner",
-    "partner.landownerTitle": "For Agencies",
-    "partner.landownerDescription":
-      "Bring your whole team onto one platform and turn your listings into a streamlined sales operation.",
-    "partner.customerTitle": "For Individual Agents",
-    "partner.customerDescription":
-      "Manage your own leads, visits, and deals without needing a full team rollout.",
     "latest.title": "The platform, module by module",
     "landowner.eyebrow": "FOR LAND OWNERS",
     "landowner.titleLine1": "Turn Your Land Into a",
@@ -513,6 +532,49 @@ const translations: Translations = {
     "whyRealBiz.anytimeAccess.desc":
       "Access your full system at the office, on site, at home, or while traveling via mobile or laptop.",
 
+    "solutions.construction.eyebrow": "CONSTRUCTION & REAL ESTATE",
+
+    "solutions.construction.title": "Construction & Real Estate",
+
+    "solutions.construction.subtitle": "Complete Digital Solution",
+
+    "solutions.construction.modules": "ERP • CRM • HR",
+
+    "solutions.construction.brand": "RealBiz ERP",
+
+    "solutions.construction.description":
+      "- Land Acquisition CRM, Project Management, CRM, Sales Management, Credit Realization/Collection (CR), Materials & Procurement, Accounts, HR & Payroll, Inventory, Customer Service/After-Sales — everything in one platform.",
+
+    "solutions.construction.demoButton": "Get a Demo",
+
+    "solutions.construction.learnMoreButton": "Learn More",
+
+    // Process
+    "solutions.process.01.title": "Land Acquisition",
+
+    "solutions.process.01.subtitle": "CRM",
+
+    "solutions.process.02.title": "Project Management",
+
+    "solutions.process.03.title": "CRM",
+
+    "solutions.process.04.title": "Sales Management",
+
+    "solutions.process.05.title": "Credit Realization /",
+
+    "solutions.process.05.subtitle": "Collection (CR)",
+
+    "solutions.process.06.title": "Materials & Procurement",
+
+    "solutions.process.07.title": "Accounts",
+
+    "solutions.process.08.title": "HR & Payroll",
+
+    "solutions.process.09.title": "Inventory",
+
+    "solutions.process.10.title": "Customer Service /",
+
+    "solutions.process.10.subtitle": "After-Sales",
     "solutions.eyebrow": "Solutions",
     "solutions.title": "Working in Real Estate, Construction, or Development?",
     "solutions.subtitle":
@@ -560,6 +622,15 @@ const translations: Translations = {
     "services.hero.title": "Services & Capabilities",
     "services.hero.subtitle":
       "Discover how our specialized software modules streamline land sourcing, site engineering, customer management, and financial control.",
+
+    "storyline.title": "The Storyline of",
+    "storyline.legacy": "RealBiz Pro",
+
+    "storyline.description":
+      "RealBiz Pro brings together innovation, technology, and smart solutions to transform the way businesses operate. Built with a vision for efficiency, transparency, and sustainable growth, we are dedicated to creating solutions that make business simpler, smarter, and more connected.",
+
+    "storyline.content":
+      "RealBiz Pro is designed to empower businesses with modern digital solutions, intelligent management tools, and seamless workflows. From operations and finance to real estate and business management, RealBiz Pro connects every part of your organization and helps you build a smarter future.",
 
     "services.landAcquisition.title": "1. Land Acquisition & Plotting",
     "services.landAcquisition.desc":
@@ -617,7 +688,6 @@ const translations: Translations = {
     "nav.pricing": "প্রাইসিং",
     "nav.about": "সম্পর্কে",
     "nav.contact": "যোগাযোগ",
-    "nav.services": "সেবাসমূহ",
     "nav.login": "লগ ইন",
     "language.english": "ইংরেজি",
     "language.bangla": "বাংলা",
@@ -753,6 +823,23 @@ const translations: Translations = {
     "pricing.faq3.a":
       "আমরা সমস্ত প্রধান ক্রেডিট কার্ড, ডেবিট কার্ড এবং কর্পোরেট ব্যাংক ট্রান্সফার গ্রহণ করি।",
 
+    "location.subtitle": "আমাদের লোকেশন",
+    "location.title": "আমাদের বাংলাদেশ অফিস ভিজিট করুন",
+    "location.badge": "বাংলাদেশ ঠিকানা",
+    "location.officeName": "রিয়েলবিজ প্রো হেডকোয়ার্টার্স",
+    "location.addressTitle": "বারিধারা ডিওএইচএস অফিস",
+    "location.details":
+      "হাউস-৪১৭, রোড-৭\nবারিধারা ডিওএইচএস, ঢাকা-১২০৬\nবাংলাদেশ",
+    "location.button": "গুগল ম্যাপে দিকনির্দেশনা দেখুন",
+    "partner.title": "আমাদের অংশীদার হিসেবে যোগ দিন",
+    "partner.description":
+      "অসাধারণ রিয়েল এস্টেট উদ্যোগ তৈরিতে আমাদের সাথে সহযোগিতা করুন। আপনি বিনিয়োগ করতে চান বা উল্লেখযোগ্য উন্নয়ন প্রকল্পে অংশীদার হতে চান, আমরা টেকসই প্রবৃদ্ধির প্ল্যাটফর্ম প্রদান করি।",
+    "partner.card1.title": "অংশীদারদের জন্য",
+    "partner.card1.desc":
+      "আমাদের একচেটিয়া প্রকল্পগুলি আবিষ্কার করতে এবং আপনার জীবনধারা এবং ব্যবসায়িক আকাঙ্ক্ষার সাথে সামঞ্জস্যপূর্ণ নিখুঁত সম্পত্তি উন্মাদন করতে আমাদের সাথে যুক্ত হন।",
+    "partner.card2.title": "গ্রাহকদের জন্য",
+    "partner.card2.desc":
+      "আমাদের একচেটিয়া প্রকল্পগুলি আবিষ্কার করতে এবং আপনার জীবনধারা এবং ব্যবসায়িক আকাঙ্ক্ষার সাথে সামঞ্জস্যপূর্ণ নিখুঁত সম্পত্তি উন্মাদন করতে আমাদের সাথে যুক্ত হন।",
     "stats.subtitle": "সংখ্যায় আমরা",
     "stats.title": "বর্ধনশীল রিয়েল এস্টেট টিমের আস্থা",
     "stats.label1": "প্রপার্টি পরিচালিত",
@@ -855,13 +942,6 @@ const translations: Translations = {
     "milestones.stat5": "একই প্ল্যাটফর্মে মডিউল",
     "milestones.stat6": "প্ল্যাটফর্ম আপটাইম %",
 
-    "partner.title": "পার্টনার হিসেবে যোগ দিন",
-    "partner.landownerTitle": "এজেন্সির জন্য",
-    "partner.landownerDescription":
-      "আপনার পুরো টিমকে একটি প্ল্যাটফর্মে আনুন এবং আপনার লিস্টিংকে একটি সুবিন্যস্ত সেলস অপারেশনে পরিণত করুন।",
-    "partner.customerTitle": "একক এজেন্টদের জন্য",
-    "partner.customerDescription":
-      "পুরো টিম রোলআউট ছাড়াই নিজের লিড, ভিজিট এবং ডিল পরিচালনা করুন।",
     "latest.title": "প্ল্যাটফর্ম, মডিউল অনুযায়ী",
     "landowner.eyebrow": "জমির মালিকদের জন্য",
     "landowner.titleLine1": "আপনার জমিকে একটি",
@@ -1106,6 +1186,49 @@ const translations: Translations = {
     "whyRealBiz.anytimeAccess.desc":
       "অফিস, সাইট, বাসা বা ভ্রমণে—মোবাইল বা ল্যাপটপে লগইন করলেই পুরো সিস্টেম হাতের মুঠোয়।",
 
+    "solutions.construction.eyebrow": "কনস্ট্রাকশন ও রিয়েল এস্টেট",
+
+    "solutions.construction.title": "কনস্ট্রাকশন ও রিয়েল এস্টেট",
+
+    "solutions.construction.subtitle": "সম্পূর্ণ ডিজিটাল সমাধান",
+
+    "solutions.construction.modules": "ERP • CRM • HR",
+
+    "solutions.construction.brand": "RealBiz ERP",
+
+    "solutions.construction.description":
+      "- ল্যান্ড অ্যাকুইজিশন CRM, প্রজেক্ট ম্যানেজমেন্ট, CRM, সেলস ম্যানেজমেন্ট, ক্রেডিট রিয়েলাইজেশন/কালেকশন (CR), ম্যাটেরিয়ালস ও প্রকিউরমেন্ট, অ্যাকাউন্টস, HR ও পেরোল, ইনভেন্টরি, কাস্টমার সার্ভিস/আফটার-সেলস — সবকিছু এক প্ল্যাটফর্মে।",
+
+    "solutions.construction.demoButton": "ডেমো নিন",
+
+    "solutions.construction.learnMoreButton": "বিস্তারিত জানুন",
+
+    // Process
+    "solutions.process.01.title": "ল্যান্ড অ্যাকুইজিশন",
+
+    "solutions.process.01.subtitle": "CRM",
+
+    "solutions.process.02.title": "প্রজেক্ট ম্যানেজমেন্ট",
+
+    "solutions.process.03.title": "CRM",
+
+    "solutions.process.04.title": "সেলস ম্যানেজমেন্ট",
+
+    "solutions.process.05.title": "ক্রেডিট রিয়েলাইজেশন /",
+
+    "solutions.process.05.subtitle": "কালেকশন (CR)",
+
+    "solutions.process.06.title": "ম্যাটেরিয়ালস ও প্রকিউরমেন্ট",
+
+    "solutions.process.07.title": "অ্যাকাউন্টস",
+
+    "solutions.process.08.title": "HR ও পেরোল",
+
+    "solutions.process.09.title": "ইনভেন্টরি",
+
+    "solutions.process.10.title": "কাস্টমার সার্ভিস /",
+
+    "solutions.process.10.subtitle": "আফটার-সেলস",
     "solutions.eyebrow": "সমাধানসমূহ",
     "solutions.title":
       "আপনি কি রিয়েল এস্টেট, নির্মাণ বা ডেভেলপমেন্ট ব্যবসার সাথে যুক্ত?",
@@ -1150,7 +1273,23 @@ const translations: Translations = {
     "solutions.documentManagement.title": "৯. ডকুমেন্ট ব্যবস্থাপনা",
     "solutions.documentManagement.desc":
       "চুক্তিপত্র, রিপোর্ট এবং অন্যান্য গুরুত্বপূর্ণ ডকুমেন্ট একটি নিরাপদ স্থানে সংরক্ষণ করুন এবং সহজেই অ্যাক্সেস করুন।",
+    "storyline.title": "গল্পের",
+    "storyline.legacy": "রিয়েলবিজ প্রো",
 
+    "storyline.description":
+      "RealBiz Pro উদ্ভাবন, প্রযুক্তি এবং স্মার্ট সমাধানের সমন্বয়ে ব্যবসা পরিচালনার পদ্ধতিকে নতুনভাবে সংজ্ঞায়িত করছে। দক্ষতা, স্বচ্ছতা এবং টেকসই প্রবৃদ্ধির লক্ষ্য নিয়ে আমরা এমন সমাধান তৈরি করছি, যা ব্যবসাকে আরও সহজ, স্মার্ট এবং সংযুক্ত করে।",
+
+    "storyline.content":
+      "RealBiz Pro আধুনিক ডিজিটাল সমাধান, বুদ্ধিমান ম্যানেজমেন্ট টুল এবং সহজ কার্যপ্রবাহের মাধ্যমে ব্যবসাকে আরও শক্তিশালী করার জন্য তৈরি। অপারেশন, ফাইন্যান্স, রিয়েল এস্টেট থেকে শুরু করে ব্যবসা ব্যবস্থাপনার প্রতিটি অংশকে এক প্ল্যাটফর্মে সংযুক্ত করে RealBiz Pro আপনার ব্যবসাকে আরও স্মার্ট ভবিষ্যতের দিকে এগিয়ে নিতে সাহায্য করে।",
+    "buyer.title": "ক্রেতা হিসেবে যোগ দিন",
+    "buyer.description":
+      "আত্মবিশ্বাসের সাথে আপনার স্বপ্নের সম্পত্তিতে প্রবেশ করুন। আপনার জীবনধারা এবং ভবিষ্যতের আকাঙ্ক্ষার সাথে মিল রেখে তৈরি ব্যতিক্রমী আবাসিক এবং বাণিজ্যিক স্থানগুলির আমাদের বিশেষ সংগ্রহ আবিষ্কার করুন।",
+    "buyer.card1.title": "প্রধান অবস্থানসমূহ",
+    "buyer.card1.desc":
+      "আপনার স্বাচ্ছন্দ্যের জন্য তৈরি সবচেয়ে জনপ্রিয় এলাকাগুলিতে অবস্থিত হস্তশিল্পের আবাসিক স্থানগুলি অন্বেষণ করুন।",
+    "buyer.card2.title": "এক্সক্লুসিভ হোম",
+    "buyer.card2.desc":
+      "আপনার দৈনন্দিন জীবনযাত্রার মান উন্নত করার জন্য নির্মিত মার্জিত স্থাপত্য এবং সমসাময়িক ডিজাইনগুলি উন্মচন করুন।",
     "services.hero.eyebrow": "সম্পূর্ণ রিয়েল এস্টেট ইআরপি",
     "services.hero.title": "আমাদের সেবাসমূহ ও সক্ষমতা",
     "services.hero.subtitle":

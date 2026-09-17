@@ -15,6 +15,9 @@ import Faq from "@/components/home/faq";
 import Cta from "@/components/home/cta";
 import { RealEstateServices } from "@/components/home/RealEstateServices";
 import { PricingClient } from "@/components/pricing/pricing-client";
+import StorylineLegacy from "@/components/home/StorylineLegacy";
+import JoinAsPartner from "@/components/home/JoinAsPartner";
+import JoinAsBuyer from "@/components/home/JoinAsBuyer";
 
 export default function HomePage() {
   return (
@@ -25,7 +28,11 @@ export default function HomePage() {
 
         <SolutionsGrid />
         <WhyRealBiz />
-        <LandOwners />
+        <StorylineLegacy/>
+        
+        <JoinAsPartner />
+        <JoinAsBuyer />
+        
         <ModuleGrid />
         <LatestModules />
 

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { SiteShell } from "@/components/site/SiteNav";
 import { useLanguage } from "@/lib/language";
 import { AnimatedHeading } from "@/components/home/animated-heading";
 
@@ -31,7 +30,7 @@ const CATEGORIES = [
   },
 ] as const;
 
-function PropertiesContent() {
+export default function PropertiesContent() {
   const { t } = useLanguage();
 
   return (
@@ -67,7 +66,10 @@ function PropertiesContent() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1 } } }}
+          variants={{
+            hidden: {},
+            show: { transition: { staggerChildren: 0.1 } },
+          }}
           className="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2"
         >
           {CATEGORIES.map((cat) => (
@@ -75,7 +77,11 @@ function PropertiesContent() {
               key={cat.key}
               variants={{
                 hidden: { opacity: 0, y: 20 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                },
               }}
               whileHover="hover"
               className="group relative overflow-hidden rounded-2xl border border-border"
@@ -127,13 +133,5 @@ function PropertiesContent() {
         </Link>
       </section>
     </div>
-  );
-}
-
-export default function PropertiesPage() {
-  return (
-    <SiteShell>
-      <PropertiesContent />
-    </SiteShell>
   );
 }
