@@ -8,18 +8,25 @@ const FALLBACK_PRIMARY = "#D4A72C";
 
 export default function LocationMapSection() {
   const { t } = useLanguage();
-  const { primaryColor } = useTheme();
+  const { primaryColor, theme } = useTheme();
 
   const brandColor = primaryColor || FALLBACK_PRIMARY;
+  const isDark = theme === "dark";
 
   // Baridhara DOHS coordinates / embed query
   const addressQuery = "House 417, Road 7, Baridhara DOHS, Dhaka 1206";
+
   const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(
     addressQuery,
   )}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#f5f5f3] pb-16 md:pb-24 lg:pb-28">
+    <section
+      className={`relative w-full overflow-hidden pb-16 transition-colors duration-300 md:pb-24 lg:pb-28 ${
+        isDark ? "bg-[#111315]" : "bg-[#f5f5f3]"
+      }`}
+    >
+      {" "}
       <div className="mx-auto max-w-[1340px] px-5 sm:px-8 md:px-12 lg:px-16">
         {/* Section Header */}
         <div className="mb-12 text-center">
@@ -32,8 +39,11 @@ export default function LocationMapSection() {
           >
             {t("location.subtitle") || "Our Location"}
           </span>
+
           <h2
-            className="mt-2 text-[36px] font-normal leading-tight tracking-[-1px] text-[#171b20] sm:text-[44px] md:text-[52px]"
+            className={`mt-2 text-[36px] font-normal leading-tight tracking-[-1px] transition-colors duration-300 sm:text-[44px] md:text-[52px] ${
+              isDark ? "text-white" : "text-[#171b20]"
+            }`}
             style={{
               fontFamily:
                 "var(--font-playfair), Playfair Display, Georgia, serif",
@@ -44,12 +54,16 @@ export default function LocationMapSection() {
         </div>
 
         {/* Main Card Container */}
-        <div className="grid grid-cols-1 overflow-hidden rounded-3xl bg-white shadow-xl lg:grid-cols-12">
+        <div
+          className={`grid grid-cols-1 overflow-hidden rounded-3xl shadow-xl transition-colors duration-300 lg:grid-cols-12 ${
+            isDark ? "bg-[#1a1d20]" : "bg-white"
+          }`}
+        >
           {/* LEFT SIDE: Address & Details */}
           <div className="flex flex-col justify-between p-8 sm:p-10 lg:col-span-5 lg:p-12">
             <div>
               <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium mb-6"
+                className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium"
                 style={{
                   backgroundColor: `${brandColor}15`,
                   color: brandColor,
@@ -61,7 +75,9 @@ export default function LocationMapSection() {
               </div>
 
               <h3
-                className="text-2xl font-medium text-[#171b20] sm:text-3xl"
+                className={`text-2xl font-medium transition-colors duration-300 sm:text-3xl ${
+                  isDark ? "text-white" : "text-[#171b20]"
+                }`}
                 style={{
                   fontFamily:
                     "var(--font-playfair), Playfair Display, Georgia, serif",
@@ -71,20 +87,38 @@ export default function LocationMapSection() {
               </h3>
 
               {/* Exact Address Box */}
-              <div className="mt-6 flex items-start gap-4 rounded-2xl bg-[#f9f9f8] p-5 border border-neutral-200/60">
+              <div
+                className={`mt-6 flex items-start gap-4 rounded-2xl border p-5 transition-colors duration-300 ${
+                  isDark
+                    ? "border-white/10 bg-[#22262a]"
+                    : "border-neutral-200/60 bg-[#f9f9f8]"
+                }`}
+              >
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-md"
-                  style={{ backgroundColor: brandColor }}
+                  style={{
+                    backgroundColor: brandColor,
+                  }}
                 >
                   <MapPin className="h-5 w-5" />
                 </div>
+
                 <div>
-                  <h4 className="text-sm font-semibold text-neutral-900">
+                  <h4
+                    className={`text-sm font-semibold transition-colors duration-300 ${
+                      isDark ? "text-white" : "text-neutral-900"
+                    }`}
+                  >
                     Baridhara DOHS Office
                   </h4>
+
                   <p
-                    className="mt-1 text-sm leading-relaxed text-neutral-600"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                    className={`mt-1 text-sm leading-relaxed transition-colors duration-300 ${
+                      isDark ? "text-zinc-300" : "text-neutral-600"
+                    }`}
+                    style={{
+                      fontFamily: "var(--font-inter), sans-serif",
+                    }}
                   >
                     House-417, Road-7
                     <br />
@@ -97,9 +131,15 @@ export default function LocationMapSection() {
             </div>
 
             {/* Action / Direction Button */}
-            <div className="mt-8 pt-6 border-t border-neutral-100">
+            <div
+              className={`mt-8 border-t pt-6 transition-colors duration-300 ${
+                isDark ? "border-white/10" : "border-neutral-100"
+              }`}
+            >
               <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(addressQuery)}`}
+                href={`https://maps.google.com/?q=${encodeURIComponent(
+                  addressQuery,
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:opacity-90"
