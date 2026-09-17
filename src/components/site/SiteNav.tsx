@@ -16,7 +16,6 @@ const links = [
   { to: "/pricing", labelKey: "nav.pricing" },
   { to: "/about", labelKey: "nav.about" },
   { to: "/contact", labelKey: "nav.contact" },
-  { to: "/services", labelKey: "nav.services" },
 ] as const;
 
 const FALLBACK_PRIMARY = "#2ed573";
