@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, CheckCircle2, Phone, Eye, FileText } from "lucide-react";
+import { Search, CheckCircle2, Phone, Eye } from "lucide-react";
 
 const summaryCards = [
   {
@@ -15,12 +15,36 @@ const summaryCards = [
     value: "3.00",
     gradient: "from-orange-400 to-rose-500",
   },
-  { title: "This Month Recovered", value: "0.00", gradient: "from-blue-500 to-indigo-700" },
-  { title: "This Month Recovered %", value: "0.00%", gradient: "from-amber-400 to-yellow-600" },
-  { title: "Outstanding Debts", value: "102,799,225", gradient: "from-cyan-500 to-teal-600" },
-  { title: "Outstanding Overdue", value: "10,950,280", gradient: "from-fuchsia-500 to-pink-600" },
-  { title: "Overdue debt %", value: "0.00%", gradient: "from-violet-500 to-purple-700" },
-  { title: "Overdue debt > 30D %", value: "0.00%", gradient: "from-teal-500 to-emerald-600" },
+  {
+    title: "This Month Recovered",
+    value: "0.00",
+    gradient: "from-blue-500 to-indigo-700",
+  },
+  {
+    title: "This Month Recovered %",
+    value: "0.00%",
+    gradient: "from-amber-400 to-yellow-600",
+  },
+  {
+    title: "Outstanding Debts",
+    value: "102,799,225",
+    gradient: "from-cyan-500 to-teal-600",
+  },
+  {
+    title: "Outstanding Overdue",
+    value: "10,950,280",
+    gradient: "from-fuchsia-500 to-pink-600",
+  },
+  {
+    title: "Overdue debt %",
+    value: "0.00%",
+    gradient: "from-violet-500 to-purple-700",
+  },
+  {
+    title: "Overdue debt > 30D %",
+    value: "0.00%",
+    gradient: "from-teal-500 to-emerald-600",
+  },
 ];
 
 const ALL_ROWS = [
@@ -253,16 +277,10 @@ const pendingVouchers = [
   },
 ];
 
-const reportItems = [
-  "Realization Summary Report",
-  "Sale Collection Report",
-  "Aging Report",
-  "Installment Report",
-];
-
 const tabs = ["Today", "Weekly", "Monthly", "Yearly", "All"] as const;
 
-const hideScroll = "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]";
+const hideScroll =
+  "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]";
 
 export default function CreditRealizationPage() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("All");
@@ -313,42 +331,40 @@ export default function CreditRealizationPage() {
   }, [currentPage, totalPages]);
 
   return (
-    <div
-      className="flex flex-col bg-canvas text-ink"
-      style={{ height: "100vh", overflow: "hidden" }}
-    >
-      {/* Top tabs */}
-      <div
-        className="shrink-0 bg-surface border-b border-border px-5 py-2.5 flex items-center gap-1.5"
-        style={{ overflow: "visible", position: "relative", zIndex: 50 }}
-      >
+    <div className="flex flex-col bg-canvas text-ink min-h-screen md:h-screen md:overflow-hidden">
+      {/* Top bar */}
+      <div className="shrink-0 bg-surface border-b border-border px-3 sm:px-5 py-2.5 flex items-center">
         <button
           type="button"
-          className="px-3.5 py-1.5 rounded-md bg-black text-white text-[13px] font-medium shadow-sm shadow-black/6 flex items-center gap-1.5"
+          className="px-3 py-1.5 rounded-md bg-black text-white text-[13px] font-medium shadow-sm flex items-center gap-1.5"
         >
           <span>$</span> Credit Realization (CR)
         </button>
       </div>
 
       {/* Body */}
-      <div className="flex-1 min-h-0 p-4 flex gap-4">
-        {/* LEFT */}
-        <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-3">
-          <div className="shrink-0 grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="flex-1 p-3 sm:p-4 flex flex-col lg:flex-row gap-4 overflow-y-auto md:overflow-hidden">
+        {/* LEFT CONTENT */}
+        <div className="flex-1 min-w-0 flex flex-col gap-3 md:min-h-0">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3">
             {summaryCards.map((card) => (
               <div
                 key={card.title}
-                className={`rounded-lg bg-gradient-to-br ${card.gradient} px-4 py-3 text-white shadow-sm shadow-black/6`}
+                className={`rounded-xl bg-gradient-to-br ${card.gradient} px-3.5 py-3 text-white shadow-sm`}
               >
-                <p className="text-[11px] font-medium opacity-90 leading-snug">{card.title}</p>
-                <p className="mt-1 text-[18px] font-bold tracking-tight tabular-nums">
+                <p className="text-[10px] sm:text-[11px] font-medium opacity-90 leading-snug line-clamp-2">
+                  {card.title}
+                </p>
+                <p className="mt-1 text-[16px] sm:text-[18px] font-bold tracking-tight tabular-nums">
                   {card.value}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="shrink-0 flex flex-wrap items-center justify-between gap-2">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
             <div className="flex items-center gap-2 text-[13px] text-ink-muted">
               <span>Show</span>
               <select
@@ -357,7 +373,7 @@ export default function CreditRealizationPage() {
                   setEntries(Number(e.target.value));
                   setPage(1);
                 }}
-                className="border border-border rounded px-2 py-1 text-[13px] bg-surface text-ink"
+                className="border border-border rounded-md px-2.5 py-1.5 text-[13px] bg-surface text-ink"
               >
                 {[5, 10, 25, 50].map((n) => (
                   <option key={n} value={n}>
@@ -367,8 +383,9 @@ export default function CreditRealizationPage() {
               </select>
               <span>entries</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[13px]">
-              <span className="text-ink-muted">Search:</span>
+
+            <div className="flex items-center gap-2 text-[13px]">
+              <span className="text-ink-muted whitespace-nowrap">Search:</span>
               <input
                 type="text"
                 value={search}
@@ -376,15 +393,16 @@ export default function CreditRealizationPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="border border-border rounded px-2 py-1 text-[13px] w-36 bg-surface text-ink focus:outline-none focus:ring-1 focus:ring-black"
+                placeholder="Project, Customer..."
+                className="border border-border rounded-md px-3 py-1.5 text-[13px] w-full sm:w-44 bg-surface text-ink focus:outline-none focus:ring-1 focus:ring-black"
               />
             </div>
           </div>
 
-          {/* Table – scrollbar hidden */}
-          <div className="flex-1 min-h-0 bg-surface rounded-lg border border-border shadow-sm shadow-black/6 flex flex-col overflow-hidden">
-            <div className={`flex-1 min-h-0 overflow-x-auto overflow-y-hidden ${hideScroll}`}>
-              <table className="w-full text-left text-[12.5px]">
+          {/* Table Card */}
+          <div className="bg-surface rounded-xl border border-border shadow-sm flex flex-col overflow-hidden md:flex-1 md:min-h-0">
+            <div className={`overflow-x-auto ${hideScroll}`}>
+              <table className="w-full text-left text-[12px] sm:text-[12.5px] min-w-[1050px]">
                 <thead>
                   <tr className="bg-black text-white">
                     {[
@@ -404,7 +422,10 @@ export default function CreditRealizationPage() {
                       "NEXT DUE DATE",
                       "ACTION",
                     ].map((h) => (
-                      <th key={h} className="px-2.5 py-2.5 font-semibold whitespace-nowrap">
+                      <th
+                        key={h}
+                        className="px-2.5 py-2.5 font-semibold whitespace-nowrap text-[11px] sm:text-[12px]"
+                      >
                         {h}
                       </th>
                     ))}
@@ -413,50 +434,76 @@ export default function CreditRealizationPage() {
                 <tbody>
                   {pageRows.length === 0 ? (
                     <tr>
-                      <td colSpan={15} className="px-2.5 py-10 text-center text-ink-faint">
+                      <td
+                        colSpan={15}
+                        className="px-4 py-12 text-center text-ink-faint"
+                      >
                         No records found
                       </td>
                     </tr>
                   ) : (
                     pageRows.map((row) => (
-                      <tr key={row.id} className="border-b border-border hover:bg-canvas/70">
-                        <td className="px-2.5 py-2.5 text-ink-muted">{row.id}</td>
-                        <td className="px-2.5 py-2.5 font-medium text-ink">{row.project}</td>
-                        <td className="px-2.5 py-2.5 text-ink">{row.flatLand}</td>
-                        <td className="px-2.5 py-2.5 text-ink">{row.customer}</td>
-                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.totalValue}</td>
-                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.paid}</td>
-                        <td className="px-2.5 py-2.5 tabular-nums font-medium text-rose-500">
+                      <tr
+                        key={row.id}
+                        className="border-b border-border hover:bg-canvas/60 transition-colors"
+                      >
+                        <td className="px-2.5 py-2.5 text-ink-muted">
+                          {row.id}
+                        </td>
+                        <td className="px-2.5 py-2.5 font-medium text-ink">
+                          {row.project}
+                        </td>
+                        <td className="px-2.5 py-2.5 text-ink">
+                          {row.flatLand}
+                        </td>
+                        <td className="px-2.5 py-2.5 text-ink">
+                          {row.customer}
+                        </td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">
+                          {row.totalValue}
+                        </td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">
+                          {row.paid}
+                        </td>
+                        <td className="px-2.5 py-2.5 tabular-nums font-semibold text-rose-500">
                           {row.due}
                         </td>
-                        <td className="px-2.5 py-2.5 text-ink">{row.installmentDate}</td>
+                        <td className="px-2.5 py-2.5 text-ink">
+                          {row.installmentDate}
+                        </td>
                         <td className="px-2.5 py-2.5 tabular-nums text-ink">
                           {row.installmentAmount}
                         </td>
                         <td className="px-2.5 py-2.5 tabular-nums text-ink">
                           {row.installmentDue}
                         </td>
-                        <td className="px-2.5 py-2.5 text-ink-faint">{row.salesBy || ""}</td>
+                        <td className="px-2.5 py-2.5 text-ink-faint">
+                          {row.salesBy || "—"}
+                        </td>
                         <td className="px-2.5 py-2.5 text-center">
-                          <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1 rounded-full bg-rose-500/15 text-rose-500 text-[11px] font-semibold">
+                          <span className="inline-flex items-center justify-center min-w-[26px] h-5 px-1.5 rounded-full bg-rose-500/15 text-rose-500 text-[11px] font-semibold">
                             {row.daysOverdue}
                           </span>
                         </td>
-                        <td className="px-2.5 py-2.5 tabular-nums text-ink">{row.delayAmount}</td>
-                        <td className="px-2.5 py-2.5 text-ink-faint">{row.nextDueDate || ""}</td>
+                        <td className="px-2.5 py-2.5 tabular-nums text-ink">
+                          {row.delayAmount}
+                        </td>
+                        <td className="px-2.5 py-2.5 text-ink-faint">
+                          {row.nextDueDate || "—"}
+                        </td>
                         <td className="px-2.5 py-2.5">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <button
                               type="button"
-                              className="w-7 h-7 rounded-md bg-black text-white flex items-center justify-center hover:bg-slate-800"
+                              className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center hover:bg-slate-800 active:scale-95 transition"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <CheckCircle2 className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
-                              className="w-7 h-7 rounded-md bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600"
+                              className="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600 active:scale-95 transition"
                             >
-                              <Phone className="w-3.5 h-3.5" />
+                              <Phone className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -468,23 +515,24 @@ export default function CreditRealizationPage() {
             </div>
 
             {/* Pagination */}
-            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 border-t border-border text-[13px] text-ink-muted">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 py-3 border-t border-border text-[13px] text-ink-muted">
               <span>
                 Showing {from} to {to} of {total} entries
               </span>
-              <div className="flex items-center gap-1">
+
+              <div className="flex items-center gap-1 flex-wrap">
                 <button
                   type="button"
                   disabled={currentPage <= 1}
                   onClick={() => goPage(currentPage - 1)}
-                  className="px-2.5 py-1 rounded border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed text-ink"
+                  className="px-3 py-1.5 rounded-md border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
 
                 {pageNumbers.map((p, i) =>
                   p === "…" ? (
-                    <span key={`e-${i}`} className="px-1 text-ink-faint">
+                    <span key={`e-${i}`} className="px-1.5 text-ink-faint">
                       …
                     </span>
                   ) : (
@@ -492,10 +540,10 @@ export default function CreditRealizationPage() {
                       key={p}
                       type="button"
                       onClick={() => goPage(p as number)}
-                      className={`min-w-[32px] px-2 py-1 rounded font-medium ${
+                      className={`min-w-[34px] h-8 rounded-md font-medium ${
                         currentPage === p
                           ? "bg-black text-white"
-                          : "border border-border hover:bg-canvas text-ink"
+                          : "border border-border hover:bg-canvas"
                       }`}
                     >
                       {p}
@@ -507,7 +555,7 @@ export default function CreditRealizationPage() {
                   type="button"
                   disabled={currentPage >= totalPages}
                   onClick={() => goPage(currentPage + 1)}
-                  className="px-2.5 py-1 rounded border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed text-ink"
+                  className="px-3 py-1.5 rounded-md border border-border hover:bg-canvas disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -516,62 +564,85 @@ export default function CreditRealizationPage() {
           </div>
         </div>
 
-        {/* RIGHT – scrollbar hidden */}
-        <div className="w-[320px] shrink-0 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 bg-surface rounded-lg border border-border shadow-sm shadow-black/6 flex flex-col overflow-hidden">
-            <div className="shrink-0 flex border-b border-border">
+        {/* RIGHT PANEL - Pending Vouchers */}
+        <div className="w-full lg:w-[320px] shrink-0 flex flex-col">
+          <div className="bg-surface rounded-xl border border-border shadow-sm flex flex-col overflow-hidden lg:h-full">
+            {/* Tabs */}
+            <div className="flex border-b border-border overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 text-[11px] font-semibold ${
-                    activeTab === tab ? "bg-black text-white" : "text-ink-muted hover:bg-canvas"
+                  className={`flex-1 min-w-[64px] py-2.5 text-[11px] font-semibold whitespace-nowrap transition ${
+                    activeTab === tab
+                      ? "bg-black text-white"
+                      : "text-ink-muted hover:bg-canvas"
                   }`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
-            <div className="flex-1 min-h-0 p-3.5 flex flex-col overflow-hidden">
-              <h3 className="shrink-0 text-[13px] font-semibold text-ink text-center mb-3">
-                Pending Voucher/Invoice
+
+            <div className="p-3.5 flex flex-col gap-3 flex-1 min-h-0">
+              <h3 className="text-[13px] font-semibold text-ink text-center">
+                Pending Voucher / Invoice
               </h3>
-              <div className="shrink-0 relative mb-3">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint" />
+
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
                 <input
                   type="text"
-                  placeholder="Search with Project/Code/Reference..."
-                  className="w-full pl-8 pr-2.5 py-1.5 border border-border rounded-md text-[11px] bg-surface text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-black"
+                  placeholder="Search Project / Reference..."
+                  className="w-full pl-9 pr-3 py-2 border border-border rounded-lg text-[12px] bg-surface text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-black"
                 />
               </div>
-              <div className={`flex-1 min-h-0 overflow-y-auto space-y-2.5 ${hideScroll}`}>
+
+              <div
+                className={`flex-1 space-y-3 overflow-y-auto ${hideScroll} max-h-[420px] lg:max-h-none`}
+              >
                 {pendingVouchers.map((item) => (
                   <div
                     key={item.reference}
-                    className="border border-border rounded-lg p-3 bg-surface"
+                    className="border border-border rounded-xl p-3.5 bg-canvas/40 hover:bg-canvas/70 transition"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 text-[11px] leading-relaxed">
+                      <div className="min-w-0 text-[12px] leading-relaxed space-y-0.5">
                         <p className="text-ink-muted">
-                          Reference: <span className="font-medium text-ink">{item.reference}</span>
+                          Reference:{" "}
+                          <span className="font-semibold text-ink">
+                            {item.reference}
+                          </span>
                         </p>
-                        <p className="font-medium text-ink mt-0.5">Project: {item.project}</p>
-                        <p className="text-ink-muted">Contact: {item.contact}</p>
-                        <p className="text-ink-muted">Added By: {item.addedBy}</p>
-                        <p className="text-ink-faint">{item.date}</p>
+                        <p className="font-medium text-ink">
+                          Project: {item.project}
+                        </p>
+                        <p className="text-ink-muted">
+                          Contact: {item.contact}
+                        </p>
+                        <p className="text-ink-muted">
+                          Added By: {item.addedBy}
+                        </p>
+                        <p className="text-ink-faint text-[11px]">
+                          {item.date}
+                        </p>
                       </div>
-                      <span className="shrink-0 px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-500 text-[10px] font-semibold">
+                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-600 text-[10px] font-semibold">
                         Offer
                       </span>
                     </div>
-                    <p className="text-[11px] text-rose-500 font-medium mt-1.5">{item.note}</p>
-                    <div className="flex justify-end mt-2">
+
+                    <p className="text-[12px] text-rose-500 font-medium mt-2">
+                      {item.note}
+                    </p>
+
+                    <div className="flex justify-end mt-3">
                       <button
                         type="button"
-                        className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center hover:bg-slate-800"
+                        className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-slate-800 active:scale-95 transition"
                       >
-                        <Eye className="w-3 h-3" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
