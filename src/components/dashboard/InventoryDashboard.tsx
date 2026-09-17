@@ -8,7 +8,6 @@ import {
   Boxes,
   ChevronDown,
   ClipboardList,
-  Download,
   Eye,
   LayoutDashboard,
   MoreVertical,
@@ -22,7 +21,6 @@ import {
 } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 /* ============================================================
@@ -276,7 +274,6 @@ function getDefaultDashboardData(): DashboardApiResponse {
     quickCards: QUICK_CARD_KEYS.reduce(
       (acc, key) => {
         acc[key] = SAMPLE_QUICK_CARDS[key];
-
         return acc;
       },
       {} as Record<QuickCardKey, QuickCardApiData>,
@@ -312,7 +309,6 @@ function normalizeDashboardResponse(
   const quickCards = QUICK_CARD_KEYS.reduce(
     (acc, key) => {
       const item = raw.quickCards?.[key];
-
       const sample = fallback.quickCards[key];
 
       acc[key] = {
@@ -351,15 +347,17 @@ function normalizeDashboardResponse(
           : fallback.purchaseDonut.currentPercent,
     },
 
-    purchaseVsConsumption: Array.isArray(raw.purchaseVsConsumption)
-      ? raw.purchaseVsConsumption.map((p) => ({
-          label: p?.label ?? "",
+    purchaseVsConsumption:
+      Array.isArray(raw.purchaseVsConsumption) &&
+      raw.purchaseVsConsumption.length > 0
+        ? raw.purchaseVsConsumption.map((p) => ({
+            label: p?.label ?? "",
 
-          purchase: typeof p?.purchase === "number" ? p.purchase : 0,
+            purchase: typeof p?.purchase === "number" ? p.purchase : 0,
 
-          consumption: typeof p?.consumption === "number" ? p.consumption : 0,
-        }))
-      : fallback.purchaseVsConsumption,
+            consumption: typeof p?.consumption === "number" ? p.consumption : 0,
+          }))
+        : fallback.purchaseVsConsumption,
 
     pendingItems: Array.isArray(raw.pendingItems)
       ? raw.pendingItems
@@ -388,6 +386,8 @@ async function fetchDashboardData(
         headers: {
           Accept: "application/json",
         },
+
+        cache: "no-store",
       },
     );
 
@@ -416,10 +416,8 @@ async function fetchDashboardData(
 type Accent = {
   donutActive: string;
   donutRest: string;
-
   barPurchase: string;
   barConsumption: string;
-
   dotPurchase: string;
   dotConsumption: string;
 };
@@ -604,9 +602,9 @@ function buildSparklinePaths(trend: number[], width = 100, height = 28) {
 
     const cp2y = p2.y - (p3.y - p1.y) / 6;
 
-    line += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(
+    line += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(
       1,
-    )}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    )} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
   }
 
   const area = `${line} L ${points[points.length - 1].x.toFixed(
@@ -732,10 +730,14 @@ function QuickCardItem({
         focus:ring-ring
       `}
     >
-      {/* Icon + Change */}
       <div className="flex items-center justify-between">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full ${config.iconBg}`}
+          className={`
+            flex h-10 w-10
+            items-center justify-center
+            rounded-full
+            ${config.iconBg}
+          `}
         >
           <Icon className={`h-5 w-5 ${config.iconColor}`} />
         </div>
@@ -762,7 +764,6 @@ function QuickCardItem({
         </span>
       </div>
 
-      {/* Title + Value */}
       <div className="mt-3">
         <p className="text-[11px] font-medium text-muted-foreground">
           {config.title}
@@ -777,7 +778,6 @@ function QuickCardItem({
         </p>
       </div>
 
-      {/* Sparkline */}
       <svg
         viewBox="0 0 100 28"
         preserveAspectRatio="none"
@@ -816,7 +816,6 @@ function QuickCardItem({
         />
       </svg>
 
-      {/* Hover Icon */}
       <span
         className="
           pointer-events-none absolute right-3
@@ -966,7 +965,7 @@ function PurchaseDonut({
 }
 
 /* ============================================================
-   PURCHASE VS CONSUMPTION (Fully Responsive Fix)
+   PURCHASE VS CONSUMPTION
 ============================================================ */
 
 function PurchaseConsumptionChart({
@@ -1010,19 +1009,16 @@ function PurchaseConsumptionChart({
 
   return (
     <div className="mt-3 w-full overflow-hidden">
-      {/* Scrollable container for mobile / small widths to prevent overflow */}
       <div className="w-full overflow-x-auto pb-2">
-        <div className="min-w-85">
+        <div className="min-w-[340px]">
           <div className="flex h-44 gap-2">
-            {/* Y axis */}
-            <div className="flex h-full flex-col justify-between pb-6 text-right text-[9px] text-muted-foreground shrink-0 w-12">
+            <div className="flex h-full w-12 shrink-0 flex-col justify-between pb-6 text-right text-[9px] text-muted-foreground">
               {yTicks.map((tick, index) => (
                 <span key={index}>{tick.toLocaleString()}</span>
               ))}
             </div>
 
-            <div className="relative flex flex-1 items-end gap-3 sm:gap-6 px-2">
-              {/* Grid */}
+            <div className="relative flex flex-1 items-end gap-3 px-2 sm:gap-6">
               <div className="pointer-events-none absolute inset-x-0 bottom-6 top-0 flex flex-col justify-between">
                 {yTicks.map((_, index) => (
                   <div
@@ -1035,13 +1031,14 @@ function PurchaseConsumptionChart({
               {safePoints.map((point, index) => (
                 <div
                   key={index}
-                  className="relative z-10 flex h-full flex-1 items-end justify-center gap-1.5 sm:gap-2 pb-6 min-w-8"
+                  className="relative z-10 flex h-full min-w-8 flex-1 items-end justify-center gap-1.5 pb-6 sm:gap-2"
                 >
                   {/* Purchase */}
-                  <div className="relative flex h-full w-4 sm:w-8 flex-col justify-end">
+
+                  <div className="relative flex h-full w-4 flex-col justify-end sm:w-8">
                     {hovered?.idx === index &&
                       hovered.series === "purchase" && (
-                        <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg z-20">
+                        <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg">
                           {point.label}: {point.purchase.toLocaleString()}
                         </div>
                       )}
@@ -1055,10 +1052,16 @@ function PurchaseConsumptionChart({
                       }
                       onMouseLeave={() => setHovered(null)}
                       className={`
-                          cursor-default rounded-t-md
-                          transition-all duration-500 w-full
+                          w-full cursor-default
+                          rounded-t-md
+                          transition-all duration-500
                           ${accent.barPurchase}
-                          ${hovered?.idx === index && hovered.series === "purchase" ? "opacity-75" : ""}
+                          ${
+                            hovered?.idx === index &&
+                            hovered.series === "purchase"
+                              ? "opacity-75"
+                              : ""
+                          }
                         `}
                       style={{
                         height: `${
@@ -1074,10 +1077,11 @@ function PurchaseConsumptionChart({
                   </div>
 
                   {/* Consumption */}
-                  <div className="relative flex h-full w-4 sm:w-8 flex-col justify-end">
+
+                  <div className="relative flex h-full w-4 flex-col justify-end sm:w-8">
                     {hovered?.idx === index &&
                       hovered.series === "consumption" && (
-                        <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg z-20">
+                        <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg">
                           {point.label}: {point.consumption.toLocaleString()}
                         </div>
                       )}
@@ -1091,8 +1095,9 @@ function PurchaseConsumptionChart({
                       }
                       onMouseLeave={() => setHovered(null)}
                       className={`
-                          cursor-default rounded-t-md
-                          transition-all duration-500 w-full
+                          w-full cursor-default
+                          rounded-t-md
+                          transition-all duration-500
                           ${accent.barConsumption}
                           ${
                             hovered?.idx === index &&
@@ -1114,7 +1119,7 @@ function PurchaseConsumptionChart({
                     />
                   </div>
 
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center text-[9px] text-muted-foreground truncate w-full">
+                  <span className="absolute bottom-0 left-1/2 w-full -translate-x-1/2 truncate text-center text-[9px] text-muted-foreground">
                     {point.label}
                   </span>
                 </div>
@@ -1124,7 +1129,6 @@ function PurchaseConsumptionChart({
         </div>
       </div>
 
-      {/* Legend */}
       <div className="mt-3 flex justify-center gap-5 text-[10px] text-muted-foreground">
         <div className="flex items-center gap-1">
           <span className={`h-2 w-2 rounded-sm ${accent.dotPurchase}`} />
@@ -1185,7 +1189,7 @@ function OverflowMaterialTable({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-212.5 border-collapse">
+        <table className="w-full min-w-[850px] border-collapse">
           <thead>
             <tr className="bg-primary/10 text-[9px] uppercase text-muted-foreground">
               <th className="px-3 py-2 text-left">SL</th>
@@ -1266,10 +1270,8 @@ function OverflowMaterialTable({
                     <StatusBadge status={row.status} />
                   </td>
 
-                  {/* Actions */}
                   <td className="px-3 py-2">
                     <div className="flex items-center justify-center gap-1">
-                      {/* View */}
                       <button
                         type="button"
                         title="View"
@@ -1289,7 +1291,6 @@ function OverflowMaterialTable({
                         <Eye className="h-3.5 w-3.5" />
                       </button>
 
-                      {/* Update */}
                       <button
                         type="button"
                         title="Update"
@@ -1309,7 +1310,6 @@ function OverflowMaterialTable({
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
 
-                      {/* Delete */}
                       <button
                         type="button"
                         title="Delete"
@@ -1403,8 +1403,9 @@ function PendingPanel({
   }, [items, search]);
 
   return (
-    <div className="flex h-full min-h-145 flex-col rounded-xl border border-border bg-card shadow-sm">
+    <div className="flex h-full min-h-[580px] flex-col rounded-xl border border-border bg-card shadow-sm">
       {/* Header */}
+
       <div className="border-b border-border p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -1434,6 +1435,7 @@ function PendingPanel({
         </div>
 
         {/* Period */}
+
         <div className="mt-4 flex items-center gap-1 rounded-lg bg-muted p-1">
           {PERIOD_OPTIONS.map((option) => (
             <button
@@ -1458,6 +1460,7 @@ function PendingPanel({
         </div>
 
         {/* Search */}
+
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
 
@@ -1483,6 +1486,7 @@ function PendingPanel({
       </div>
 
       {/* Items */}
+
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {isLoading && (
           <p className="p-4 text-center text-[10px] text-muted-foreground">
@@ -1510,7 +1514,6 @@ function PendingPanel({
                 "
             >
               <div className="flex items-start justify-between gap-3">
-                {/* Info */}
                 <div className="min-w-0 space-y-1">
                   <p className="text-[10px] font-semibold text-muted-foreground">
                     Reference
@@ -1533,27 +1536,23 @@ function PendingPanel({
                   </p>
                 </div>
 
-                {/* Type + Reference */}
                 <div className="flex shrink-0 flex-col items-end">
                   <span className="rounded bg-orange-100 px-2 py-1 text-[9px] font-semibold text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
                     {item.type}
                   </span>
 
-                  <p className="mt-2 max-w-30 truncate text-[9px] font-medium text-muted-foreground">
+                  <p className="mt-2 max-w-[120px] truncate text-[9px] font-medium text-muted-foreground">
                     {item.reference}
                   </p>
                 </div>
               </div>
 
-              {/* Bottom */}
               <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2">
                 <p className="text-[9px] font-medium text-red-500">
                   Approval Layer has not been set yet.
                 </p>
 
-                {/* Actions */}
                 <div className="flex items-center gap-1">
-                  {/* View */}
                   <button
                     type="button"
                     title="View"
@@ -1574,7 +1573,6 @@ function PendingPanel({
                     <Eye className="h-3.5 w-3.5" />
                   </button>
 
-                  {/* Update */}
                   <button
                     type="button"
                     title="Update"
@@ -1595,7 +1593,6 @@ function PendingPanel({
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
 
-                  {/* Delete */}
                   <button
                     type="button"
                     title="Delete"
@@ -1622,6 +1619,7 @@ function PendingPanel({
       </div>
 
       {/* Footer */}
+
       <div className="border-t border-border px-4 py-2">
         <div className="flex items-center justify-between text-[9px] text-muted-foreground">
           <span>
@@ -1700,7 +1698,6 @@ function PeriodDropdown({
               type="button"
               onClick={() => {
                 onChange(option);
-
                 setOpen(false);
               }}
               className={`
@@ -1737,52 +1734,76 @@ export default function InventoryDashboard() {
     getDefaultDashboardData(),
   );
 
-  const [isLoading, setIsLoading] = useState(true);
+  /*
+   * IMPORTANT:
+   * false রাখছি যাতে initial sample data immediately show করে।
+   */
+  const [isLoading, setIsLoading] = useState(false);
 
-  /* ============================================================
+  /* ==========================================================
      LOAD DATA
-  ============================================================ */
+  ========================================================== */
 
   const loadData = useCallback(
-    (selectedPeriod: Period, signal?: AbortSignal) => {
+    async (selectedPeriod: Period, signal?: AbortSignal) => {
       setIsLoading(true);
 
-      fetchDashboardData(selectedPeriod, signal)
-        .then((result) => {
-          setData(result);
-        })
-        .catch((error) => {
-          if ((error as Error).name !== "AbortError") {
-            console.error(error);
+      try {
+        const result = await fetchDashboardData(selectedPeriod, signal);
 
+        /*
+         * পুরোনো request abort হলে
+         * data update করবে না।
+         */
+        if (!signal?.aborted) {
+          setData(result);
+        }
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error("Dashboard loading error:", error);
+
+          if (!signal?.aborted) {
             setData(getDefaultDashboardData());
           }
-        })
-        .finally(() => {
+        }
+      } finally {
+        /*
+         * Abort হওয়ার পরে নতুন request-এর
+         * loading state false করবে না।
+         */
+        if (!signal?.aborted) {
           setIsLoading(false);
-        });
+        }
+      }
     },
     [],
   );
 
-  // useEffect(() => {
-  //   const controller = new AbortController();
+  /* ==========================================================
+     FETCH WHEN PERIOD CHANGES
+  ========================================================== */
 
-  //   loadData(period, controller.signal);
-  //   return () => controller.abort();
-  // }, [period, loadData]);
+  useEffect(() => {
+    const controller = new AbortController();
 
-  /* ============================================================
+    loadData(period, controller.signal);
+
+    return () => {
+      controller.abort();
+    };
+  }, [period, loadData]);
+
+  /* ==========================================================
      THEME
-  ============================================================ */
+  ========================================================== */
 
   const accent = PERIOD_ACCENTS[period];
 
   const periodLabel = PERIOD_COMPARISON_LABEL[period];
 
-  /* ============================================================
+  /* ==========================================================
      NAVIGATION
-  ============================================================ */
+  ========================================================== */
 
   const handleNavigate = useCallback(
     (href: string) => {
@@ -1791,9 +1812,9 @@ export default function InventoryDashboard() {
     [router],
   );
 
-  /* ============================================================
+  /* ==========================================================
      PENDING ACTIONS
-  ============================================================ */
+  ========================================================== */
 
   const handleViewPending = useCallback(
     (item: PendingApiItem) => {
@@ -1827,9 +1848,9 @@ export default function InventoryDashboard() {
     console.log("Delete pending item:", item);
   }, []);
 
-  /* ============================================================
+  /* ==========================================================
      OVERFLOW MATERIAL ACTIONS
-  ============================================================ */
+  ========================================================== */
 
   const handleViewOverflow = useCallback(
     (row: OverflowMaterialRow) => {
@@ -1861,9 +1882,9 @@ export default function InventoryDashboard() {
     console.log("Delete overflow material:", row);
   }, []);
 
-  /* ============================================================
+  /* ==========================================================
      HEADER ACTIONS
-  ============================================================ */
+  ========================================================== */
 
   const handleViewAllOverflow = useCallback(() => {
     router.push("/inventory/overflow-material");
@@ -1877,16 +1898,16 @@ export default function InventoryDashboard() {
     console.log("Purchase vs Consumption menu");
   }, []);
 
-  /* ============================================================
+  /* ==========================================================
      RENDER
-  ============================================================ */
+  ========================================================== */
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className=" space-y-5 p-2 md:p-3">
-        {/* ======================================================
+      <div className="space-y-5 p-2 md:p-3">
+        {/* ====================================================
             PAGE HEADER
-        ====================================================== */}
+        ==================================================== */}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -1910,9 +1931,9 @@ export default function InventoryDashboard() {
           </div>
         </div>
 
-        {/* ======================================================
+        {/* ====================================================
             QUICK CARDS
-        ====================================================== */}
+        ==================================================== */}
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           {QUICK_CARDS_CONFIG.map((config) => (
@@ -1927,38 +1948,18 @@ export default function InventoryDashboard() {
           ))}
         </div>
 
-        {/* ======================================================
-            MAIN DASHBOARD
-        ====================================================== */}
-
         {/* ====================================================
-      LEFT CONTENT
-  ==================================================== */}
+            MAIN DASHBOARD
+        ==================================================== */}
 
-        <div className="space-y-5 ">
-          {/* Overflow Material */}
-          <div className="rounded border border-border bg-card p-4 shadow-sm">
-            <CardHeader
-              icon={Boxes}
-              iconBg="bg-emerald-100 dark:bg-emerald-500/15"
-              iconColor="text-emerald-600 dark:text-emerald-400"
-              title="Overflow Material"
-              action="viewAll"
-              onAction={handleViewAllOverflow}
-            />
+        <div className="space-y-5">
+          {/* ==================================================
+              CHARTS
+          ================================================== */}
 
-            <OverflowMaterialTable
-              rows={data.overflowMaterial}
-              isLoading={isLoading}
-              onView={handleViewOverflow}
-              onUpdate={handleUpdateOverflow}
-              onDelete={handleDeleteOverflow}
-            />
-          </div>
-
-          {/* Charts - Stacked Vertically (Ekta niche arekta) */}
-          <div className=" grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Purchase */}
+
             <div className="rounded border border-border bg-card p-4 shadow-sm">
               <CardHeader
                 icon={PieChart}
@@ -1980,6 +1981,7 @@ export default function InventoryDashboard() {
             </div>
 
             {/* Purchase vs Consumption */}
+
             <div className="rounded border border-border bg-card p-4 shadow-sm">
               <CardHeader
                 icon={BarChart3}
@@ -1997,13 +1999,36 @@ export default function InventoryDashboard() {
               />
             </div>
           </div>
+
+          {/* ==================================================
+              OVERFLOW MATERIAL
+          ================================================== */}
+
+          <div className="rounded border border-border bg-card p-4 shadow-sm">
+            <CardHeader
+              icon={Boxes}
+              iconBg="bg-emerald-100 dark:bg-emerald-500/15"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+              title="Overflow Material"
+              action="viewAll"
+              onAction={handleViewAllOverflow}
+            />
+
+            <OverflowMaterialTable
+              rows={data.overflowMaterial}
+              isLoading={isLoading}
+              onView={handleViewOverflow}
+              onUpdate={handleUpdateOverflow}
+              onDelete={handleDeleteOverflow}
+            />
+          </div>
         </div>
 
-        <section className="">
-          {/* ====================================================
-      RIGHT CONTENT
-  ==================================================== */}
+        {/* ====================================================
+            PENDING VOUCHER / INVOICE
+        ==================================================== */}
 
+        <section>
           <div className="min-w-0">
             <PendingPanel
               period={period}
