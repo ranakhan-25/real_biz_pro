@@ -72,22 +72,22 @@ projects
   project
   site
   report
-    project-summary
-    project-details
+
+    project-details 
+    at_a_glance_project_summary_report
+    project-summary-report
+    project-financial-report
+    project-progress-report 
+    project-wise-income-statement
+    site-wise-income-statement
 contract
   customer-accounts
   supplier-accounts
   labour-work-bank
   contractor
-  report
-    at-a-glance
-    project-summary-report
 investments
   investor
   configuration
-  report
-    project-financial-report
-    project-progress-report
 share-project
   assign-share
   share-report
@@ -95,9 +95,6 @@ share-project
   penalty-report
   share-holders-point-report
   project-share-configuration
-  report
-    project-wise-income-statement
-    site-wise-income-statement
 requisition
   material-requisition
   service-work-requisition
