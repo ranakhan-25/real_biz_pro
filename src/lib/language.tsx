@@ -902,8 +902,8 @@ const translations: Translations = {
 
     "legacy.eyebrow": "রিয়েলবিজের গল্প",
     "legacy.title": "অপারেটরদের দ্বারা, অপারেটরদের জন্য তৈরি",
-    "legacy.titleLine1": "প্রবৃদ্ধির",
-    "legacy.titleAccent": "নীলনকশা",
+    "legacy.titleLine1": "দ্য ব্লুপ্রিন্ট ",
+    "legacy.titleAccent": "অব গ্রোথ",
     "legacy.paragraph1":
       "RealBiz শুরু হয়েছিল একটি সাধারণ পর্যবেক্ষণ থেকে: রিয়েল এস্টেট টিমগুলো কোটি টাকার কার্যক্রম চালাচ্ছিল স্প্রেডশিট আর গ্রুপ চ্যাটের উপর ভিত্তি করে। লিড হারিয়ে যেত, ফলো-আপ মিস হতো, আর মালিকদের ব্যবসার কোনো একক দৃষ্টিভঙ্গি ছিল না।",
     "legacy.paragraph2":
