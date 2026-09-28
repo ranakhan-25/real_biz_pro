@@ -1,81 +1,66 @@
 "use client";
 
-import { Loader2, Save, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import {
   createUser,
   getUserFormDropdowns,
   updateUser,
+  type CreateUserPayload,
+  type UpdateUserPayload,
   type User,
 } from "@/services/userService";
-import { useTheme } from "@/lib/theme";
 
 interface UserFormProps {
   user?: User | null;
-  onSuccess?: (savedUser: User) => void;
+  onSuccess?: (user: User) => void;
   onCancel?: () => void;
 }
 
-const initialValues = {
+interface FormValues {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  phone: string;
+  designationId: string;
+  roleId: string;
+  isActive: boolean;
+  password: string;
+}
+
+interface DropdownItem {
+  id: number | string;
+  name: string;
+}
+
+const initialValues: FormValues = {
   firstName: "",
   lastName: "",
   username: "",
   email: "",
   phone: "",
-  userType: "organization" as "organization" | "system",
   designationId: "",
-  companyId: "",
   roleId: "",
   isActive: true,
   password: "",
 };
 
 export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
-  const { primaryColor } = useTheme();
+  const [form, setForm] = useState<FormValues>(initialValues);
 
-  const [form, setForm] = useState(initialValues);
+  const [designations, setDesignations] = useState<DropdownItem[]>([]);
+  const [roles, setRoles] = useState<DropdownItem[]>([]);
+
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [dropdowns, setDropdowns] = useState({
-    designations: [] as Array<{ id: number | string; name: string }>,
-    roles: [] as Array<{ id: number | string; name: string }>,
-    modules: [] as Array<{ id: number | string; name: string }>,
-    companies: [] as Array<{ id: number | string; name: string }>,
-  });
+  const [dropdownLoading, setDropdownLoading] = useState(false);
 
-  useEffect(() => {
-    let alive = true;
+  const isEdit = Boolean(user);
 
-    const loadDropdowns = async () => {
-      try {
-        const source = await getUserFormDropdowns();
-        if (!alive) return;
-        setDropdowns({
-          designations: source.designations ?? [],
-          roles: source.roles ?? [],
-          modules: source.modules ?? [],
-          companies: source.companies ?? [],
-        });
-      } catch {
-        if (alive) {
-          setDropdowns({
-            designations: [],
-            roles: [],
-            modules: [],
-            companies: [],
-          });
-        }
-      }
-    };
-
-    loadDropdowns();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
+  // ------------------------------------------
+  // Populate form when editing
+  // ------------------------------------------
   useEffect(() => {
     if (!user) {
       setForm(initialValues);
@@ -88,401 +73,447 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       username: user.username ?? "",
       email: user.email ?? "",
       phone: user.phone ?? "",
-      userType: (user.userType as "organization" | "system") || "organization",
-      designationId: user.designationId ? String(user.designationId) : "",
-      companyId: "",
-      roleId: "",
+
+      designationId:
+        user.designationId !== undefined && user.designationId !== null
+          ? String(user.designationId)
+          : "",
+
+      roleId:
+        Array.isArray(user.roleIds) && user.roleIds.length > 0
+          ? String(user.roleIds[0])
+          : "",
+
       isActive: user.isActive ?? true,
+
+      // Never populate existing password
       password: "",
     });
   }, [user]);
 
-  const roleOptions = useMemo(() => dropdowns.roles ?? [], [dropdowns.roles]);
-  const moduleOptions = useMemo(
-    () => dropdowns.modules ?? [],
-    [dropdowns.modules],
-  );
-  const companyOptions = useMemo(
-    () => dropdowns.companies ?? [],
-    [dropdowns.companies],
-  );
-  const designationOptions = useMemo(
-    () => dropdowns.designations ?? [],
-    [dropdowns.designations],
-  );
+  // ------------------------------------------
+  // Load dropdown data
+  // ------------------------------------------
+  useEffect(() => {
+    let mounted = true;
 
+    const loadDropdowns = async () => {
+      try {
+        setDropdownLoading(true);
+
+        const data = await getUserFormDropdowns();
+
+        if (!mounted) return;
+
+        setDesignations(
+          Array.isArray(data.designations) ? data.designations : [],
+        );
+
+        setRoles(Array.isArray(data.roles) ? data.roles : []);
+      } catch (error) {
+        console.error("Failed to load user form dropdowns:", error);
+
+        if (mounted) {
+          toast.error("Failed to load form data");
+        }
+      } finally {
+        if (mounted) {
+          setDropdownLoading(false);
+        }
+      }
+    };
+
+    loadDropdowns();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ------------------------------------------
+  // Handle input changes
+  // ------------------------------------------
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value, type } = event.target;
+    const { name, value, type } = e.target;
 
-    setForm((current) => ({
-      ...current,
+    setForm((prev) => ({
+      ...prev,
       [name]:
-        type === "checkbox"
-          ? (event.target as HTMLInputElement).checked
-          : value,
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError("");
-    setSaving(true);
+  // ------------------------------------------
+  // Submit
+  // ------------------------------------------
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Validation
+    if (!form.firstName.trim()) {
+      toast.error("First name is required");
+      return;
+    }
+
+    if (!form.lastName.trim()) {
+      toast.error("Last name is required");
+      return;
+    }
+
+    if (!form.username.trim()) {
+      toast.error("Username is required");
+      return;
+    }
+
+    if (!form.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    if (!isEdit && !form.password.trim()) {
+      toast.error("Password is required");
+      return;
+    }
+
+    if (form.password.trim() && form.password.trim().length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
 
     try {
-      const payload = {
-        email: form.email.trim(),
+      setLoading(true);
+
+      // ----------------------------------------
+      // Common payload
+      // ----------------------------------------
+      const basePayload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        phone: form.phone.trim(),
         username: form.username.trim(),
-        isActive: Boolean(form.isActive),
+        email: form.email.trim(),
+
+        phone: form.phone.trim() || undefined,
+
+        isActive: form.isActive,
+
         designationId: form.designationId
           ? Number(form.designationId)
           : undefined,
-        userType: form.userType,
-        ...(user ? {} : { password: form.password.trim() || "Password123!" }),
+
+        roleIds: form.roleId ? [Number(form.roleId)] : [],
+
+        // This form is ONLY for System User
+        userType: "system" as const,
       };
 
-      if (
-        !payload.email ||
-        !payload.username ||
-        !payload.firstName ||
-        !payload.lastName
-      ) {
-        throw new Error(
-          "First name, last name, username, and email are required.",
-        );
+      let saved: User;
+
+      // ----------------------------------------
+      // UPDATE
+      // ----------------------------------------
+      if (user) {
+        const updatePayload = {
+          ...basePayload,
+
+          ...(form.password.trim()
+            ? {
+                password: form.password.trim(),
+              }
+            : {}),
+        } satisfies UpdateUserPayload;
+
+        const identifier = String(user.uuid ?? user.id);
+
+        saved = await updateUser(identifier, updatePayload);
+
+        toast.success("System user updated successfully");
       }
 
-      const saved = user
-        ? await updateUser(String(user.uuid ?? user.id), payload)
-        : await createUser(payload as any);
+      // ----------------------------------------
+      // CREATE
+      // ----------------------------------------
+      else {
+        const createPayload = {
+          ...basePayload,
+          password: form.password.trim(),
+        } satisfies CreateUserPayload;
 
+        saved = await createUser(createPayload);
+
+        toast.success("System user created successfully");
+      }
+
+      // ----------------------------------------
+      // Callback
+      // ----------------------------------------
       onSuccess?.(saved);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save user.");
+
+      // Reset after create
+      if (!isEdit) {
+        setForm(initialValues);
+      }
+    } catch (error) {
+      console.error("User save error:", error);
+
+      const message =
+        error instanceof Error ? error.message : "Failed to save system user";
+
+      toast.error(message);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  const focusStyle = {
-    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-      e.currentTarget.style.borderColor = primaryColor;
-      e.currentTarget.style.boxShadow = `0 0 0 3px ${primaryColor}20`;
-    },
-    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-      e.currentTarget.style.borderColor = "";
-      e.currentTarget.style.boxShadow = "";
-    },
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* User Type */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          User Type
+        </label>
+
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+          <span className="text-sm font-medium text-gray-800">System User</span>
+        </div>
+      </div>
+
+      {/* Name */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* First Name */}
         <div>
-          <h2
-            id="user-form-heading"
-            className="text-lg font-bold text-slate-900"
+          <label
+            htmlFor="firstName"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
-            {user ? "Edit User" : "Create User"}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {user
-              ? "Update the selected account details."
-              : "Add a new platform user."}
-          </p>
-        </div>
+            First Name
+          </label>
 
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"
-          aria-label="Close form"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      {/* ===================== 2 TABS ===================== */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
-        <button
-          type="button"
-          onClick={() =>
-            setForm((prev) => ({ ...prev, userType: "organization" }))
-          }
-          className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
-            form.userType === "organization"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          style={
-            form.userType === "organization"
-              ? { color: primaryColor }
-              : undefined
-          }
-        >
-          Organization User
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setForm((prev) => ({ ...prev, userType: "system" }))}
-          className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
-            form.userType === "system"
-              ? "bg-white shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          style={
-            form.userType === "system" ? { color: primaryColor } : undefined
-          }
-        >
-          System User
-        </button>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-
-      {/* Form Fields */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>First Name</span>
           <input
+            id="firstName"
             name="firstName"
+            type="text"
             value={form.firstName}
             onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+            placeholder="Enter first name"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           />
-        </label>
+        </div>
 
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Last Name</span>
+        {/* Last Name */}
+        <div>
+          <label
+            htmlFor="lastName"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Last Name
+          </label>
+
           <input
+            id="lastName"
             name="lastName"
+            type="text"
             value={form.lastName}
             onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+            placeholder="Enter last name"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           />
-        </label>
+        </div>
+      </div>
 
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Username</span>
+      {/* Username & Email */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Username */}
+        <div>
+          <label
+            htmlFor="username"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Username
+          </label>
+
           <input
+            id="username"
             name="username"
+            type="text"
             value={form.username}
             onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+            placeholder="Enter username"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           />
-        </label>
+        </div>
 
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Email</span>
+        {/* Email */}
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Email
+          </label>
+
           <input
+            id="email"
             name="email"
             type="email"
             value={form.email}
             onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+            placeholder="Enter email address"
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           />
+        </div>
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label
+          htmlFor="phone"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Phone
         </label>
 
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Phone</span>
-          <input
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
-          />
-        </label>
+        <input
+          id="phone"
+          name="phone"
+          type="tel"
+          value={form.phone}
+          onChange={handleChange}
+          placeholder="Enter phone number"
+          disabled={loading}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+        />
+      </div>
 
-        {/* Organization User → Company */}
-        {form.userType === "organization" && (
-          <label className="space-y-2 text-sm text-slate-600">
-            <span>Company</span>
-            <select
-              name="companyId"
-              value={form.companyId || ""}
-              onChange={handleChange}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-              {...focusStyle}
-            >
-              <option value="">Select company</option>
-              {companyOptions.map((option) => (
-                <option key={String(option.id)} value={String(option.id)}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
-        {/* System User → Role */}
-        {form.userType === "system" && (
-          <label className="space-y-2 text-sm text-slate-600">
-            <span>Role</span>
-            <select
-              name="roleId"
-              value={form.roleId || ""}
-              onChange={handleChange}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-              {...focusStyle}
-            >
-              <option value="">Select role</option>
-              {roleOptions.map((option) => (
-                <option key={String(option.id)} value={String(option.id)}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-
+      {/* Designation & Role */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Designation */}
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Designation</span>
+        <div>
+          <label
+            htmlFor="designationId"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Designation
+          </label>
+
           <select
+            id="designationId"
             name="designationId"
             value={form.designationId}
             onChange={handleChange}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+            disabled={dropdownLoading || loading}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           >
-            <option value="">Select designation</option>
-            {designationOptions.map((option) => (
-              <option key={String(option.id)} value={String(option.id)}>
-                {option.name}
+            <option value="">
+              {dropdownLoading ? "Loading..." : "Select designation"}
+            </option>
+
+            {designations.map((designation) => (
+              <option key={designation.id} value={designation.id}>
+                {designation.name}
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        {/* Status */}
-        <label className="space-y-2 text-sm text-slate-600">
-          <span>Status</span>
-          <select
-            name="isActive"
-            value={String(form.isActive)}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                isActive: event.target.value === "true",
-              }))
-            }
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-            {...focusStyle}
+        {/* Role */}
+        <div>
+          <label
+            htmlFor="roleId"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
-        </label>
-
-        {/* Password - only on create */}
-        {!user && (
-          <label className="space-y-2 text-sm text-slate-600 md:col-span-2">
-            <span>Password</span>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none"
-              {...focusStyle}
-            />
+            Role
           </label>
-        )}
+
+          <select
+            id="roleId"
+            name="roleId"
+            value={form.roleId}
+            onChange={handleChange}
+            disabled={dropdownLoading || loading}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+          >
+            <option value="">
+              {dropdownLoading ? "Loading..." : "Select role"}
+            </option>
+
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Optional sections */}
-      {roleOptions.length > 0 && (
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Available roles
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {roleOptions.map((option) => (
-              <span
-                key={String(option.id)}
-                className="rounded-full bg-white px-2 py-1 text-xs text-slate-600 shadow-sm"
-              >
-                {option.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {moduleOptions.length > 0 && (
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Available modules
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {moduleOptions.map((option) => (
-              <span
-                key={String(option.id)}
-                className="rounded-full bg-white px-2 py-1 text-xs text-slate-600 shadow-sm"
-              >
-                {option.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {companyOptions.length > 0 && (
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Available companies
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {companyOptions.map((option) => (
-              <span
-                key={String(option.id)}
-                className="rounded-full bg-white px-2 py-1 text-xs text-slate-600 shadow-sm"
-              >
-                {option.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Footer Buttons */}
-      <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="h-10 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600"
+      {/* Password */}
+      <div>
+        <label
+          htmlFor="password"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
-          Cancel
-        </button>
+          Password
+          {isEdit && (
+            <span className="ml-2 text-xs font-normal text-gray-500">
+              Leave blank to keep current password
+            </span>
+          )}
+        </label>
+
+        <input
+          id="password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder={isEdit ? "Enter new password" : "Enter password"}
+          disabled={loading}
+          minLength={6}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+        />
+      </div>
+
+      {/* Active Status */}
+      <div className="flex items-center gap-3">
+        <input
+          id="isActive"
+          name="isActive"
+          type="checkbox"
+          checked={form.isActive}
+          onChange={handleChange}
+          disabled={loading}
+          className="h-4 w-4 rounded border-gray-300"
+        />
+
+        <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+          Active User
+        </label>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-5">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        )}
 
         <button
           type="submit"
-          disabled={saving}
-          className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          style={{ backgroundColor: primaryColor }}
+          disabled={loading}
+          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          {saving ? "Saving..." : user ? "Save Changes" : "Create User"}
+          {loading ? "Saving..." : isEdit ? "Update User" : "Create User"}
         </button>
       </div>
     </form>

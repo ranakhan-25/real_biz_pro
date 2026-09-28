@@ -35,7 +35,7 @@ function AboutContent() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="mt-6 text-sm leading-relaxed text-muted-foreground"
+              className=" text-sm leading-relaxed text-muted-foreground"
             >
               {t("about.paragraph1")}
             </motion.p>
