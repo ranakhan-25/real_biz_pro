@@ -349,7 +349,7 @@ const translations: Translations = {
     "about.eyebrow": "ABOUT REALBIZ",
     "about.title": "A platform built from the ground up for real estate",
     "about.paragraph1":
-      "We spent months talking to agents, sales managers, and business owners before writing a single line of code. What we heard again and again: the tools that existed were either too generic to fit real estate, or too complex to actually get a team to use.",
+      "RealBiz Pro is built for real estate professionals.\nWe listened to agents, sales managers, and business owners to understand their real-world challenges.\nWe turned those challenges into simple, powerful tools designed for everyday real estate work.\nLess complexity. More productivity. Better real estate management.",
     "about.paragraph2":
       "RealBiz is our answer \u2014 a platform shaped entirely around how real estate businesses in Bangladesh operate day to day, from the first lead call to the final handover.",
     "about.missionTitle": "Our Mission",
@@ -1002,7 +1002,7 @@ const translations: Translations = {
     "about.eyebrow": "রিয়েলবিজ সম্পর্কে",
     "about.title": "রিয়েল এস্টেটের জন্য শুরু থেকে তৈরি একটি প্ল্যাটফর্ম",
     "about.paragraph1":
-      "কোড লেখার আগে আমরা মাসের পর মাস এজেন্ট, সেলস ম্যানেজার এবং ব্যবসার মালিকদের সাথে কথা বলেছি। বারবার যা শুনেছি: বিদ্যমান টুলগুলো হয় রিয়েল এস্টেটের জন্য খুব সাধারণ, নয়তো টিমকে আসলে ব্যবহার করাতে খুব জটিল ছিল।",
+      "RealBiz Pro তৈরি হয়েছে রিয়েল এস্টেট পেশাজীবীদের জন্য।\nআমরা এজেন্ট, সেলস ম্যানেজার ও ব্যবসার মালিকদের বাস্তব অভিজ্ঞতা শুনেছি।\nতাদের সমস্যার সমাধানে তৈরি করেছি সহজ ও শক্তিশালী টুল।\nকম জটিলতা। বেশি productivity। আরও সহজ real estate management।",
     "about.paragraph2":
       "RealBiz হলো আমাদের উত্তর \u2014 বাংলাদেশের রিয়েল এস্টেট ব্যবসাগুলো দৈনন্দিন যেভাবে কাজ করে তার উপর সম্পূর্ণভাবে গড়া একটি প্ল্যাটফর্ম, প্রথম লিড কল থেকে চূড়ান্ত হ্যান্ডওভার পর্যন্ত।",
     "about.missionTitle": "আমাদের লক্ষ্য",
