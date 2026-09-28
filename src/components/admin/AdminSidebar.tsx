@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import {
   Boxes,
+  Building,
   ChevronDown,
   ChevronRight,
   FileCog,
@@ -13,6 +14,7 @@ import {
   Menu as MenuIcon,
   Settings,
   ShieldCheck,
+  User,
   Users,
   X,
 } from "lucide-react";
@@ -57,6 +59,11 @@ const menuGroups: AdminMenuItem[] = [
         label: "Web Management",
         href: "/admin/web-settings",
         icon: Settings,
+      },
+      {
+        label: "User Organization",
+        href: "/admin/organization",
+        icon: User,
       },
     ],
   },
