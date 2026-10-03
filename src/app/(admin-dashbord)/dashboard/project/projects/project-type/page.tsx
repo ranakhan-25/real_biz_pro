@@ -1,19 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Search, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  ChevronLeft, 
-  ChevronRight, 
-  X, 
-  SlidersHorizontal,
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Search,
+  Plus,
+  Edit3,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
   FolderKanban,
-  Home,
-  Check,
-  CheckCircle2
 } from "lucide-react";
 import { ProjectType } from "@/types/project-type";
 
@@ -25,241 +21,731 @@ const initialProjects: ProjectType[] = [
   { id: 18, code: "P1554959", name: "Land Share" },
   { id: 19, code: "P7784999", name: "Share Project" },
   { id: 21, code: "P2777817", name: "Interior" },
+  { id: 22, code: "P1279431", name: "Residential" },
 ];
 
+type ColumnKey = "id" | "code" | "name" | "action";
+
 export default function ProjectTypePage() {
-  const [projects, setProjects] = useState<ProjectType[]>(initialProjects);
+  const [projects, setProjects] =
+    useState<ProjectType[]>(initialProjects);
+
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // States for Inline Add Form (ডিলিট বা এডিট বাটনের পাশে সরাসরি ফর্ম ওপেন করার জন্য)
-  const [isInlineAdding, setIsInlineAdding] = useState(false);
+
+  // ==============================
+  // MODAL
+  // ==============================
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // null = Add
+  // id   = Edit
+  const [editingProjectId, setEditingProjectId] =
+    useState<number | null>(null);
+
+  // ==============================
+  // FORM
+  // ==============================
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
 
-  // Search filter
-  const filteredProjects = projects.filter(
-    (item) =>
-      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ==============================
+  // COLUMN DROPDOWN
+  // ==============================
+  const [isColumnMenuOpen, setIsColumnMenuOpen] =
+    useState(false);
 
-  // Handle Inline Submit
-  const handleInlineSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCode || !newName) return;
+  const columnMenuRef = useRef<HTMLDivElement>(null);
 
-    const newProject: ProjectType = {
-      id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
-      code: newCode,
-      name: newName,
+  const [visibleColumns, setVisibleColumns] =
+    useState<Record<ColumnKey, boolean>>({
+      id: true,
+      code: true,
+      name: true,
+      action: true,
+    });
+
+  // ==============================
+  // CLOSE COLUMN MENU OUTSIDE CLICK
+  // ==============================
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        columnMenuRef.current &&
+        !columnMenuRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setIsColumnMenuOpen(false);
+      }
     };
 
-    setProjects([newProject, ...projects]);
-    setNewCode("");
-    setNewName("");
-    setIsInlineAdding(false);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  // ==============================
+  // SEARCH
+  // ==============================
+  const filteredProjects = projects.filter(
+    (item) =>
+      item.code
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      item.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+  );
+
+  // ==============================
+  // COLUMN TOGGLE
+  // ==============================
+  const toggleColumn = (column: ColumnKey) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }));
   };
 
-  // Handle Delete
+  // ==============================
+  // SELECT ALL COLUMNS
+  // ==============================
+  const selectAllColumns = () => {
+    setVisibleColumns({
+      id: true,
+      code: true,
+      name: true,
+      action: true,
+    });
+  };
+
+  // ==============================
+  // CLEAR ALL COLUMNS
+  // ==============================
+  const clearAllColumns = () => {
+    setVisibleColumns({
+      id: false,
+      code: false,
+      name: false,
+      action: false,
+    });
+  };
+
+  // ==============================
+  // OPEN ADD MODAL
+  // ==============================
+  const handleOpenAdd = () => {
+    setEditingProjectId(null);
+    setNewCode("");
+    setNewName("");
+    setIsModalOpen(true);
+  };
+
+  // ==============================
+  // OPEN EDIT MODAL
+  // ==============================
+  const handleEdit = (project: ProjectType) => {
+    setEditingProjectId(project.id);
+    setNewCode(project.code);
+    setNewName(project.name);
+    setIsModalOpen(true);
+  };
+
+  // ==============================
+  // CLOSE MODAL
+  // ==============================
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setNewCode("");
+    setNewName("");
+    setEditingProjectId(null);
+  };
+
+  // ==============================
+  // SUBMIT / UPDATE
+  // ==============================
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newCode.trim() || !newName.trim()) {
+      return;
+    }
+
+    // ============================
+    // EDIT EXISTING PROJECT
+    // ============================
+    if (editingProjectId !== null) {
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === editingProjectId
+            ? {
+                ...project,
+                code: newCode.trim(),
+                name: newName.trim(),
+              }
+            : project
+        )
+      );
+    }
+
+    // ============================
+    // ADD NEW PROJECT
+    // ============================
+    else {
+      const newProject: ProjectType = {
+        id:
+          projects.length > 0
+            ? Math.max(
+                ...projects.map((p) => p.id)
+              ) + 1
+            : 1,
+
+        code: newCode.trim(),
+        name: newName.trim(),
+      };
+
+      setProjects((prev) => [
+        newProject,
+        ...prev,
+      ]);
+    }
+
+    handleCloseModal();
+  };
+
+  // ==============================
+  // DELETE
+  // ==============================
   const handleDelete = (id: number) => {
-    setProjects(projects.filter((p) => p.id !== id));
+    setProjects((prev) =>
+      prev.filter((project) => project.id !== id)
+    );
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 font-sans text-slate-800">
-      
-      {/* Breadcrumb Navigation */}
-      <nav className="mb-6 flex items-center text-sm font-medium text-slate-500">
-        <a href="#" className="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-          <Home className="h-4 w-4" /> Home
+    <div className="min-h-screen bg-white font-sans text-slate-800">
+
+      {/* =========================================
+          BREADCRUMB
+      ========================================== */}
+      <nav className="flex items-center px-4 pt-4 pb-3 text-[12px] font-medium text-slate-500">
+
+        <a
+          href="#"
+          className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+        >
+          Home
         </a>
-        <span className="mx-2 text-slate-300">/</span>
-        <span className="hover:text-indigo-600 cursor-pointer">Project</span>
-        <span className="mx-2 text-slate-300">/</span>
-        <span className="text-indigo-600 font-semibold">Project Type</span>
+
+        <ChevronRight className="mx-2 h-3 w-3 text-slate-300" />
+
+        <span className="cursor-pointer hover:text-indigo-600">
+          Project
+        </span>
+
+        <ChevronRight className="mx-2 h-3 w-3 text-slate-300" />
+
+        <span className="text-slate-700">
+          Project Type
+        </span>
+
       </nav>
 
-      {/* Header & Actions Bar */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-            <FolderKanban className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Project Type Management</h1>
-            <p className="text-xs text-slate-500">Manage and organize your project categories efficiently</p>
-          </div>
-        </div>
+      {/* =========================================
+          TOP CREATE BUTTON
+      ========================================== */}
+      <div className="mb-3 flex items-center justify-end px-4">
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
-            <SlidersHorizontal className="h-4 w-4 text-slate-500" />
-            Select Columns
-          </button>
+        <button
+          onClick={handleOpenAdd}
+          className="flex items-center gap-1.5 rounded-md bg-[#6755d9] px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[#5847c7]"
+        >
+          <Plus className="h-3.5 w-3.5" />
 
-          {/* Toggle Inline Add Form Button */}
-          <button
-            onClick={() => setIsInlineAdding(!isInlineAdding)}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            {isInlineAdding ? "Close Form" : "Add Project Form"}
-          </button>
-        </div>
+          Create Project Type
+        </button>
+
       </div>
 
-      {/* Embedded Project Add Form Box (আপনার দেওয়া ছবির ডিজাইন অনুযায়ী) */}
-      {isInlineAdding && (
-        <div className="mb-6 rounded-2xl bg-white shadow-xl border border-indigo-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-100/70 px-6 py-3.5">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-indigo-600" /> Project Add
-            </h3>
+      {/* =========================================
+          TABLE AREA
+      ========================================== */}
+      <div className="px-4">
+
+        <div className="relative">
+
+          {/* =====================================
+              SELECT COLUMNS
+          ====================================== */}
+          <div
+            ref={columnMenuRef}
+            className="absolute left-0 top-0 z-30"
+          >
+
             <button
-              onClick={() => setIsInlineAdding(false)}
-              className="rounded-lg p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+              onClick={() =>
+                setIsColumnMenuOpen(
+                  (prev) => !prev
+                )
+              }
+              className="flex items-center gap-1 rounded-md border border-[#6655d8] bg-white px-2.5 py-1.5 text-[10px] font-semibold text-[#5847c7] transition-all hover:bg-indigo-50"
             >
-              <X className="h-4 w-4" />
+              Select Columns
+
+              <ChevronRight
+                className={`h-3 w-3 transition-transform ${
+                  isColumnMenuOpen
+                    ? "rotate-90"
+                    : ""
+                }`}
+              />
             </button>
-          </div>
 
-          <form onSubmit={handleInlineSubmit} className="p-6 bg-slate-50/50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Code</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="P4773027"
-                  value={newCode}
-                  onChange={(e) => setNewCode(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 font-mono shadow-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Office"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 shadow-sm"
-                />
-              </div>
-            </div>
+            {/* DROPDOWN */}
+            {isColumnMenuOpen && (
+              <div className="absolute left-0 top-8 w-[165px] rounded-md border border-slate-200 bg-white shadow-lg">
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200/60">
-              <button
-                type="button"
-                onClick={() => setIsInlineAdding(false)}
-                className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
-              >
-                Close
-              </button>
-              <button
-                type="submit"
-                className="rounded-xl bg-indigo-600 px-6 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-all"
-              >
-                Submit
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+                {/* ID */}
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-slate-50">
 
-      {/* Table Container Section */}
-      <div className="rounded-2xl bg-white shadow-sm border border-slate-100 overflow-hidden">
-        
-        {/* Search Bar */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Total Entries: {filteredProjects.length}
-          </span>
-          <div className="relative w-72">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by code or name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
-            />
-          </div>
-        </div>
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.id}
+                    onChange={() =>
+                      toggleColumn("id")
+                    }
+                    className="h-3 w-3 accent-[#6755d9]"
+                  />
 
-        {/* Responsive Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#58427c] text-white text-xs uppercase tracking-wider">
-                <th className="py-3.5 px-6 font-semibold w-24">ID</th>
-                <th className="py-3.5 px-6 font-semibold">Code</th>
-                <th className="py-3.5 px-6 font-semibold">Name</th>
-                <th className="py-3.5 px-6 font-semibold text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((item, index) => (
-                  <tr 
-                    key={item.id} 
-                    className={`transition-colors hover:bg-indigo-50/40 ${
-                      index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
-                    }`}
+                  <span className="text-[11px] text-slate-700">
+                    ID
+                  </span>
+
+                </label>
+
+                {/* CODE */}
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-slate-50">
+
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.code}
+                    onChange={() =>
+                      toggleColumn("code")
+                    }
+                    className="h-3 w-3 accent-[#6755d9]"
+                  />
+
+                  <span className="text-[11px] text-slate-700">
+                    Code
+                  </span>
+
+                </label>
+
+                {/* NAME */}
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-slate-50">
+
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.name}
+                    onChange={() =>
+                      toggleColumn("name")
+                    }
+                    className="h-3 w-3 accent-[#6755d9]"
+                  />
+
+                  <span className="text-[11px] text-slate-700">
+                    Name
+                  </span>
+
+                </label>
+
+                {/* ACTION */}
+                <label className="flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-slate-50">
+
+                  <input
+                    type="checkbox"
+                    checked={visibleColumns.action}
+                    onChange={() =>
+                      toggleColumn("action")
+                    }
+                    className="h-3 w-3 accent-[#6755d9]"
+                  />
+
+                  <span className="text-[11px] text-slate-700">
+                    Action
+                  </span>
+
+                </label>
+
+                {/* BUTTONS */}
+                <div className="flex items-center gap-1 border-t border-slate-100 p-2">
+
+                  <button
+                    onClick={clearAllColumns}
+                    className="rounded bg-cyan-500 px-2.5 py-1 text-[9px] font-semibold text-white hover:bg-cyan-600"
                   >
-                    <td className="py-4 px-6 font-medium text-slate-500">#{item.id}</td>
-                    <td className="py-4 px-6 font-mono font-medium text-indigo-600">{item.code}</td>
-                    <td className="py-4 px-6 font-semibold text-slate-800">{item.name}</td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          className="rounded-lg bg-indigo-50 p-2 text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm"
-                          title="Edit"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(item.id)}
-                          className="rounded-lg bg-rose-50 p-2 text-rose-600 hover:bg-rose-100 transition-colors shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No matching project types found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    Clear All
+                  </button>
 
-        {/* Pagination Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 bg-slate-50/50">
-          <p className="text-xs text-slate-500">
-            Showing <span className="font-medium text-slate-700">1</span> to{" "}
-            <span className="font-medium text-slate-700">{filteredProjects.length}</span> of entries
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-              <ChevronLeft className="h-3.5 w-3.5" /> Previous
+                  <button
+                    onClick={selectAllColumns}
+                    className="rounded bg-cyan-500 px-2.5 py-1 text-[9px] font-semibold text-white hover:bg-cyan-600"
+                  >
+                    Select All
+                  </button>
+
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* =====================================
+              SEARCH
+          ====================================== */}
+          <div className="mb-3 flex justify-end">
+
+            <div className="flex items-center gap-2">
+
+              <label className="text-[11px] text-slate-700">
+                Search:
+              </label>
+
+              <div className="relative">
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) =>
+                    setSearchQuery(
+                      e.target.value
+                    )
+                  }
+                  className="h-7 w-[138px] rounded border border-slate-300 bg-white px-2 text-[11px] outline-none focus:border-[#6755d9]"
+                />
+
+                {searchQuery && (
+                  <button
+                    onClick={() =>
+                      setSearchQuery("")
+                    }
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* =====================================
+              TABLE
+          ====================================== */}
+          <div className="overflow-x-auto">
+
+            <table className="w-full border-collapse text-left">
+
+              {/* HEADER */}
+              <thead>
+
+                <tr className="bg-[#7464e5] text-[10px] uppercase text-white">
+
+                  {visibleColumns.id && (
+                    <th className="border-r border-white/10 px-5 py-1.5 font-semibold">
+                      <div className="flex items-center gap-1">
+                        ID
+                        <span className="text-white/60">
+                          ↕
+                        </span>
+                      </div>
+                    </th>
+                  )}
+
+                  {visibleColumns.code && (
+                    <th className="border-r border-white/10 px-5 py-1.5 font-semibold">
+                      <div className="flex items-center gap-1">
+                        Code
+                        <span className="text-white/60">
+                          ↕
+                        </span>
+                      </div>
+                    </th>
+                  )}
+
+                  {visibleColumns.name && (
+                    <th className="border-r border-white/10 px-5 py-1.5 font-semibold">
+                      <div className="flex items-center gap-1">
+                        Name
+                        <span className="text-white/60">
+                          ↕
+                        </span>
+                      </div>
+                    </th>
+                  )}
+
+                  {visibleColumns.action && (
+                    <th className="px-5 py-1.5 text-center font-semibold">
+                      Action
+                    </th>
+                  )}
+
+                </tr>
+
+              </thead>
+
+              {/* BODY */}
+              <tbody className="text-[11px] text-slate-700">
+
+                {filteredProjects.length > 0 ? (
+
+                  filteredProjects.map(
+                    (item, index) => (
+
+                      <tr
+                        key={item.id}
+                        className={`border-b border-slate-200 transition-colors hover:bg-indigo-50/30 ${
+                          index % 2 === 0
+                            ? "bg-white"
+                            : "bg-slate-50/30"
+                        }`}
+                      >
+
+                        {/* ID */}
+                        {visibleColumns.id && (
+                          <td className="px-5 py-1.5">
+                            {item.id}
+                          </td>
+                        )}
+
+                        {/* CODE */}
+                        {visibleColumns.code && (
+                          <td className="px-5 py-1.5 font-medium text-slate-700">
+                            {item.code}
+                          </td>
+                        )}
+
+                        {/* NAME */}
+                        {visibleColumns.name && (
+                          <td className="px-5 py-1.5">
+                            {item.name}
+                          </td>
+                        )}
+
+                        {/* ACTION */}
+                        {visibleColumns.action && (
+                          <td className="px-5 py-1.5">
+
+                            <div className="flex items-center justify-center gap-2">
+
+                              {/* EDIT */}
+                              <button
+                                onClick={() =>
+                                  handleEdit(item)
+                                }
+                                className="flex h-7 w-8 items-center justify-center rounded bg-[#7564e7] text-white transition-colors hover:bg-[#6251d0]"
+                                title="Edit"
+                              >
+                                <Edit3 className="h-3.5 w-3.5" />
+                              </button>
+
+                              {/* DELETE */}
+                              <button
+                                onClick={() =>
+                                  handleDelete(
+                                    item.id
+                                  )
+                                }
+                                className="flex h-7 w-8 items-center justify-center rounded bg-[#f45b5b] text-white transition-colors hover:bg-[#df4848]"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+
+                            </div>
+
+                          </td>
+                        )}
+
+                      </tr>
+
+                    )
+                  )
+
+                ) : (
+
+                  <tr>
+
+                    <td
+                      colSpan={4}
+                      className="py-10 text-center text-xs text-slate-400"
+                    >
+                      No matching project types found.
+                    </td>
+
+                  </tr>
+
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+          {/* =====================================
+              PAGINATION
+          ====================================== */}
+          <div className="flex items-center justify-end gap-1 py-3">
+
+            <button
+              disabled
+              className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-400"
+            >
+              <ChevronLeft className="h-3 w-3" />
+              Previous
             </button>
-            <button className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm">
+
+            <button className="rounded bg-[#6755d9] px-2.5 py-1 text-[10px] font-semibold text-white">
               1
             </button>
-            <button className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
-              Next <ChevronRight className="h-3.5 w-3.5" />
+
+            <button className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] text-slate-600 hover:bg-slate-50">
+              Next
+              <ChevronRight className="h-3 w-3" />
             </button>
+
           </div>
+
         </div>
+
       </div>
+
+      {/* =====================================================
+          ADD / EDIT MODAL
+      ====================================================== */}
+      {isModalOpen && (
+
+        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/20">
+
+          <div className="relative mt-0 w-full max-w-[860px] overflow-hidden rounded-b-md bg-white shadow-2xl">
+
+            {/* =========================================
+                MODAL HEADER
+            ========================================== */}
+            <div className="flex h-10 items-center justify-between bg-[#e7eaed] px-4">
+
+              <h2 className="text-[12px] font-medium text-slate-800">
+
+                {editingProjectId !== null
+                  ? "Project Edit"
+                  : "Project Add"}
+
+              </h2>
+
+              <button
+                onClick={handleCloseModal}
+                className="flex h-6 w-6 items-center justify-center text-slate-500 transition-colors hover:text-slate-800"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+            </div>
+
+            {/* =========================================
+                FORM
+            ========================================== */}
+            <form onSubmit={handleSubmit}>
+
+              {/* BODY */}
+              <div className="grid grid-cols-1 gap-4 bg-[#e9ecef] px-5 py-4 md:grid-cols-2">
+
+                {/* CODE */}
+                <div>
+
+                  <label className="mb-1.5 block text-[11px] font-medium text-slate-700">
+                    Code
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    value={newCode}
+                    onChange={(e) =>
+                      setNewCode(e.target.value)
+                    }
+                    placeholder="P4773027"
+                    className="h-7 w-full rounded border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none transition focus:border-[#6755d9] focus:ring-1 focus:ring-[#6755d9]/20"
+                  />
+
+                </div>
+
+                {/* NAME */}
+                <div>
+
+                  <label className="mb-1.5 block text-[11px] font-medium text-slate-700">
+                    Name
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    value={newName}
+                    onChange={(e) =>
+                      setNewName(e.target.value)
+                    }
+                    placeholder="Office"
+                    className="h-7 w-full rounded border border-slate-300 bg-white px-2 text-[11px] text-slate-700 outline-none transition focus:border-[#6755d9] focus:ring-1 focus:ring-[#6755d9]/20"
+                  />
+
+                </div>
+
+              </div>
+
+              {/* =========================================
+                  MODAL FOOTER
+              ========================================== */}
+              <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-5 py-3">
+
+                {/* CLOSE */}
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="rounded-md bg-[#a5a8ac] px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-[#909398]"
+                >
+                  Close
+                </button>
+
+                {/* SUBMIT / UPDATE */}
+                <button
+                  type="submit"
+                  className="rounded-md bg-[#6755d9] px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-[#5847c7]"
+                >
+                  {editingProjectId !== null
+                    ? "Update"
+                    : "Submit"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );
