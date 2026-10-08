@@ -101,7 +101,7 @@ async function createLabourWorkBank(payload: Record<string, any>) {
     try {
       const body = await res.json();
       msg = body?.message || body?.error || msg;
-    // eslint-disable-next-line prettier/prettier
+
     } catch(e) {
        throw new Error(e instanceof Error ? e.message : String(e));
     }
