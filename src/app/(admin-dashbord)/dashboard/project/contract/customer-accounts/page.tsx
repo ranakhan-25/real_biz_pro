@@ -18,9 +18,9 @@ import { Customer } from "@/types/customer";
 
 // ---------- API helpers ----------
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
+ console.log(API_BASE)
 async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
-  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, {
+  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, { 
     method: "GET",
     headers: {
       "Content-Type": "application/json",
