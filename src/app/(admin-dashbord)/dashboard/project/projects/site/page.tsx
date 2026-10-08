@@ -1,720 +1,330 @@
-"use client";
+"use client"
+import React, { useState } from 'react';
+import { 
+  ChevronRight, 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  X, 
+  ChevronDown 
+} from 'lucide-react';
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Plus,
-  Edit3,
-  Trash2,
-  X,
-  Home,
-  CheckCircle2,
-  Loader2,
-} from "lucide-react";
-
-// ==============================
-// TYPES
-// ==============================
 interface SiteItem {
-  id: string;
-  uuid?: string;
+  id: number;
   code: string;
-  name: string;
-  location: string;
-  description: string;
-  projectType: string;
-  projectId: string | number;
-  // backend relation pathale ei duto theke project name ney
-  project?: { id: string | number; name: string } | null;
-}
-
-interface ProjectOption {
-  id: string | number;
-  name: string;
-  projectType: string;
-}
-
-interface Meta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-type SortKey = "id" | "code" | "name" | "location";
-type SortOrder = "ASC" | "DESC";
-
-interface FormState {
-  projectType: string;
-  projectId: string;
-  code: string;
+  project: string;
   name: string;
   description: string;
   location: string;
 }
 
-const generateCode = () => "P" + Math.floor(1000000 + Math.random() * 9000000);
+export default function SitePage() {
+  const [sites, setSites] = useState<SiteItem[]>([
+    { id: 8, code: 'P1171952', project: '', name: 'Abason Project', description: 'Main residential zone', location: 'Dhaka' },
+    { id: 9, code: 'P1883545', project: '', name: 'Admin', description: 'Administrative office building', location: 'Gulshan' },
+    { id: 10, code: 'P1572732', project: '', name: 'HPDL', description: 'Commercial development', location: 'Banani' },
+    { id: 11, code: 'AA00058', project: '', name: 'GV TEST', description: 'Testing site precinct', location: 'Uttara' },
+    { id: 12, code: 'AA00058', project: '', name: 'GV', description: 'Green Valley general site', location: 'Mirpur' },
+    { id: 13, code: 'P1723115', project: '36 Haque Tower', name: '36 Haque Tower', description: 'High-rise commercial tower', location: 'Motijheel' },
+  ]);
 
-// ==============================
-// API CONFIG
-// .env.local: NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
-// ==============================
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
-const API_PREFIX = `${BASE_URL}/realbizpro/api/v1`;
-const SITES_URL = `${API_PREFIX}/project-sites`;
-const PROJECTS_URL = `${API_PREFIX}/projects`;
-const PROJECT_TYPES_URL = `${API_PREFIX}/project-type`;
-
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers ?? {}),
-    },
-  });
-
-  let json: any = null;
-  try {
-    json = await res.json();
-  } catch {
-    // empty body
-  }
-
-  if (!res.ok || json?.success === false) {
-    const msg = Array.isArray(json?.message)
-      ? json.message.join(", ")
-      : json?.message || `Request failed (${res.status})`;
-    throw new Error(msg);
-  }
-
-  return json as T;
-}
-
-// array ba { data: [...] } duto-i handle kore
-const extractList = (data: any): any[] =>
-  Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
-
-const inputClass =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none";
-
-export default function SiteManagementPage() {
-  // ==============================
-  // LIST STATE
-  // ==============================
-  const [sites, setSites] = useState<SiteItem[]>([]);
-  const [meta, setMeta] = useState<Meta>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  });
-  const [page, setPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState<SortKey>("id");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("DESC");
-
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); // debounced
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // ==============================
-  // DROPDOWN DATA
-  // ==============================
-  const [projectTypeOptions, setProjectTypeOptions] = useState<string[]>([]);
-  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
-
-  // ==============================
-  // MODAL / FORM
-  // ==============================
+  const [searchTerm, setSearchTerm] = useState('');
+  const [entriesCount, setEntriesCount] = useState('10');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSite, setEditingSite] = useState<SiteItem | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormState>({
-    projectType: "",
-    projectId: "",
-    code: generateCode(),
-    name: "",
-    description: "",
-    location: "",
-  });
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [currentId, setCurrentId] = useState<number | null>(null);
+  
+  const [codeValue, setCodeValue] = useState('');
+  const [projectValue, setProjectValue] = useState('');
+  const [nameValue, setNameValue] = useState('');
+  const [descriptionValue, setDescriptionValue] = useState('');
+  const [locationValue, setLocationValue] = useState('');
 
-  const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setFormData((prev) => ({ ...prev, [key]: value }));
-
-  // ==============================
-  // LOAD DROPDOWNS (project types + projects)
-  // ==============================
-  useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [typesRes, projectsRes] = await Promise.all([
-          request<{ data: any }>(`${PROJECT_TYPES_URL}?page=1&limit=100`),
-          request<{ data: any }>(PROJECTS_URL),
-        ]);
-
-        const projects: ProjectOption[] = extractList(projectsRes.data).map(
-          (p: any) => ({
-            id: p.id,
-            name: p.name,
-            projectType: p.projectType,
-          })
-        );
-        setProjectOptions(projects);
-
-        const typeNames = extractList(typesRes.data).map((t: any) => t.name);
-        // project-type API na pele projects theke type gulo nibe
-        const fallback = projects.map((p) => p.projectType).filter(Boolean);
-        setProjectTypeOptions(
-          Array.from(new Set(typeNames.length ? typeNames : fallback))
-        );
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load dropdown data"
-        );
-      }
-    };
-    loadOptions();
-  }, []);
-
-  // ==============================
-  // SEARCH DEBOUNCE
-  // ==============================
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setSearchQuery(searchInput.trim());
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(t);
-  }, [searchInput]);
-
-  // ==============================
-  // FETCH SITES (GET)
-  // ==============================
-  const fetchSites = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(entriesPerPage),
-        sortBy,
-        sortOrder,
-        withDeleted: "false",
-      });
-      if (searchQuery) params.set("search", searchQuery);
-
-      const json = await request<{
-        success: boolean;
-        data: { data: SiteItem[]; meta: Meta };
-      }>(`${SITES_URL}?${params.toString()}`);
-
-      setSites(json.data.data);
-      setMeta(json.data.meta);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load sites");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, entriesPerPage, sortBy, sortOrder, searchQuery]);
-
-  useEffect(() => {
-    fetchSites();
-  }, [fetchSites]);
-
-  // ==============================
-  // HELPERS
-  // ==============================
-  const projectNameOf = (site: SiteItem) =>
-    site.project?.name ||
-    projectOptions.find((p) => String(p.id) === String(site.projectId))?.name ||
-    (site.projectId ? `#${site.projectId}` : "—");
-
-  const filteredProjectOptions = useMemo(
-    () =>
-      formData.projectType
-        ? projectOptions.filter((p) => p.projectType === formData.projectType)
-        : projectOptions,
-    [projectOptions, formData.projectType]
+  const filteredSites = sites.filter(item => 
+    item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toString().includes(searchTerm)
   );
 
-  const handleSort = (key: SortKey) => {
-    if (sortBy === key) {
-      setSortOrder((prev) => (prev === "ASC" ? "DESC" : "ASC"));
-    } else {
-      setSortBy(key);
-      setSortOrder("ASC");
-    }
-    setPage(1);
-  };
-
-  const sortIcon = (key: SortKey) =>
-    sortBy === key ? (sortOrder === "ASC" ? "↑" : "↓") : "↕";
-
-  // ==============================
-  // MODAL HANDLERS
-  // ==============================
-  const handleOpenAdd = () => {
-    setEditingSite(null);
-    setFormData({
-      projectType: "",
-      projectId: "",
-      code: generateCode(),
-      name: "",
-      description: "",
-      location: "",
-    });
-    setFormError(null);
+  const handleOpenCreate = () => {
+    setModalMode('create');
+    setCodeValue('P' + Math.floor(1000000 + Math.random() * 9000000));
+    setProjectValue('');
+    setNameValue('');
+    setDescriptionValue('');
+    setLocationValue('');
+    setCurrentId(null);
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (site: SiteItem) => {
-    setEditingSite(site);
-    setFormData({
-      projectType: site.projectType ?? "",
-      projectId: String(site.project?.id ?? site.projectId ?? ""),
-      code: site.code ?? "",
-      name: site.name ?? "",
-      description: site.description ?? "",
-      location: site.location ?? "",
-    });
-    setFormError(null);
+  const handleOpenEdit = (item: SiteItem) => {
+    setModalMode('edit');
+    setCodeValue(item.code);
+    setProjectValue(item.project);
+    setNameValue(item.name);
+    setDescriptionValue(item.description);
+    setLocationValue(item.location);
+    setCurrentId(item.id);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingSite(null);
-    setFormError(null);
+  const handleDelete = (id: number) => {
+    setSites(sites.filter(item => item.id !== id));
   };
 
-  // ==============================
-  // SUBMIT (POST) / UPDATE (PATCH)
-  // ==============================
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setFormError(null);
+    if (!nameValue.trim()) return;
 
-    const body = {
-      code: formData.code.trim(),
-      name: formData.name.trim(),
-      location: formData.location.trim(),
-      description: formData.description.trim(),
-      projectType: formData.projectType,
-      projectId: Number(formData.projectId),
-    };
-
-    try {
-      if (editingSite) {
-        await request(`${SITES_URL}/${editingSite.id}`, {
-          method: "PATCH",
-          body: JSON.stringify(body),
-        });
-      } else {
-        await request(SITES_URL, {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
-        setPage(1);
-      }
-
-      handleCloseModal();
-      await fetchSites();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setIsSubmitting(false);
+    if (modalMode === 'create') {
+      const newId = sites.length > 0 ? Math.max(...sites.map(s => s.id)) + 1 : 1;
+      const newItem: SiteItem = {
+        id: newId,
+        code: codeValue,
+        project: projectValue,
+        name: nameValue,
+        description: descriptionValue,
+        location: locationValue,
+      };
+      setSites([newItem, ...sites]);
+    } else if (modalMode === 'edit' && currentId !== null) {
+      setSites(sites.map(item => 
+        item.id === currentId 
+          ? { ...item, code: codeValue, project: projectValue, name: nameValue, description: descriptionValue, location: locationValue } 
+          : item
+      ));
     }
+    setIsModalOpen(false);
   };
-
-  // ==============================
-  // DELETE (soft delete)
-  // ==============================
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this site?")) return;
-
-    setDeletingId(id);
-    setError(null);
-    try {
-      await request(`${SITES_URL}/${id}`, { method: "DELETE" });
-
-      // last item delete holey ager page e jao
-      if (sites.length === 1 && page > 1) {
-        setPage((p) => p - 1);
-      } else {
-        await fetchSites();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  // ==============================
-  // PAGINATION
-  // ==============================
-  const totalPages = Math.max(1, meta.totalPages);
-  const windowStart = Math.max(1, Math.min(page - 2, totalPages - 4));
-  const windowEnd = Math.min(totalPages, windowStart + 4);
-  const pageNumbers = Array.from(
-    { length: windowEnd - windowStart + 1 },
-    (_, i) => windowStart + i
-  );
-  const showingFrom = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
-  const showingTo = (meta.page - 1) * meta.limit + sites.length;
-
-  const sortableTh = (label: string, key: SortKey, extra = "") => (
-    <th
-      onClick={() => handleSort(key)}
-      className={`cursor-pointer select-none py-3 px-4 font-semibold ${extra}`}
-    >
-      {label} {sortIcon(key)}
-    </th>
-  );
 
   return (
-    <div className="min-h-screen bg-slate-100/70 p-4 font-sans text-slate-800">
-      {/* Breadcrumb Header */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white px-5 py-3.5 rounded-xl shadow-sm border border-slate-200/60">
-        <nav className="flex items-center text-xs font-medium text-slate-500">
-          <a
-            href="#"
-            className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans relative flex flex-col">
+      {/* Top Header Navigation */}
+      <header className="bg-white border-b px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center text-xs sm:text-sm text-gray-500 space-x-1.5 sm:space-x-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <span className="text-purple-600 font-medium cursor-pointer hover:underline shrink-0">Home</span>
+          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+          <span className="text-purple-600 font-medium cursor-pointer hover:underline flex items-center shrink-0">
+            Project <ChevronDown className="w-3 h-3 ml-0.5" />
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+          <span className="text-gray-700 font-semibold shrink-0">Site</span>
+        </div>
+
+        <div className="w-full sm:w-auto flex justify-end">
+          <button 
+            onClick={handleOpenCreate}
+            className="w-full sm:w-auto bg-[#6B5BFF] hover:bg-[#5848e0] text-white px-4 py-2 rounded-md font-medium text-sm flex items-center justify-center shadow transition-colors cursor-pointer"
           >
-            <Home className="h-3.5 w-3.5" /> Home
-          </a>
-          <span className="mx-2 text-slate-300">/</span>
-          <span className="text-slate-500">Project</span>
-          <span className="mx-2 text-slate-300">/</span>
-          <span className="text-indigo-600 font-semibold">Site</span>
-        </nav>
-
-        <button
-          onClick={handleOpenAdd}
-          className="flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700 transition-all"
-        >
-          <Plus className="h-4 w-4" /> Create Site
-        </button>
-      </div>
-
-      {/* Error banner */}
-      {error && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>
-            <X className="h-3.5 w-3.5" />
+            <Plus className="w-4 h-4 mr-1.5" /> Create Site
           </button>
         </div>
-      )}
+      </header>
 
-      {/* Control Bar */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-3 rounded-xl shadow-sm border border-slate-200/60">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <span>Show</span>
-          <select
-            value={entriesPerPage}
-            onChange={(e) => {
-              setEntriesPerPage(Number(e.target.value));
-              setPage(1);
-            }}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700 focus:border-indigo-500 focus:outline-none"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-          <span>entries</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-600">Search:</span>
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none w-48 sm:w-64"
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-xl bg-white shadow-sm border border-slate-200/60 overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#7c3aed] text-white text-[11px] uppercase tracking-wider">
-                {sortableTh("ID", "id", "w-16")}
-                {sortableTh("Code", "code", "w-32")}
-                <th className="py-3 px-4 font-semibold">Project</th>
-                {sortableTh("Name", "name")}
-                <th className="py-3 px-4 font-semibold">Description</th>
-                {sortableTh("Location", "location")}
-                <th className="py-3 px-4 font-semibold text-center w-28">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </td>
-                </tr>
-              ) : sites.length > 0 ? (
-                sites.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className={`transition-colors hover:bg-indigo-50/40 ${
-                      index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                    }`}
-                  >
-                    <td className="py-3.5 px-4 font-medium text-slate-600">
-                      {item.id}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-semibold text-indigo-600">
-                      {item.code}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-800">
-                      {projectNameOf(item)}
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-900">
-                      {item.name}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-xs truncate">
-                      {item.description}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      {item.location}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="rounded bg-indigo-600 p-1.5 text-white hover:bg-indigo-700 transition-all shadow-sm"
-                          title="Edit"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
-                          className="rounded bg-rose-600 p-1.5 text-white hover:bg-rose-700 transition-all shadow-sm disabled:opacity-60"
-                          title="Delete"
-                        >
-                          {deletingId === item.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No matching records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200/60 px-4 py-3 bg-slate-50/50 gap-2">
-          <p className="text-xs text-slate-500">
-            Showing{" "}
-            <span className="font-medium text-slate-700">{showingFrom}</span> to{" "}
-            <span className="font-medium text-slate-700">{showingTo}</span> of{" "}
-            <span className="font-medium text-slate-700">{meta.total}</span>{" "}
-            entries
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* Main Content Area */}
+      <main className="max-w-[98%] w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-1">
+        {/* Controls Bar: Show Entries & Search */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 gap-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <span>Show</span>
+            <select 
+              value={entriesCount}
+              onChange={(e) => setEntriesCount(e.target.value)}
+              className="border rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
-              Previous
-            </button>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span>entries</span>
+          </div>
 
-            {pageNumbers.map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                disabled={isLoading}
-                className={`rounded-md px-3.5 py-1 text-xs font-medium ${
-                  n === page
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-
-            <button
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <span className="text-sm font-medium text-gray-600 shrink-0">Search:</span>
+            <div className="relative w-full sm:w-64">
+              <input 
+                type="text" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full border rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                placeholder=""
+              />
+              <Search className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Create / Edit Modal */}
+        {/* Data Table Container */}
+        <div className="bg-white border rounded-lg shadow-sm overflow-hidden mb-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-[#6B5BFF] text-white text-xs uppercase tracking-wider font-semibold">
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">ID</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">Code</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">Project</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">Name</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">Description</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700">Location</th>
+                  <th className="px-4 sm:px-6 py-3.5 border-b border-purple-700 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 text-sm">
+                {filteredSites.length > 0 ? (
+                  filteredSites.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 sm:px-6 py-4 text-gray-700 font-medium">{item.id}</td>
+                      <td className="px-4 sm:px-6 py-4 text-gray-600">{item.code}</td>
+                      <td className="px-4 sm:px-6 py-4 text-purple-600 hover:underline cursor-pointer">{item.project}</td>
+                      <td className="px-4 sm:px-6 py-4 text-gray-800">{item.name}</td>
+                      <td className="px-4 sm:px-6 py-4 text-gray-500">{item.description}</td>
+                      <td className="px-4 sm:px-6 py-4 text-gray-600">{item.location}</td>
+                      <td className="px-4 sm:px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                        <button 
+                          onClick={() => handleOpenEdit(item)}
+                          className="bg-[#6B5BFF] hover:bg-[#5848e0] text-white p-2 rounded transition-colors inline-flex items-center justify-center shadow-sm cursor-pointer"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(item.id)}
+                          className="bg-[#E5484D] hover:bg-[#d43b40] text-white p-2 rounded transition-colors inline-flex items-center justify-center shadow-sm cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                      No matching records found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer Info & Pagination */}
+          <div className="px-4 sm:px-6 py-4 bg-white border-t flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 gap-3">
+            <div className="text-center sm:text-left">
+              Showing 1 to {filteredSites.length} of {filteredSites.length} entries
+            </div>
+            <div className="flex items-center space-x-1">
+              <button className="px-3 py-1.5 border rounded text-xs sm:text-sm text-gray-400 bg-gray-50 cursor-not-allowed">
+                Previous
+              </button>
+              <button className="px-3.5 py-1.5 border rounded text-xs sm:text-sm bg-[#6B5BFF] text-white font-medium shadow-sm">
+                1
+              </button>
+              <button className="px-3.5 py-1.5 border rounded text-xs sm:text-sm text-gray-600 hover:bg-gray-50 cursor-pointer">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Modal Popup for Create / Edit Site */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3">
-          <div className="w-full max-w-3xl rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                {editingSite ? "Site Edit" : "Site Add"}
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
+            {/* Modal Header */}
+            <div className="bg-white border-b px-4 sm:px-6 py-4 flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                {modalMode === 'create' ? 'Site Add' : 'Site Edit'}
+              </h2>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="p-5 bg-slate-50/30 space-y-4"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Project Type <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={formData.projectType}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        projectType: e.target.value,
-                        projectId: "", // type change hole project reset
-                      }))
-                    }
-                    className={inputClass}
-                    required
-                  >
-                    <option value="">Select Project Type</option>
-                    {projectTypeOptions.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+            {/* Modal Form Body */}
+            <form onSubmit={handleSubmit}>
+              <div className="bg-gray-100 px-4 sm:px-8 py-5 sm:py-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Code</label>
+                    <input 
+                      type="text" 
+                      value={codeValue}
+                      onChange={(e) => setCodeValue(e.target.value)}
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Project</label>
+                    <input 
+                      type="text" 
+                      value={projectValue}
+                      onChange={(e) => setProjectValue(e.target.value)}
+                      placeholder="Project Name"
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input 
+                      type="text" 
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      placeholder="Site Name"
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input 
+                      type="text" 
+                      value={locationValue}
+                      onChange={(e) => setLocationValue(e.target.value)}
+                      placeholder="Location"
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Project <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={formData.projectId}
-                    onChange={(e) => setField("projectId", e.target.value)}
-                    className={inputClass}
-                    required
-                  >
-                    <option value="">Select Project</option>
-                    {filteredProjectOptions.map((p) => (
-                      <option key={p.id} value={String(p.id)}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Code
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.code}
-                    onChange={(e) => setField("code", e.target.value)}
-                    className={`${inputClass} font-mono`}
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea 
+                    value={descriptionValue}
+                    onChange={(e) => setDescriptionValue(e.target.value)}
+                    placeholder="Site Description"
+                    rows={2}
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 resize-none"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Site Name"
-                    value={formData.name}
-                    onChange={(e) => setField("name", e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Site Location"
-                    value={formData.location}
-                    onChange={(e) => setField("location", e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Short description..."
-                    value={formData.description}
-                    onChange={(e) => setField("description", e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-
-                {formError && (
-                  <p className="text-xs text-red-600 md:col-span-2">
-                    {formError}
-                  </p>
-                )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200">
-                <button
+              {/* Modal Footer */}
+              <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 border-t flex items-center justify-end space-x-3">
+                <button 
                   type="button"
-                  onClick={handleCloseModal}
-                  disabled={isSubmitting}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-60"
+                  onClick={() => setIsModalOpen(false)}
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer"
                 >
                   Close
                 </button>
-                <button
+                <button 
                   type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700 transition-all disabled:opacity-60"
+                  className="bg-[#6B5BFF] hover:bg-[#5848e0] text-white px-5 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors shadow-sm cursor-pointer"
                 >
-                  {isSubmitting && <Loader2 className="h-3 w-3 animate-spin" />}
-                  {editingSite ? "Update" : "Submit"}
+                  Submit
                 </button>
               </div>
             </form>
