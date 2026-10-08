@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -359,7 +361,9 @@ export default function ProjectsPage() {
           <Home className="h-3.5 w-3.5" /> Home
         </a>
         <span className="mx-2 text-slate-300">/</span>
-        <span className="text-indigo-600 font-semibold">Projects Management</span>
+        <span className="text-indigo-600 font-semibold">
+          Projects Management
+        </span>
       </nav>
 
       {/* Error banner */}
@@ -678,8 +682,6 @@ export default function ProjectsPage() {
               Next <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-        </div>
-      </div>
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
@@ -694,7 +696,16 @@ export default function ProjectsPage() {
                 onClick={handleCloseModal}
                 className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
               >
-                <X className="h-4 w-4" />
+                <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              </button>
+              <button className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white shadow-sm">
+                1
+              </button>
+              <button
+                disabled
+                className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Next <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
