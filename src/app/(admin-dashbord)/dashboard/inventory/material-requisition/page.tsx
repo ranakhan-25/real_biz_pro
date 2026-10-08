@@ -62,7 +62,7 @@ export default function MaterialRequisitionAccounts() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <RouteBreadcrumb />
-          <h1 className="text-xl font-bold mt-1">Material Requisition List</h1>
+          <h1 className="text-xl font-bold mt-1">Material Requisiition List</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
