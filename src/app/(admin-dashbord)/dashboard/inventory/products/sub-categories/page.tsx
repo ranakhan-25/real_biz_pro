@@ -2,13 +2,15 @@
 
 import SubCategoryList from "@/components/inventory/SubCategoryList";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiX, FiArrowLeft } from "react-icons/fi";
+import { subCategoriesApi, categoriesApi } from "@/lib/inventoryApi";
 
 // SubCategory type definition
 export interface SubCategory {
-  id: number;
+  id: string | number;
   category: string;
+  category_id?: string;
   code: string;
   name: string;
 }
@@ -18,13 +20,32 @@ const SubCategoryAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedSubCategory, setSelectedSubCategory] = useState<Partial<SubCategory>>({});
+  const [categoriesList, setCategoriesList] = useState<Array<{ id: string; name: string }>>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load categories for dropdown
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await categoriesApi.getAll();
+        if (Array.isArray(res)) {
+          setCategoriesList(res.map((c: any) => ({ id: c.id, name: c.name })));
+        }
+      } catch (err) {
+        console.warn("Could not load categories for dropdown:", err);
+      }
+    }
+    loadCategories();
+  }, []);
 
   // Open modal for adding a new sub category
   const handleAddClick = () => {
     setModalMode("add");
     setSelectedSubCategory({
       code: `SC${Math.floor(1000000 + Math.random() * 9000000)}`,
-      category: "Global Link City",
+      category_id: categoriesList[0]?.id || "",
+      name: "",
     });
     setIsModalOpen(true);
   };
@@ -37,11 +58,52 @@ const SubCategoryAccounts = () => {
   };
 
   // Form submit handler for Add/Update
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Sub Category Data:`, selectedSubCategory);
-    // Here you can add your API submission logic (POST/PUT request)
-    setIsModalOpen(false);
+    if (!selectedSubCategory.name) return;
+
+    try {
+      setIsSubmitting(true);
+      const categoryId = selectedSubCategory.category_id || categoriesList[0]?.id;
+      if (!categoryId) {
+        alert("Please select a parent category.");
+        return;
+      }
+
+      if (modalMode === "add") {
+        await subCategoriesApi.create({
+          category_id: categoryId,
+          sub_category_code: selectedSubCategory.code || `SC${Date.now().toString().slice(-6)}`,
+          name: selectedSubCategory.name,
+        });
+      } else if (modalMode === "update" && selectedSubCategory.id) {
+        await subCategoriesApi.update(selectedSubCategory.id, {
+          category_id: categoryId,
+          sub_category_code: selectedSubCategory.code || "",
+          name: selectedSubCategory.name,
+        });
+      }
+
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save sub-category:", err);
+      alert(err.message || "Failed to save sub-category");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete sub-category "${name}"?`)) return;
+    try {
+      await subCategoriesApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete sub-category:", err);
+      alert(err.message || "Failed to delete sub-category");
+    }
   };
 
   return (
@@ -54,7 +116,7 @@ const SubCategoryAccounts = () => {
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-auto">
-          {/* Add Sub Category Button with bg-[var(--lime)] and text-white */}
+          {/* Add Sub Category Button */}
           <button
             onClick={handleAddClick}
             className="flex items-center gap-2 bg-[var(--lime)] hover:opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-all"
@@ -74,8 +136,10 @@ const SubCategoryAccounts = () => {
 
       {/* Child Component for Listing & Filtering */}
       <SubCategoryList
+        refreshTrigger={refreshTrigger}
         onEdit={(subCategory) => handleOpenModal(subCategory, "update")}
         onView={(subCategory) => handleOpenModal(subCategory, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}
@@ -105,17 +169,22 @@ const SubCategoryAccounts = () => {
                 </label>
                 <select
                   disabled={modalMode === "view"}
-                  value={selectedSubCategory.category || "Global Link City"}
+                  value={selectedSubCategory.category_id || (categoriesList[0]?.id || "")}
                   onChange={(e) =>
-                    setSelectedSubCategory({ ...selectedSubCategory, category: e.target.value })
+                    setSelectedSubCategory({ ...selectedSubCategory, category_id: e.target.value })
                   }
                   className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground disabled:opacity-60"
                   required
                 >
-                  <option value="Global Link City">Global Link City</option>
-                  <option value="Mega Project">Mega Project</option>
-                  <option value="Black Marble">Black Marble</option>
-                  <option value="White Marble">White Marble</option>
+                  {categoriesList.length > 0 ? (
+                    categoriesList.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No categories available (create one first)</option>
+                  )}
                 </select>
               </div>
 
@@ -165,9 +234,14 @@ const SubCategoryAccounts = () => {
                 {modalMode !== "view" && (
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-md bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded-md bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm disabled:opacity-50"
                   >
-                    {modalMode === "add" ? "Save Sub Category" : "Update Changes"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : modalMode === "add"
+                      ? "Save Sub Category"
+                      : "Update Changes"}
                   </button>
                 )}
               </div>

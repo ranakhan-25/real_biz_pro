@@ -4,6 +4,7 @@ import MaterialRequisitionTable from "@/components/inventory/MaterialRequisition
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiRefreshCw, FiShoppingCart, FiFileText, FiX } from "react-icons/fi";
+import { toast } from "sonner";
 
 export interface MaterialRequisitionItem {
   id: number;
@@ -68,7 +69,7 @@ export default function MaterialRequisitionAccounts() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Multiple PO Convert */}
           <button
-            onClick={() => alert("Converting selected items to PO...")}
+            onClick={() => toast.info("Converting selected items to PO...")}
             className="flex items-center gap-1.5 bg-[#06b6d4] hover:bg-[#0891b2] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiRefreshCw size={14} /> Multiple PO Convert
@@ -76,7 +77,7 @@ export default function MaterialRequisitionAccounts() {
 
           {/* Multiple RFQ Convert */}
           <button
-            onClick={() => alert("Converting selected items to RFQ...")}
+            onClick={() => toast.info("Converting selected items to RFQ...")}
             className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiFileText size={14} /> Multiple RFQ Convert
@@ -84,7 +85,7 @@ export default function MaterialRequisitionAccounts() {
 
           {/* Multiple Purchase Convert */}
           <button
-            onClick={() => alert("Converting selected items to Purchase...")}
+            onClick={() => toast.info("Converting selected items to Purchase...")}
             className="flex items-center gap-1.5 bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiShoppingCart size={14} /> Multiple Purchase Convert
@@ -265,7 +266,7 @@ export default function MaterialRequisitionAccounts() {
                 <button
                   type="button"
                   onClick={() => {
-                    alert(
+                    toast.success(
                       `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,
                     );
                     setIsModalOpen(false);

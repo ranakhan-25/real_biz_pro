@@ -4,6 +4,7 @@ import SaleListTable from "@/components/inventory/SaleListTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
+import { toast } from "sonner";
 
 export interface SaleListItem {
   id: number;
@@ -161,7 +162,7 @@ const SaleListAccounts = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    alert(
+                    toast.success(
                       `${modalMode === "create" ? "Sale Created" : "Sale Updated"} successfully!`,
                     );
                     setIsModalOpen(false);

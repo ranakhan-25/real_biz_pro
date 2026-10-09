@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, UserPlus, CheckCircle2 } from "lucide-react";
 import { LandOwner, AcquisitionLead } from "@/types/lams";
 
 interface AddLandOwnerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddOwner: (newOwner: LandOwner) => void;
+  editData?: any;
+    onAddOwner: (newOwner: LandOwner) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -15,10 +16,11 @@ export function AddLandOwnerModal({
   isOpen,
   onClose,
   onAddOwner,
+    editData,
   acquisitionLeads,
 }: AddLandOwnerModalProps) {
   const [code, setCode] = useState(`LW-${Math.floor(1000000 + Math.random() * 9000000)}`);
-  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.id || "");
+  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.uuid || "");
   const [ownerName, setOwnerName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [nidNumber, setNidNumber] = useState("");
@@ -28,13 +30,31 @@ export function AddLandOwnerModal({
   const [status, setStatus] = useState<"Active" | "Inactive">("Active");
   const [isPrimary, setIsPrimary] = useState(true);
 
+  useEffect(() => {
+    if (isOpen && editData) {
+      setAcquisitionLeadId(editData.acquisitionLeadId || "");
+      setOwnerName(editData.ownerName || "");
+      setFatherName(editData.fatherName || "");
+      setNidNumber(editData.nidNumber || "");
+      setPhone(editData.phone || "");
+      setAddress(editData.address || "");
+      setRemarks(editData.remarks || "");
+      setStatus(editData.status || "Active");
+      setIsPrimary(editData.isPrimary || false);
+    } else if (isOpen && !editData) {
+      // reset 
+    }
+  }, [isOpen, editData]);
+
   if (!isOpen) return null;
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ownerName || !phone) return;
 
-    const matchedLead = acquisitionLeads.find((l) => l.id === acquisitionLeadId);
+    const matchedLead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId);
 
     const newRecord: LandOwner = {
       id: `LO-${Date.now()}`,
@@ -118,7 +138,7 @@ export function AddLandOwnerModal({
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-cyan-500/30"
               >
                 {acquisitionLeads.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
+                  <option key={lead.uuid} value={lead.uuid}>
                     {lead.title} ({lead.mouza})
                   </option>
                 ))}

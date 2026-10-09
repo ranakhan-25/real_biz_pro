@@ -19,8 +19,9 @@ import { AddLegalDocumentModal } from "./modals/AddLegalDocumentModal";
 
 interface LegalDocumentsViewProps {
   documents: LegalDocument[];
+  onEditDocument?: (uuid: string, data: any) => void;
   onAddDocument: (doc: LegalDocument) => void;
-  onDeleteDocument: (id: string) => void;
+  onDeleteDocument: (uuid: string) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -53,6 +54,7 @@ const STATUS_BADGES: Record<
 export function LegalDocumentsView({
   documents,
   onAddDocument,
+    onEditDocument,
   onDeleteDocument,
   acquisitionLeads,
 }: LegalDocumentsViewProps) {
@@ -61,16 +63,18 @@ export function LegalDocumentsView({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingDocument, setEditingDocument] = useState<any>(null);
 
   const filteredDocs = useMemo(() => {
-    return documents.filter((doc) => {
+    const safeDocs = Array.isArray(documents) ? documents : [];
+    return safeDocs.filter((doc) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch =
         !term ||
-        doc.leadTitle.toLowerCase().includes(term) ||
-        doc.documentType.toLowerCase().includes(term) ||
-        doc.documentFileName.toLowerCase().includes(term) ||
-        doc.verifiedBy.toLowerCase().includes(term);
+        (doc.leadTitle || "").toLowerCase().includes(term) ||
+        (doc.documentType || "").toLowerCase().includes(term) ||
+        (doc.documentFileName || "").toLowerCase().includes(term) ||
+        (doc.verifiedBy || "").toLowerCase().includes(term);
 
       const matchesStatus = statusFilter === "ALL" || doc.verificationStatus === statusFilter;
 
@@ -80,8 +84,8 @@ export function LegalDocumentsView({
 
   const displayedDocs = filteredDocs.slice(0, entriesPerPage);
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggleExpand = (uuid: string) => {
+    setExpandedId((prev) => (prev === uuid ? null : uuid));
   };
 
   return (
@@ -167,12 +171,12 @@ export function LegalDocumentsView({
                 </tr>
               ) : (
                 displayedDocs.map((doc, idx) => {
-                  const isExpanded = expandedId === doc.id;
-                  const statusInfo = STATUS_BADGES[doc.verificationStatus];
+                  const isExpanded = expandedId === doc.uuid;
+                  const statusInfo = STATUS_BADGES[doc.verificationStatus as VerificationStatus] || { bg: "bg-slate-100 text-slate-800", text: "text-slate-700", icon: AlertCircle };
                   const StatusIcon = statusInfo.icon;
 
                   return (
-                    <React.Fragment key={doc.id}>
+                    <React.Fragment key={doc.uuid}>
                       <tr
                         className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
                           isExpanded ? "bg-indigo-50/40 dark:bg-indigo-950/20" : ""
@@ -180,7 +184,7 @@ export function LegalDocumentsView({
                       >
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => toggleExpand(doc.id)}
+                            onClick={() => toggleExpand(doc.uuid)}
                             className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 transition-all font-bold"
                             title={isExpanded ? "Collapse" : "Expand"}
                           >
@@ -230,7 +234,14 @@ export function LegalDocumentsView({
 
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => onDeleteDocument(doc.id)}
+                              onClick={() => setEditingDocument(doc)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all"
+                              title="Edit"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button
+                            onClick={() => onDeleteDocument(doc.uuid)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all"
                             title="Delete Document"
                           >
@@ -294,9 +305,18 @@ export function LegalDocumentsView({
 
       {/* Add Modal */}
       <AddLegalDocumentModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddDocument={onAddDocument}
+        isOpen={isAddModalOpen || !!editingDocument}
+        onClose={() => { setIsAddModalOpen(false); setEditingDocument(null); }}
+        onAddDocument={(data) => {
+          if (editingDocument && onEditDocument) {
+            onEditDocument(editingDocument.uuid, data);
+          } else {
+            onAddDocument(data);
+          }
+          setIsAddModalOpen(false);
+          setEditingDocument(null);
+        }}
+        editData={editingDocument}
         acquisitionLeads={acquisitionLeads}
       />
     </div>

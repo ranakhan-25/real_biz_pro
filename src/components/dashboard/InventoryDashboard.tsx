@@ -364,7 +364,23 @@ function normalizeDashboardResponse(
       : fallback.pendingItems,
 
     overflowMaterial: Array.isArray(raw.overflowMaterial)
-      ? raw.overflowMaterial
+      ? raw.overflowMaterial.map((m: any, idx: number) => ({
+          sl: typeof m?.sl === "number" ? m.sl : idx + 1,
+          description: m?.description ?? m?.itemName ?? "Material",
+          budgetQty:
+            typeof m?.budgetQty === "number"
+              ? m.budgetQty
+              : typeof m?.excessQty === "number"
+                ? m.excessQty
+                : 0,
+          budgetAmount: typeof m?.budgetAmount === "number" ? m.budgetAmount : 0,
+          issueQty: typeof m?.issueQty === "number" ? m.issueQty : 0,
+          issueAmount: typeof m?.issueAmount === "number" ? m.issueAmount : 0,
+          status:
+            m?.status === "Approved" || m?.status === "Issued" || m?.status === "Pending"
+              ? m.status
+              : "Pending",
+        }))
       : fallback.overflowMaterial,
   };
 }
@@ -760,7 +776,7 @@ function QuickCardItem({
             <ArrowDownRight className="h-3 w-3" />
           )}
 
-          {isLoading ? "…" : `${Math.abs(data.changePercent)}%`}
+          {isLoading ? "…" : `${Math.abs(data?.changePercent ?? 0)}%`}
         </span>
       </div>
 
@@ -770,7 +786,7 @@ function QuickCardItem({
         </p>
 
         <p className="mt-0.5 text-2xl font-bold tracking-tight text-foreground">
-          {isLoading ? "…" : data.value.toLocaleString()}
+          {isLoading ? "…" : (data?.value ?? 0).toLocaleString()}
         </p>
 
         <p className="mt-0.5 text-[10px] text-muted-foreground">
@@ -1039,7 +1055,7 @@ function PurchaseConsumptionChart({
                     {hovered?.idx === index &&
                       hovered.series === "purchase" && (
                         <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg">
-                          {point.label}: {point.purchase.toLocaleString()}
+                          {point.label}: {(point.purchase ?? 0).toLocaleString()}
                         </div>
                       )}
 
@@ -1082,7 +1098,7 @@ function PurchaseConsumptionChart({
                     {hovered?.idx === index &&
                       hovered.series === "consumption" && (
                         <div className="absolute -top-9 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg">
-                          {point.label}: {point.consumption.toLocaleString()}
+                          {point.label}: {(point.consumption ?? 0).toLocaleString()}
                         </div>
                       )}
 
@@ -1251,19 +1267,19 @@ function OverflowMaterialTable({
                   </td>
 
                   <td className="px-3 py-2 text-right text-muted-foreground">
-                    {row.budgetQty.toLocaleString()}
+                    {(row.budgetQty ?? 0).toLocaleString()}
                   </td>
 
                   <td className="px-3 py-2 text-right text-muted-foreground">
-                    ৳{row.budgetAmount.toLocaleString()}
+                    ৳{(row.budgetAmount ?? 0).toLocaleString()}
                   </td>
 
                   <td className="px-3 py-2 text-right text-muted-foreground">
-                    {row.issueQty.toLocaleString()}
+                    {(row.issueQty ?? 0).toLocaleString()}
                   </td>
 
                   <td className="px-3 py-2 text-right text-muted-foreground">
-                    ৳{row.issueAmount.toLocaleString()}
+                    ৳{(row.issueAmount ?? 0).toLocaleString()}
                   </td>
 
                   <td className="px-3 py-2">

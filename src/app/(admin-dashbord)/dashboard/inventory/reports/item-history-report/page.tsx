@@ -5,41 +5,9 @@ import ItemHistoryTable from "@/components/inventory/ItemHistoryTable";
 import React, { useState, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
 
-const DEFAULT_ITEMS: ItemHistory[] = [
-  {
-    id: 1,
-    date: "2026-09-01",
-    invoiceNo: "INV-2026-001",
-    project: "Hena Heights",
-    task: "Foundation",
-    in: 500,
-    out: 0,
-    balance: 500,
-    unitCost: 85.5,
-    subTotal: 42750,
-    category: "Rod",
-    itemName: "16mm Rod",
-    site: "Site A",
-  },
-  {
-    id: 2,
-    date: "2026-09-05",
-    invoiceNo: "INV-2026-002",
-    project: "Hena Heights",
-    task: "Casting",
-    in: 0,
-    out: 150,
-    balance: 350,
-    unitCost: 85.5,
-    subTotal: 12825,
-    category: "Rod",
-    itemName: "16mm Rod",
-    site: "Site A",
-  },
-];
 
 export default function ItemHistoryContainer() {
-  const [items] = useState<ItemHistory[]>(DEFAULT_ITEMS);
+  const [items, setItems] = useState<ItemHistory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

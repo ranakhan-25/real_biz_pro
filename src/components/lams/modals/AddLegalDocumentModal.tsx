@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, FileUp, UploadCloud, CheckCircle } from "lucide-react";
 import { LegalDocument, AcquisitionLead, VerificationStatus } from "@/types/lams";
 
 interface AddLegalDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddDocument: (doc: LegalDocument) => void;
+  editData?: any;
+    onAddDocument: (doc: LegalDocument) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -35,16 +36,31 @@ export function AddLegalDocumentModal({
   isOpen,
   onClose,
   onAddDocument,
+    editData,
   acquisitionLeads,
 }: AddLegalDocumentModalProps) {
-  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.id || "");
+  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.uuid || "");
   const [documentType, setDocumentType] = useState(DOC_TYPES[0]);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("Pending");
   const [documentFileName, setDocumentFileName] = useState("deed_scan_copy.pdf");
   const [verifiedBy, setVerifiedBy] = useState("Adv. K. M. Saifuddin");
   const [remarks, setRemarks] = useState("");
 
+  useEffect(() => {
+    if (isOpen && editData) {
+      setAcquisitionLeadId(editData.acquisitionLeadId || "");
+      setDocumentType(editData.documentType || "Deed");
+      setDocumentFileName(editData.documentFileName || "");
+      setVerificationStatus(editData.verificationStatus || "Pending");
+      setRemarks(editData.remarks || "");
+          } else if (isOpen && !editData) {
+      // reset 
+    }
+  }, [isOpen, editData]);
+
   if (!isOpen) return null;
+
+  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -54,7 +70,7 @@ export function AddLegalDocumentModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.id === acquisitionLeadId) || acquisitionLeads[0];
+    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
 
     const newDoc: LegalDocument = {
       id: `DOC-${Date.now()}`,
@@ -112,7 +128,7 @@ export function AddLegalDocumentModal({
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             >
               {acquisitionLeads.map((l) => (
-                <option key={l.id} value={l.id}>
+                <option key={l.uuid} value={l.uuid}>
                   {l.title} ({l.mouza})
                 </option>
               ))}

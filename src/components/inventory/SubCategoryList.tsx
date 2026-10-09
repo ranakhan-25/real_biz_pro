@@ -3,30 +3,22 @@
 import type { SubCategory } from "@/app/(admin-dashbord)/dashboard/inventory/products/sub-categories/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-
-// Default sub-category items based on the reference image
-const DEFAULT_SUB_CATEGORIES: SubCategory[] = [
-  {
-    id: 1,
-    category: "Global Link City",
-    code: "AA00058",
-    name: "Global Link City",
-  },
-  { id: 2, category: "Mega Project", code: "AA00058", name: "Mega Project" },
-  { id: 3, category: "Black Marble", code: "SC5155496", name: "Black Marble" },
-  { id: 4, category: "White Marble", code: "SC6110881", name: "White Marble" },
-];
+import { API_BASE } from "@/lib/inventoryApi";
 
 interface SubCategoryListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (subCategory: SubCategory) => void;
   onView?: (subCategory: SubCategory) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function SubCategoryList({
-  apiEndpoint = "/api/sub-categories",
+  apiEndpoint = `${API_BASE}/inventory/sub-categories`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: SubCategoryListProps) {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -37,28 +29,35 @@ export default function SubCategoryList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchSubCategories() {
       try {
         setLoading(true);
         const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("API failed");
-        const data = await response.json();
-        setSubCategories(Array.isArray(data) ? data : DEFAULT_SUB_CATEGORIES);
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((item: any) => ({
+              id: item.id,
+              category: item.category?.name || item.category_name || item.category_id || "Category",
+              category_id: item.category_id,
+              code: item.sub_category_code || item.code || "",
+              name: item.name || "",
+            }))
+          : [];
+        setSubCategories(list);
       } catch (error) {
-        console.warn(
-          "Using default sub-category data due to fetch error:",
-          error,
-        );
-        setSubCategories(DEFAULT_SUB_CATEGORIES);
+        console.error("Error fetching sub-categories:", error);
+        setSubCategories([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchSubCategories();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Delete handler
   const handleDelete = (id: number) => {
@@ -206,7 +205,11 @@ export default function SubCategoryList({
                           </button>
                           {/* Delete Button */}
                           <button
-                            onClick={() => handleDelete(subCat.id)}
+                            onClick={() =>
+                              onDelete
+                                ? onDelete(subCat.id, subCat.name)
+                                : handleDelete(subCat.id as any)
+                            }
                             title="Delete"
                             className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded transition-colors shadow-sm"
                           >
