@@ -95,7 +95,10 @@ const emptyForm: FormState = {
 //   NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 //   NEXT_PUBLIC_DEFAULT_USER_ID=<createdBy er jonno user id>   (optional)
 // ==============================
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
+const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(
+  /\/$/,
+  "",
+);
 const API_URL = `${BASE_URL}/realbizpro/api/v1/projects`;
 const DEFAULT_USER_ID =
   process.env.NEXT_PUBLIC_DEFAULT_USER_ID ??
@@ -171,7 +174,9 @@ export default function ProjectsPage() {
   // MODAL / FORM
   // ==============================
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(
+    null,
+  );
   const [formData, setFormData] = useState<FormState>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -193,8 +198,8 @@ export default function ProjectsPage() {
       const list: ProjectItem[] = Array.isArray(json.data)
         ? json.data
         : Array.isArray(json.data?.data)
-        ? json.data.data
-        : [];
+          ? json.data.data
+          : [];
 
       setProjects(list);
     } catch (err) {
@@ -304,7 +309,8 @@ export default function ProjectsPage() {
   // DELETE (soft delete)
   // ==============================
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
 
     setDeletingId(id);
     setError(null);
@@ -324,14 +330,16 @@ export default function ProjectsPage() {
   const areaOptions = useMemo(
     () =>
       Array.from(new Set(projects.map((p) => p.areaCategory).filter(Boolean))),
-    [projects]
+    [projects],
   );
 
   const filteredProjects = projects.filter((item) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       (item.name ?? "").toLowerCase().includes(q) ||
-      String(item.code ?? "").toLowerCase().includes(q) ||
+      String(item.code ?? "")
+        .toLowerCase()
+        .includes(q) ||
       (item.location ?? "").toLowerCase().includes(q) ||
       (item.contractorCompany ?? "").toLowerCase().includes(q) ||
       (item.contactPersonName ?? "").toLowerCase().includes(q);
@@ -342,12 +350,15 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus && matchesArea;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_LIMIT));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProjects.length / PAGE_LIMIT),
+  );
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * PAGE_LIMIT;
   const pagedProjects = filteredProjects.slice(
     startIndex,
-    startIndex + PAGE_LIMIT
+    startIndex + PAGE_LIMIT,
   );
 
   return (
@@ -446,8 +457,8 @@ export default function ProjectsPage() {
 
         <div className="flex items-center gap-2.5">
           <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" /> Columns (
-            {filteredProjects.length} items)
+            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" /> Columns
+            ({filteredProjects.length} items)
           </button>
           <button
             onClick={handleOpenAdd}
@@ -561,7 +572,9 @@ export default function ProjectsPage() {
                     </td>
 
                     <td className="py-3.5 px-3 font-semibold text-slate-800 whitespace-nowrap">
-                      {item.budget ? `৳${Number(item.budget).toLocaleString()}` : "—"}
+                      {item.budget
+                        ? `৳${Number(item.budget).toLocaleString()}`
+                        : "—"}
                     </td>
 
                     <td className="py-3.5 px-3 text-center">
@@ -589,8 +602,8 @@ export default function ProjectsPage() {
                           item.status === "Active"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : item.status === "Completed"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
                         {item.status}
@@ -625,8 +638,8 @@ export default function ProjectsPage() {
               ) : (
                 <tr>
                   <td colSpan={12} className="py-12 text-center text-slate-400">
-                    No matching projects found. Try checking your search or filter
-                    values.
+                    No matching projects found. Try checking your search or
+                    filter values.
                   </td>
                 </tr>
               )}
@@ -682,6 +695,8 @@ export default function ProjectsPage() {
               Next <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
+        </div>
+      </div>
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
@@ -784,7 +799,9 @@ export default function ProjectsPage() {
                     type="text"
                     placeholder="Person Name"
                     value={formData.contactPersonName}
-                    onChange={(e) => setField("contactPersonName", e.target.value)}
+                    onChange={(e) =>
+                      setField("contactPersonName", e.target.value)
+                    }
                     className={inputClass}
                   />
                 </Field>
@@ -814,7 +831,9 @@ export default function ProjectsPage() {
                     type="text"
                     placeholder="Contractor Name"
                     value={formData.contractorCompany}
-                    onChange={(e) => setField("contractorCompany", e.target.value)}
+                    onChange={(e) =>
+                      setField("contractorCompany", e.target.value)
+                    }
                     className={inputClass}
                   />
                 </Field>
@@ -878,7 +897,9 @@ export default function ProjectsPage() {
                     min="0"
                     max="100"
                     value={formData.progress}
-                    onChange={(e) => setField("progress", Number(e.target.value))}
+                    onChange={(e) =>
+                      setField("progress", Number(e.target.value))
+                    }
                     className={inputClass}
                   />
                 </Field>
@@ -894,7 +915,9 @@ export default function ProjectsPage() {
                 </Field>
 
                 {formError && (
-                  <p className="text-xs text-red-600 md:col-span-3">{formError}</p>
+                  <p className="text-xs text-red-600 md:col-span-3">
+                    {formError}
+                  </p>
                 )}
               </div>
 
