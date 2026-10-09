@@ -175,7 +175,7 @@ export default function ProjectTypePage() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
-                      No matching records found.
+                      No matching records founded.
                     </td>
                   </tr>
                 )}
