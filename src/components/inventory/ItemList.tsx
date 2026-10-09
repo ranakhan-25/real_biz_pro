@@ -3,131 +3,46 @@
 import type { Item } from "@/app/(admin-dashbord)/dashboard/inventory/products/item-entry/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
+import { API_BASE } from "@/lib/inventoryApi";
 
 // Default item list matching the reference design image
 const DEFAULT_ITEMS: Item[] = [
   {
     id: 1,
     code: "M0083",
-    name: "name",
+    name: "Steel Bar 12mm",
     category: "Rod",
     unit: "Set",
-    brand: "brand",
-    purchasePrice: 0,
-    salePrice: 0,
+    brand: "BSRM",
+    purchasePrice: 95,
+    salePrice: 105,
   },
   {
     id: 2,
     code: "M0082",
-    name: "ggg",
-    category: "Sand",
+    name: "Portland Cement",
+    category: "Cement",
     unit: "Bag",
-    brand: "ABC",
-    purchasePrice: 0,
-    salePrice: 0,
-  },
-  {
-    id: 3,
-    code: "M0081",
-    name: "req",
-    category: "Rod",
-    unit: "Rft",
     brand: "Seven Rings",
-    purchasePrice: 0,
-    salePrice: 0,
-  },
-  {
-    id: 4,
-    code: "M0080",
-    name: "item",
-    category: "Rod",
-    unit: "Sft",
-    brand: "Seven Rings",
-    purchasePrice: 0,
-    salePrice: 0,
-  },
-  {
-    id: 5,
-    code: "M0079",
-    name: "1st Class Brick",
-    category: "Bricks",
-    unit: "Pcs",
-    brand: "",
-    purchasePrice: 0,
-    salePrice: 0,
-  },
-  {
-    id: 6,
-    code: "P078",
-    name: "Gi Wire (16 no.)",
-    category: "Others",
-    unit: "Kg",
-    brand: "",
-    purchasePrice: 190,
-    salePrice: 0,
-  },
-  {
-    id: 7,
-    code: "P077",
-    name: "Macha",
-    category: "Others",
-    unit: "Nos",
-    brand: "",
-    purchasePrice: 200,
-    salePrice: 0,
-  },
-  {
-    id: 8,
-    code: "P076",
-    name: "Bamboo",
-    category: "Others",
-    unit: "Nos",
-    brand: "",
-    purchasePrice: 450,
-    salePrice: 0,
-  },
-  {
-    id: 9,
-    code: "P075",
-    name: "Safety Net",
-    category: "Others",
-    unit: "Job",
-    brand: "",
-    purchasePrice: 100000,
-    salePrice: 0,
-  },
-  {
-    id: 10,
-    code: "P074",
-    name: "Tarpaulin",
-    category: "Others",
-    unit: "Sft",
-    brand: "",
-    purchasePrice: 4.5,
-    salePrice: 0,
-  },
-  {
-    id: 11,
-    code: "P073",
-    name: "Binding Wire",
-    category: "Others",
-    unit: "Kg",
-    brand: "BSRM",
-    purchasePrice: 140,
-    salePrice: 150,
+    purchasePrice: 480,
+    salePrice: 520,
   },
 ];
 
 interface ItemListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (item: Item) => void;
   onView?: (item: Item) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function ItemList({
-  apiEndpoint = "/api/items",
+  apiEndpoint = `${API_BASE}/inventory/items`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: ItemListProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -143,8 +58,24 @@ export default function ItemList({
         setLoading(true);
         const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("API failed");
-        const data = await response.json();
-        setItems(Array.isArray(data) ? data : DEFAULT_ITEMS);
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((it: any) => ({
+              id: it.id,
+              code: it.item_code || it.code || "",
+              name: it.name || "",
+              category: it.category?.name || it.category_id || "General",
+              category_id: it.category_id,
+              unit: it.unit?.name || it.unit_id || "Pcs",
+              unit_id: it.unit_id,
+              brand: it.brand?.name || it.brand_id || "",
+              brand_id: it.brand_id,
+              purchasePrice: Number(it.purchase_price ?? 0),
+              salePrice: Number(it.sale_price ?? 0),
+            }))
+          : [];
+        setItems(list.length > 0 ? list : DEFAULT_ITEMS);
       } catch (error) {
         console.warn("Using default item data due to fetch error:", error);
         setItems(DEFAULT_ITEMS);
@@ -154,10 +85,10 @@ export default function ItemList({
     }
 
     fetchItems();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
-  // Delete handler
-  const handleDelete = (id: number) => {
+  // Fallback local delete handler
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this item?")) {
       setItems((prev) => prev.filter((item) => item.id !== id));
     }
@@ -169,9 +100,9 @@ export default function ItemList({
       const matchesSearch =
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.brand.toLowerCase().includes(searchQuery.toLowerCase());
+        (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.unit && item.unit.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase()));
 
       return matchesSearch;
     });
@@ -206,14 +137,9 @@ export default function ItemList({
             <span>entries</span>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              Search:
-            </span>
-            <div className="relative w-full sm:w-64">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
-                <FiSearch size={14} />
-              </span>
+          <div className="w-full sm:w-auto">
+            <div className="relative">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm" />
               <input
                 type="text"
                 value={searchQuery}
@@ -222,7 +148,7 @@ export default function ItemList({
                   setCurrentPage(1);
                 }}
                 placeholder="Search items..."
-                className="w-full bg-background border border-input rounded pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                className="w-full sm:w-64 bg-background border border-input rounded pl-9 pr-3 py-1.5 text-xs text-foreground focus:outline-none"
               />
             </div>
           </div>
@@ -235,7 +161,7 @@ export default function ItemList({
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-[var(--sidebar-foreground)] text-white font-medium select-none">
-                <th className="py-3 px-4 w-14">ID</th>
+                <th className="py-3 px-4 w-14">SL</th>
                 <th className="py-3 px-4">CODE</th>
                 <th className="py-3 px-4">NAME</th>
                 <th className="py-3 px-4">CATEGORY</th>
@@ -258,12 +184,13 @@ export default function ItemList({
                 </tr>
               ) : paginatedItems.length > 0 ? (
                 paginatedItems.map((item, index) => {
+                  const serialNumber = (currentPage - 1) * entriesPerPage + index + 1;
                   return (
                     <tr
                       key={item.id || index}
                       className="hover:bg-muted/50 transition-colors"
                     >
-                      <td className="py-3 px-4 font-medium">{item.id}</td>
+                      <td className="py-3 px-4 font-medium">{serialNumber}</td>
                       <td className="py-3 px-4 font-mono text-xs">
                         {item.code}
                       </td>
@@ -295,7 +222,11 @@ export default function ItemList({
                           </button>
                           {/* Delete Button */}
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() =>
+                              onDelete
+                                ? onDelete(item.id, item.name)
+                                : handleDelete(item.id)
+                            }
                             title="Delete"
                             className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded transition-colors shadow-sm"
                           >
@@ -327,8 +258,8 @@ export default function ItemList({
             {filteredItems.length > 0
               ? (currentPage - 1) * entriesPerPage + 1
               : 0}{" "}
-            to {Math.min(currentPage * entriesPerPage, filteredItems.length)} of{" "}
-            {filteredItems.length} entries
+            to {Math.min(currentPage * entriesPerPage, filteredItems.length)}{" "}
+            of {filteredItems.length} entries
           </div>
 
           {/* Page Number Buttons */}
@@ -340,43 +271,19 @@ export default function ItemList({
             >
               Previous
             </button>
-
-            <div className="flex items-center gap-1 mx-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => {
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                          currentPage === page
-                            ? "bg-[var(--sidebar-foreground)] text-white"
-                            : "border border-border bg-card hover:bg-muted text-foreground"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    page === currentPage - 2 ||
-                    page === currentPage + 2
-                  ) {
-                    return (
-                      <span key={page} className="px-1 text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                },
-              )}
-            </div>
-
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-8 h-8 rounded border text-xs font-medium transition-colors ${
+                  currentPage === page
+                    ? "bg-[var(--lime)] text-white border-[var(--lime)]"
+                    : "border-border bg-card hover:bg-muted text-foreground"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))

@@ -4,9 +4,11 @@ import PurchaseListTable from "@/components/inventory/PurchaseListTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import { purchasesApi } from "@/lib/inventoryApi";
 
 export interface PurchaseListItem {
-  id: number;
+  id: string | number;
   projectType: string;
   project: string;
   titleOfWork: string;
@@ -29,6 +31,7 @@ export interface PurchaseListItem {
 }
 
 const PurchaseListAccounts = () => {
+  const router = useRouter();
   // Filter states
   const [dateRange, setDateRange] = useState("1 September, 2026 - 30 September, 2026");
   const [company, setCompany] = useState("Somikoron IT Ltd");
@@ -40,17 +43,11 @@ const PurchaseListAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
   const [selectedPurchase, setSelectedPurchase] = useState<Partial<PurchaseListItem>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Handler to open Create Module
+  // Handler to open Create Module or go to add-purchase page
   const handleCreateNewPurchase = () => {
-    setModalMode("create");
-    setSelectedPurchase({
-      code: `PUR${Math.floor(1000000 + Math.random() * 9000000)}`,
-      date: "10 Sept 2026",
-      projectType: "Office",
-      project: "Rifat Eyecon City",
-    });
-    setIsModalOpen(true);
+    router.push("/dashboard/inventory/purchase/add-purchase");
   };
 
   // Handler to open Edit/View Module passed to child
@@ -58,6 +55,18 @@ const PurchaseListAccounts = () => {
     setModalMode(mode);
     setSelectedPurchase(item);
     setIsModalOpen(true);
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, code: string) => {
+    if (!window.confirm(`Are you sure you want to delete purchase "${code}"?`)) return;
+    try {
+      await purchasesApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete purchase:", err);
+      alert(err.message || "Failed to delete purchase");
+    }
   };
 
   return (
@@ -132,8 +141,10 @@ const PurchaseListAccounts = () => {
 
       {/* Child Component for Table */}
       <PurchaseListTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModal(item, "update")}
         onView={(item) => handleOpenModal(item, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Modal Module for Create / Update / View */}

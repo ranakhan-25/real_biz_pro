@@ -2,7 +2,8 @@
 
 import type { MaterialItem } from "@/components/inventory/MaterialComparisonTable";
 import MaterialComparisonTable from "@/components/inventory/MaterialComparisonTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { reportsApi } from "@/lib/inventoryApi";
 
 const INITIAL_DATA: MaterialItem[] = [
   {
@@ -83,10 +84,40 @@ const INITIAL_DATA: MaterialItem[] = [
 ];
 
 export default function MaterialComparisonContainer() {
-  const [data] = useState<MaterialItem[]>(INITIAL_DATA);
+  const [data, setData] = useState<MaterialItem[]>(INITIAL_DATA);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    async function loadComparison() {
+      try {
+        const res = await reportsApi.getMaterialComparison(1);
+        const raw = res?.data || res;
+        if (Array.isArray(raw) && raw.length > 0) {
+          const list = raw.map((r: any, idx: number) => ({
+            id: idx + 1,
+            description: r.item_name || "Material",
+            budgetQty: Number(r.budget_qty || 0),
+            budgetAmount: Number((r.budget_qty || 0) * 100),
+            purchaseQty: Number(r.purchase_qty || 0),
+            purchaseAmount: Number((r.purchase_qty || 0) * 100),
+            issueQty: Number(r.issue_qty || 0),
+            issueAmount: Number((r.issue_qty || 0) * 100),
+            stockQty: Number((r.purchase_qty || 0) - (r.issue_qty || 0)),
+            stockAmount: Number(((r.purchase_qty || 0) - (r.issue_qty || 0)) * 100),
+            availableQty: Number(r.available_qty || 0),
+            availableAmount: Number((r.available_qty || 0) * 100),
+            status: "Normal",
+          }));
+          setData(list);
+        }
+      } catch (err) {
+        console.warn("Could not load material comparison report, using default:", err);
+      }
+    }
+    loadComparison();
+  }, []);
 
   // Filter States
   const [selectedProject, setSelectedProject] = useState("");

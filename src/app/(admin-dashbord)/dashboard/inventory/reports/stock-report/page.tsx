@@ -2,8 +2,9 @@
 
 import type { StockItem } from "@/components/inventory/StockReportTable";
 import StockReportTable from "@/components/inventory/StockReportTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
+import { reportsApi } from "@/lib/inventoryApi";
 
 const DEFAULT_STOCKS: StockItem[] = [
   {
@@ -165,10 +166,37 @@ const DEFAULT_STOCKS: StockItem[] = [
 ];
 
 export default function StockReportContainer() {
-  const [stocks] = useState<StockItem[]>(DEFAULT_STOCKS);
+  const [stocks, setStocks] = useState<StockItem[]>(DEFAULT_STOCKS);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    async function loadStockReport() {
+      try {
+        const res = await reportsApi.getStockReport();
+        const raw = res?.data || res;
+        if (Array.isArray(raw) && raw.length > 0) {
+          const list = raw.map((r: any, idx: number) => ({
+            id: r.item_id || idx + 1,
+            name: r.item_name || r.name || "Item",
+            opening: Number(r.opening || 0),
+            in: Number(r.total_purchased || r.in || 0),
+            out: Number(r.total_issued || r.out || 0),
+            unit: r.unit || "Pcs",
+            closing: Number(r.current_stock || r.closing || 0),
+            closingAmount: Number(r.closingAmount || 0),
+            category: r.category || "General",
+            brand: r.brand || "Standard",
+          }));
+          setStocks(list);
+        }
+      } catch (err) {
+        console.warn("Could not load stock report from API, using default:", err);
+      }
+    }
+    loadStockReport();
+  }, []);
 
   // Filter states
   const [selectedDateRange, setSelectedDateRange] = useState(

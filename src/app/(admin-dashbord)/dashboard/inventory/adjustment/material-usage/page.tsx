@@ -4,9 +4,10 @@ import MaterialUsageTable from "@/components/inventory/MaterialUsageTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
+import { materialUsageApi } from "@/lib/inventoryApi";
 
 export interface MaterialUsageItem {
-  id: number;
+  id: string | number;
   projectType: string;
   project: string;
   titleOfWork: string;
@@ -37,6 +38,7 @@ export default function MaterialUsageAccounts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
   const [selectedUsage, setSelectedUsage] = useState<Partial<MaterialUsageItem>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handler to open Create Module
   const handleCreateNewUsage = () => {
@@ -55,6 +57,18 @@ export default function MaterialUsageAccounts() {
     setModalMode(mode);
     setSelectedUsage(item);
     setIsModalOpen(true);
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, code: string) => {
+    if (!window.confirm(`Are you sure you want to delete material usage "${code}"?`)) return;
+    try {
+      await materialUsageApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete material usage:", err);
+      alert(err.message || "Failed to delete material usage");
+    }
   };
 
   return (
@@ -167,8 +181,10 @@ export default function MaterialUsageAccounts() {
 
       {/* Child Component for Table */}
       <MaterialUsageTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModal(item, "update")}
         onView={(item) => handleOpenModal(item, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Modal Module for Create / Update / View */}

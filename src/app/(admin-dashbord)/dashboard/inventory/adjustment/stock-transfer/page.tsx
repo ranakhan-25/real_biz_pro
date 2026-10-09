@@ -4,9 +4,10 @@ import StockTransferTable from "@/components/inventory/StockTransferTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
+import { stockTransfersApi } from "@/lib/inventoryApi";
 
 export interface StockTransferItem {
-  id: number;
+  id: string | number;
   code: string;
   date: string;
   fromProject: string;
@@ -30,6 +31,7 @@ export default function StockTransferAccounts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
   const [selectedTransfer, setSelectedTransfer] = useState<Partial<StockTransferItem>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handler to open Transfer Module
   const handleOpenTransferModal = () => {
@@ -46,6 +48,18 @@ export default function StockTransferAccounts() {
     setModalMode(mode);
     setSelectedTransfer(item);
     setIsModalOpen(true);
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, code: string) => {
+    if (!window.confirm(`Are you sure you want to delete stock transfer "${code}"?`)) return;
+    try {
+      await stockTransfersApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete stock transfer:", err);
+      alert(err.message || "Failed to delete stock transfer");
+    }
   };
 
   return (
@@ -137,8 +151,10 @@ export default function StockTransferAccounts() {
 
       {/* Child Component for Table */}
       <StockTransferTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModalFromTable(item, "update")}
         onView={(item) => handleOpenModalFromTable(item, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Modal Module for Transfer / Update / View */}

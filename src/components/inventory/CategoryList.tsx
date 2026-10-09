@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { FiEdit, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import type { Category } from "./CategoryAccounts";
+import { FiEdit, FiTrash2, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import type { Category } from "@/app/(admin-dashbord)/dashboard/inventory/products/categories/page";
+import { API_BASE } from "@/lib/inventoryApi";
 
 // Default category items based on the reference image
 const DEFAULT_CATEGORIES: Category[] = [
@@ -30,98 +31,22 @@ const DEFAULT_CATEGORIES: Category[] = [
     inventoryCoa: "Sanitary Work Inventory",
     consumptionCoa: "Sanitary Work Consumption",
   },
-  {
-    id: 4,
-    type: "Material",
-    code: "",
-    name: "Thai",
-    inventoryCoa: "Thai Inventory",
-    consumptionCoa: "Thai Consumption",
-  },
-  {
-    id: 5,
-    type: "Material",
-    code: "",
-    name: "Marble",
-    inventoryCoa: "Marble Inventory",
-    consumptionCoa: "Marble Consumption",
-  },
-  {
-    id: 6,
-    type: "Material",
-    code: "",
-    name: "Tiles",
-    inventoryCoa: "Tiles Inventory",
-    consumptionCoa: "Tiles Consumption",
-  },
-  {
-    id: 7,
-    type: "Material",
-    code: "",
-    name: "Grill",
-    inventoryCoa: "Grill Inventory",
-    consumptionCoa: "Grill Consumption",
-  },
-  {
-    id: 8,
-    type: "Material",
-    code: "",
-    name: "Door",
-    inventoryCoa: "Door Inventory",
-    consumptionCoa: "Door Consumption",
-  },
-  {
-    id: 9,
-    type: "Material",
-    code: "",
-    name: "Chemical",
-    inventoryCoa: "Chemical Inventory",
-    consumptionCoa: "Chemical Consumption",
-  },
-  {
-    id: 10,
-    type: "Material",
-    code: "",
-    name: "Stone",
-    inventoryCoa: "Stone Inventory",
-    consumptionCoa: "Stone Consumption",
-  },
-  {
-    id: 11,
-    type: "Material",
-    code: "C1122334",
-    name: "Cement",
-    inventoryCoa: "Cement Inventory",
-    consumptionCoa: "Cement Consumption",
-  },
-  {
-    id: 12,
-    type: "Material",
-    code: "C5566778",
-    name: "Rod",
-    inventoryCoa: "Rod Inventory",
-    consumptionCoa: "Rod Consumption",
-  },
-  {
-    id: 13,
-    type: "Material",
-    code: "C9988776",
-    name: "Sand",
-    inventoryCoa: "Sand Inventory",
-    consumptionCoa: "Sand Consumption",
-  },
 ];
 
 interface CategoryListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (category: Category) => void;
   onView?: (category: Category) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function CategoryList({
-  apiEndpoint = "/api/categories",
+  apiEndpoint = `${API_BASE}/inventory/categories`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: CategoryListProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -138,8 +63,19 @@ export default function CategoryList({
         setLoading(true);
         const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("API failed");
-        const data = await response.json();
-        setCategories(Array.isArray(data) ? data : DEFAULT_CATEGORIES);
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((c: any) => ({
+              id: c.id,
+              type: c.type || "Material",
+              code: c.category_code || c.code || "",
+              name: c.name || "",
+              inventoryCoa: c.inventoryCoa || "Inventory",
+              consumptionCoa: c.consumptionCoa || "Consumption",
+            }))
+          : [];
+        setCategories(list.length > 0 ? list : DEFAULT_CATEGORIES);
       } catch (error) {
         console.warn("Using default category data due to fetch error:", error);
         setCategories(DEFAULT_CATEGORIES);
@@ -149,7 +85,7 @@ export default function CategoryList({
     }
 
     fetchCategories();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Filter categories based on Type dropdown and Search query
   const filteredCategories = useMemo(() => {
@@ -276,6 +212,14 @@ export default function CategoryList({
                             className="bg-[#0ea5e9] hover:bg-[#0284c7] text-white p-1.5 rounded transition-colors shadow-sm"
                           >
                             <FiEdit size={14} />
+                          </button>
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => onDelete && onDelete(category.id, category.name)}
+                            title="Delete"
+                            className="bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded transition-colors shadow-sm"
+                          >
+                            <FiTrash2 size={14} />
                           </button>
                         </div>
                       </td>

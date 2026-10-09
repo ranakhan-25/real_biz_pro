@@ -18,8 +18,9 @@ import { AddNegotiationModal } from "./modals/AddNegotiationModal";
 
 interface NegotiationProcessViewProps {
   negotiations: NegotiationRecord[];
+  onEditNegotiation?: (uuid: string, data: any) => void;
   onAddNegotiation: (record: NegotiationRecord) => void;
-  onDeleteNegotiation: (id: string) => void;
+  onDeleteNegotiation: (uuid: string) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -52,6 +53,7 @@ const STATUS_CONFIG: Record<
 export function NegotiationProcessView({
   negotiations,
   onAddNegotiation,
+    onEditNegotiation,
   onDeleteNegotiation,
   acquisitionLeads,
 }: NegotiationProcessViewProps) {
@@ -60,16 +62,18 @@ export function NegotiationProcessView({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingNegotiation, setEditingNegotiation] = useState<any>(null);
 
   const filteredNegotiations = useMemo(() => {
-    return negotiations.filter((item) => {
+    const safeNegotiations = Array.isArray(negotiations) ? negotiations : [];
+    return safeNegotiations.filter((item) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch =
         !term ||
-        item.leadTitle.toLowerCase().includes(term) ||
-        item.mouza.toLowerCase().includes(term) ||
-        item.dagNo.toLowerCase().includes(term) ||
-        item.attendedBy.toLowerCase().includes(term);
+        (item.leadTitle || "").toLowerCase().includes(term) ||
+        (item.mouza || "").toLowerCase().includes(term) ||
+        (item.dagNo || "").toLowerCase().includes(term) ||
+        (item.attendedBy || "").toLowerCase().includes(term);
 
       const matchesStatus = statusFilter === "ALL" || item.negotiationStatus === statusFilter;
 
@@ -79,8 +83,8 @@ export function NegotiationProcessView({
 
   const displayedNegotiations = filteredNegotiations.slice(0, entriesPerPage);
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggleExpand = (uuid: string) => {
+    setExpandedId((prev) => (prev === uuid ? null : uuid));
   };
 
   return (
@@ -167,13 +171,13 @@ export function NegotiationProcessView({
                 </tr>
               ) : (
                 displayedNegotiations.map((item, idx) => {
-                  const isExpanded = expandedId === item.id;
-                  const statusInfo = STATUS_CONFIG[item.negotiationStatus];
+                  const isExpanded = expandedId === item.uuid;
+                  const statusInfo = STATUS_CONFIG[item.negotiationStatus as NegotiationStatus] || { bg: "bg-slate-100 text-slate-800", text: "text-slate-700", icon: AlertTriangle };
                   const StatusIcon = statusInfo.icon;
                   const priceGap = item.counterOfferByOwner - item.offeredTotalPrice;
 
                   return (
-                    <React.Fragment key={item.id}>
+                    <React.Fragment key={item.uuid}>
                       <tr
                         className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
                           isExpanded ? "bg-amber-50/40 dark:bg-amber-950/20" : ""
@@ -181,7 +185,7 @@ export function NegotiationProcessView({
                       >
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => toggleExpand(item.id)}
+                            onClick={() => toggleExpand(item.uuid)}
                             className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 transition-all font-bold"
                             title={isExpanded ? "Collapse" : "Expand"}
                           >
@@ -232,7 +236,7 @@ export function NegotiationProcessView({
 
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => onDeleteNegotiation(item.id)}
+                            onClick={() => onDeleteNegotiation(item.uuid)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all"
                             title="Delete Negotiation"
                           >
@@ -315,9 +319,18 @@ export function NegotiationProcessView({
 
       {/* Add Modal */}
       <AddNegotiationModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddNegotiation={onAddNegotiation}
+        isOpen={isAddModalOpen || !!editingNegotiation}
+        onClose={() => { setIsAddModalOpen(false); setEditingNegotiation(null); }}
+        onAddNegotiation={(data) => {
+          if (editingNegotiation && onEditNegotiation) {
+            onEditNegotiation(editingNegotiation.uuid, data);
+          } else {
+            onAddNegotiation(data);
+          }
+          setIsAddModalOpen(false);
+          setEditingNegotiation(null);
+        }}
+        editData={editingNegotiation}
         acquisitionLeads={acquisitionLeads}
       />
     </div>

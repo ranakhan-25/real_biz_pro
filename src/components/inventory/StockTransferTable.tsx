@@ -33,13 +33,19 @@ const DEFAULT_STOCK_TRANSFERS: StockTransferItem[] = [
 ];
 
 interface StockTransferTableProps {
+  apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (item: StockTransferItem) => void;
   onView?: (item: StockTransferItem) => void;
+  onDelete?: (id: string | number, code: string) => void;
 }
 
 export default function StockTransferTable({
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/stock-transfers`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: StockTransferTableProps) {
   const [transfers, setTransfers] = useState<StockTransferItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,16 +58,27 @@ export default function StockTransferTable({
     const fetchStockTransfers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/stock-transfers");
+        const response = await fetch(apiEndpoint);
         if (!response.ok) {
           throw new Error("API request failed");
         }
-        const data = await response.json();
-        if (!data || data.length === 0) {
-          setTransfers(DEFAULT_STOCK_TRANSFERS);
-        } else {
-          setTransfers(data);
-        }
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((t: any, idx: number) => ({
+              id: t.id,
+              code: t.transfer_no || t.code || `ST-${idx + 1}`,
+              date: t.date ? new Date(t.date).toLocaleDateString() : "-",
+              fromProject: t.from_project?.name || t.from_project_name || "Head Office",
+              fromSite: t.from_site?.name || t.from_site_name || "Main Site",
+              fromTask: t.from_task || "-",
+              toProject: t.to_project?.name || t.to_project_name || "Branch Office",
+              toSite: t.to_site?.name || t.to_site_name || "Site B",
+              toTask: t.to_task || "-",
+              contact: t.contact || "01700000000",
+            }))
+          : [];
+        setTransfers(list.length > 0 ? list : DEFAULT_STOCK_TRANSFERS);
       } catch (error) {
         console.warn(
           "API unavailable, loading default stock transfer data...",
@@ -74,10 +91,10 @@ export default function StockTransferTable({
     };
 
     fetchStockTransfers();
-  }, []);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Delete handler
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number | string) => {
     if (
       confirm("Are you sure you want to delete this stock transfer record?")
     ) {
@@ -229,7 +246,11 @@ export default function StockTransferTable({
                         </button>
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() =>
+                            onDelete
+                              ? onDelete(item.id, item.code)
+                              : handleDelete(item.id)
+                          }
                           title="Delete"
                           className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded shadow-sm transition-colors"
                         >

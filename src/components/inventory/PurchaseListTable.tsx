@@ -60,21 +60,70 @@ const DEFAULT_PURCHASES: PurchaseListItem[] = [
 ];
 
 interface PurchaseListTableProps {
+  apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (item: PurchaseListItem) => void;
   onView?: (item: PurchaseListItem) => void;
+  onDelete?: (id: string | number, code: string) => void;
 }
 
 export default function PurchaseListTable({
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/purchases`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: PurchaseListTableProps) {
-  const [purchases, setPurchases] =
-    useState<PurchaseListItem[]>(DEFAULT_PURCHASES);
+  const [purchases, setPurchases] = useState<PurchaseListItem[]>(DEFAULT_PURCHASES);
+  const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const handleDelete = (id: number) => {
+  React.useEffect(() => {
+    async function fetchPurchases() {
+      try {
+        setLoading(true);
+        const res = await fetch(apiEndpoint);
+        if (!res.ok) throw new Error("Failed to fetch purchases");
+        const json = await res.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((p: any, idx: number) => ({
+              id: p.id,
+              projectType: p.project_type || "General",
+              project: p.project?.name || p.project_name || "Head Office",
+              titleOfWork: p.title_of_work || "-",
+              supplierName: p.supplier?.name || p.supplier_name || p.supplier_id || "Supplier",
+              code: p.purchase_no || p.invoice_no || p.code || `PUR-${idx + 1}`,
+              reference: p.reference || "-",
+              creditLedger: "-",
+              date: p.date ? new Date(p.date).toLocaleDateString() : "-",
+              subTotal: Number(p.subtotal || 0),
+              discount: Number(p.discount || 0),
+              deliveryCharge: Number(p.delivery_charge || 0),
+              grandTotal: Number(p.grand_total || 0),
+              paid: Number(p.paid_amount || 0),
+              due: Number(p.due_amount || 0),
+              attachment: "-",
+              note: p.note || "-",
+              addedBy: p.added_by || "Admin",
+              approvalStatus: "All Approvals Completed",
+              approver: "Admin",
+            }))
+          : [];
+        setPurchases(list.length > 0 ? list : DEFAULT_PURCHASES);
+      } catch (err) {
+        console.warn("Could not fetch purchases, using defaults:", err);
+        setPurchases(DEFAULT_PURCHASES);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPurchases();
+  }, [apiEndpoint, refreshTrigger]);
+
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this purchase?")) {
       setPurchases(purchases.filter((item) => item.id !== id));
     }
@@ -197,7 +246,7 @@ export default function PurchaseListTable({
                         </button>
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => (onDelete ? onDelete(item.id, item.code) : handleDelete(item.id))}
                           title="Delete"
                           className="bg-[#ef4444] text-white p-1 rounded shadow-sm hover:opacity-90"
                         >

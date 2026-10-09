@@ -5,12 +5,15 @@ import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import type { Supplier } from "@/types/invetory";
+import { suppliersApi } from "@/lib/inventoryApi";
 
 const SupplierAccounts = () => {
   // Modal state management
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedSupplier, setSelectedSupplier] = useState<Partial<Supplier>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Open modal for adding a new supplier from Parent button
   const handleAddClick = () => {
@@ -18,6 +21,11 @@ const SupplierAccounts = () => {
     setSelectedSupplier({
       code: `SUP${Math.floor(1000000 + Math.random() * 9000000)}`,
       under: "Sundry Creditors",
+      name: "",
+      phone: "",
+      company: "",
+      email: "",
+      address: "",
     });
     setIsModalOpen(true);
   };
@@ -30,11 +38,49 @@ const SupplierAccounts = () => {
   };
 
   // Form submit handler for Add/Update
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Supplier Data:`, selectedSupplier);
-    // Here you can make an API request to save or update data
-    setIsModalOpen(false);
+    if (!selectedSupplier.name) return;
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        code: selectedSupplier.code || `SUP${Date.now().toString().slice(-6)}`,
+        name: selectedSupplier.name,
+        company: selectedSupplier.company || undefined,
+        mobile: selectedSupplier.phone || (selectedSupplier as any).mobile || "01700000000",
+        email: selectedSupplier.email || undefined,
+        address: selectedSupplier.address || undefined,
+        credit_limit: Number((selectedSupplier as any).credit_limit || 0),
+        opening_balance: Number((selectedSupplier as any).opening_balance || 0),
+      };
+
+      if (modalMode === "add") {
+        await suppliersApi.create(payload);
+      } else if (modalMode === "update" && selectedSupplier.id) {
+        await suppliersApi.update(selectedSupplier.id, payload);
+      }
+
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save supplier:", err);
+      alert(err.message || "Failed to save supplier");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete supplier "${name}"?`)) return;
+    try {
+      await suppliersApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete supplier:", err);
+      alert(err.message || "Failed to delete supplier");
+    }
   };
 
   return (
@@ -55,8 +101,10 @@ const SupplierAccounts = () => {
 
       {/* Pass action handlers to Child component */}
       <SupplierList
+        refreshTrigger={refreshTrigger}
         onEdit={(supplier) => handleOpenModal(supplier, "update")}
         onView={(supplier) => handleOpenModal(supplier, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}

@@ -128,13 +128,19 @@ const DEFAULT_MATERIAL_USAGES: MaterialUsageItem[] = [
 ];
 
 interface MaterialUsageTableProps {
+  apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (item: MaterialUsageItem) => void;
   onView?: (item: MaterialUsageItem) => void;
+  onDelete?: (id: string | number, code: string) => void;
 }
 
 export default function MaterialUsageTable({
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/material-usage`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: MaterialUsageTableProps) {
   const [usages, setUsages] = useState<MaterialUsageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,16 +153,32 @@ export default function MaterialUsageTable({
     const fetchMaterialUsages = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/material-usages");
+        const response = await fetch(apiEndpoint);
         if (!response.ok) {
           throw new Error("Failed to fetch API");
         }
-        const data = await response.json();
-        if (!data || data.length === 0) {
-          setUsages(DEFAULT_MATERIAL_USAGES);
-        } else {
-          setUsages(data);
-        }
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((u: any, idx: number) => ({
+              id: u.id,
+              projectType: u.project_type || "Office",
+              project: u.project?.name || u.project_name || "Head Office",
+              titleOfWork: u.title_of_work || "-",
+              task: u.task || "-",
+              workerStaffName: u.worker_staff_name || "-",
+              code: u.usage_no || u.code || `MU-${idx + 1}`,
+              purchaseGrn: u.purchase_grn || "-",
+              date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+              subTotal: Number(u.subtotal || 0),
+              grandTotal: Number(u.grand_total || 0),
+              addedBy: u.added_by || "Admin",
+              attachment: "-",
+              approvalStatus: "All Approvals Completed",
+              approver: "Admin",
+            }))
+          : [];
+        setUsages(list.length > 0 ? list : DEFAULT_MATERIAL_USAGES);
       } catch (error) {
         console.warn(
           "API unavailable, loading default material usage data...",
@@ -169,10 +191,10 @@ export default function MaterialUsageTable({
     };
 
     fetchMaterialUsages();
-  }, []);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Delete handler
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this material usage?")) {
       setUsages(usages.filter((item) => item.id !== id));
     }
@@ -347,7 +369,11 @@ export default function MaterialUsageTable({
                         </button>
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() =>
+                            onDelete
+                              ? onDelete(item.id, item.code)
+                              : handleDelete(item.id)
+                          }
                           title="Delete"
                           className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded shadow-sm transition-colors"
                         >

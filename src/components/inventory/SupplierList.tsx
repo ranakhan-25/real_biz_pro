@@ -117,14 +117,18 @@ const DEFAULT_SUPPLIERS: Supplier[] = [
 
 interface SupplierListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (supplier: Supplier) => void;
   onView?: (supplier: Supplier) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function SupplierList({
-  apiEndpoint = "/api/suppliers",
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/suppliers`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: SupplierListProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -141,8 +145,23 @@ export default function SupplierList({
         setLoading(true);
         const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("API response failed");
-        const data = await response.json();
-        setSuppliers(Array.isArray(data) ? data : DEFAULT_SUPPLIERS);
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((s: any) => ({
+              id: s.id,
+              code: s.code || "",
+              name: s.name || "",
+              company: s.company || "",
+              phone: s.mobile || s.phone || "",
+              email: s.email || "",
+              address: s.address || "",
+              under: "Sundry Creditors",
+              credit_limit: s.credit_limit || 0,
+              opening_balance: s.opening_balance || 0,
+            }))
+          : [];
+        setSuppliers(list.length > 0 ? list : DEFAULT_SUPPLIERS);
       } catch (error) {
         console.warn("API fetch failed, falling back to default data:", error);
         setSuppliers(DEFAULT_SUPPLIERS);
@@ -152,7 +171,7 @@ export default function SupplierList({
     }
 
     fetchSuppliers();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Filtering suppliers based on search query and selected group
   const filteredSuppliers = useMemo(() => {
@@ -315,7 +334,11 @@ export default function SupplierList({
                             <FiEye size={13} />
                           </button>
                           {/* Delete Button */}
-                          <button title="Delete" className=" p-1.5 rounded transition-colors">
+                          <button
+                            onClick={() => onDelete && onDelete(supplier.id, supplier.name)}
+                            title="Delete"
+                            className="p-1.5 rounded transition-colors text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                          >
                             <FiTrash2 size={13} />
                           </button>
                         </div>
