@@ -1,35 +1,46 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Plus,
-  Edit3,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  SlidersHorizontal,
-  Home,
-  Copy,
-  FileSpreadsheet,
-  Calendar,
-  CheckCircle2,
-  PhoneCall,
-  User,
-  Building2,
-  MapPin,
-  Tag,
-  Loader2,
-} from "lucide-react";
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-// ==============================
-// TYPES
-// ==============================
-interface ProjectItem {
-  id: string;
-  uuid: string;
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://localhost:5002"
+).replace(/\/+$/, "");
+
+const API_URL = `${BASE_URL}/realbizpro/api/v1/project`;
+
+type Project = {
+  id?: string | number;
+  uuid?: string;
+  code?: string;
+  name?: string;
+  projectType?: string | null;
+  areaCategory?: string | null;
+  location?: string | null;
+  description?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  contactPersonName?: string | null;
+  contactPhone?: string | null;
+  clientEmail?: string | null;
+  contractorCompany?: string | null;
+  projectManager?: string | null;
+  totalBudget?: number | null;
+  numberOfStoreys?: number | null;
+  progressPercentage?: number;
+  status?: string;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type ProjectForm = {
   code: string;
   name: string;
   projectType: string;
@@ -43,33 +54,10 @@ interface ProjectItem {
   clientEmail: string;
   contractorCompany: string;
   projectManager: string;
-  budget: string; // API returns "50000.00"
-  storeys: number;
-  progress: number;
   status: string;
-}
+};
 
-interface FormState {
-  code: string;
-  name: string;
-  projectType: string;
-  areaCategory: string;
-  location: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  contactPersonName: string;
-  contactPhone: string;
-  clientEmail: string;
-  contractorCompany: string;
-  projectManager: string;
-  budget: string;
-  storeys: string;
-  progress: number;
-  status: string;
-}
-
-const emptyForm: FormState = {
+const EMPTY_FORM: ProjectForm = {
   code: "",
   name: "",
   projectType: "",
@@ -83,845 +71,894 @@ const emptyForm: FormState = {
   clientEmail: "",
   contractorCompany: "",
   projectManager: "",
-  budget: "",
-  storeys: "",
-  progress: 0,
-  status: "Active",
+  status: "ACTIVE",
 };
 
-// ==============================
-// API CONFIG
-// .env.local:
-//   NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
-//   NEXT_PUBLIC_DEFAULT_USER_ID=<createdBy er jonno user id>   (optional)
-// ==============================
-const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
-const API_URL = `${BASE_URL}/realbizpro/api/v1/projects`;
-const DEFAULT_USER_ID =
-  process.env.NEXT_PUBLIC_DEFAULT_USER_ID ??
-  "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
-
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
+async function apiRequest<T>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(url, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers ?? {}),
+      Accept: "application/json",
+      ...(options.body
+        ? { "Content-Type": "application/json" }
+        : {}),
+      ...options.headers,
     },
   });
 
-  let json: any = null;
-  try {
-    json = await res.json();
-  } catch {
-    // empty body
+  const text = await response.text();
+  let result: unknown;
+
+  if (text) {
+    try {
+      result = JSON.parse(text);
+    } catch {
+      result = text;
+    }
   }
 
-  if (!res.ok || json?.success === false) {
-    const msg = Array.isArray(json?.message)
-      ? json.message.join(", ")
-      : json?.message || `Request failed (${res.status})`;
-    throw new Error(msg);
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+
+    if (typeof result === "string" && result.trim()) {
+      message = result;
+    } else if (result && typeof result === "object") {
+      const body = result as Record<string, unknown>;
+      const serverMessage = body.message ?? body.error;
+
+      message = Array.isArray(serverMessage)
+        ? serverMessage.join(", ")
+        : typeof serverMessage === "string"
+          ? serverMessage
+          : message;
+    }
+
+    throw new Error(message);
   }
 
-  return json as T;
+  return result as T;
 }
 
-const PAGE_LIMIT = 10;
+function normalizeProjects(response: unknown): Project[] {
+  if (Array.isArray(response)) {
+    return response as Project[];
+  }
 
-// ==============================
-// SMALL FORM FIELD HELPER
-// ==============================
-const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none";
+  if (!response || typeof response !== "object") {
+    return [];
+  }
 
-function Field({
-  label,
-  children,
-  className = "",
-}: {
-  label: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-        {label}
-      </label>
-      {children}
-    </div>
-  );
+  const object = response as Record<string, unknown>;
+
+  for (const key of [
+    "data",
+    "projects",
+    "items",
+    "rows",
+    "results",
+  ]) {
+    const value = object[key];
+
+    if (Array.isArray(value)) {
+      return value as Project[];
+    }
+
+    if (value && typeof value === "object") {
+      const nested = normalizeProjects(value);
+
+      if (nested.length > 0) {
+        return nested;
+      }
+    }
+  }
+
+  return [];
+}
+
+function getProjectUuid(
+  project: Project,
+): string | undefined {
+  return typeof project.uuid === "string" &&
+    project.uuid.trim()
+    ? project.uuid.trim()
+    : undefined;
+}
+
+function dateForInput(value?: string | null): string {
+  return value ? value.slice(0, 10) : "";
+}
+
+function statusClass(status?: string): string {
+  switch ((status ?? "").toUpperCase()) {
+    case "ACTIVE":
+      return "bg-green-100 text-green-700";
+    case "INACTIVE":
+      return "bg-gray-100 text-gray-700";
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800";
+    case "COMPLETED":
+      return "bg-blue-100 text-blue-700";
+    case "CANCELLED":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
+function escapeCsv(value: unknown): string {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
 export default function ProjectsPage() {
-  // ==============================
-  // DATA
-  // ==============================
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("All Status");
-  const [selectedArea, setSelectedArea] = useState("All Area");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProject, setEditingProject] =
+    useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] =
+    useState<Project | null>(null);
+  const [form, setForm] = useState<ProjectForm>(EMPTY_FORM);
 
-  // ==============================
-  // MODAL / FORM
-  // ==============================
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
-  const [formData, setFormData] = useState<FormState>(emptyForm);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Load projects and exclude soft-deleted records.
+  const loadProjects = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-  const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setFormData((prev) => ({ ...prev, [key]: value }));
-
-  // ==============================
-  // FETCH LIST (GET)
-  // ==============================
-  const fetchProjects = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
     try {
-      const json = await request<{ success: boolean; data: any }>(API_URL);
+      const response = await apiRequest<unknown>(
+        `${API_URL}?page=1&limit=100&sortOrder=DESC&withDeleted=false`,
+        { method: "GET" },
+      );
 
-      // data direct array ba { data: [...] } duto-i handle kore
-      const list: ProjectItem[] = Array.isArray(json.data)
-        ? json.data
-        : Array.isArray(json.data?.data)
-        ? json.data.data
-        : [];
+      const loadedProjects = normalizeProjects(response);
 
-      setProjects(list);
+      setProjects(
+        loadedProjects.filter(
+          (project) => !project.deletedAt,
+        ),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load projects");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Projects load করতে সমস্যা হয়েছে।",
+      );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    void loadProjects();
+  }, [loadProjects]);
 
-  // ==============================
-  // MODAL HANDLERS
-  // ==============================
-  const handleOpenAdd = () => {
+  const filteredProjects = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return projects.filter((project) => {
+      const values = [
+        project.code,
+        project.name,
+        project.projectType,
+        project.areaCategory,
+        project.location,
+        project.contactPersonName,
+        project.contactPhone,
+        project.clientEmail,
+        project.contractorCompany,
+        project.projectManager,
+        project.status,
+      ];
+
+      const matchesSearch =
+        !query ||
+        values.some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(query),
+        );
+
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        (project.status ?? "").toUpperCase() === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [projects, search, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProjects.length / pageSize),
+  );
+
+  const currentPage = Math.min(page, totalPages);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const paginatedProjects = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+
+    return filteredProjects.slice(start, start + pageSize);
+  }, [filteredProjects, currentPage, pageSize]);
+
+  function updateForm<K extends keyof ProjectForm>(
+    key: K,
+    value: ProjectForm[K],
+  ) {
+    setForm((previous) => ({
+      ...previous,
+      [key]: value,
+    }));
+  }
+
+  function openCreateModal() {
     setEditingProject(null);
-    setFormData(emptyForm);
-    setFormError(null);
-    setIsModalOpen(true);
-  };
+    setForm(EMPTY_FORM);
+    setError("");
+    setSuccess("");
+    setModalOpen(true);
+  }
 
-  const handleOpenEdit = (project: ProjectItem) => {
+  function openEditModal(project: Project) {
     setEditingProject(project);
-    setFormData({
-      code: String(project.code ?? ""),
+
+    setForm({
+      code: project.code ?? "",
       name: project.name ?? "",
       projectType: project.projectType ?? "",
       areaCategory: project.areaCategory ?? "",
       location: project.location ?? "",
       description: project.description ?? "",
-      startDate: (project.startDate ?? "").slice(0, 10),
-      endDate: (project.endDate ?? "").slice(0, 10),
+      startDate: dateForInput(project.startDate),
+      endDate: dateForInput(project.endDate),
       contactPersonName: project.contactPersonName ?? "",
       contactPhone: project.contactPhone ?? "",
       clientEmail: project.clientEmail ?? "",
       contractorCompany: project.contractorCompany ?? "",
       projectManager: project.projectManager ?? "",
-      budget: project.budget ? String(Number(project.budget)) : "",
-      storeys: project.storeys != null ? String(project.storeys) : "",
-      progress: Number(project.progress ?? 0),
-      status: project.status ?? "Active",
+      status: (project.status ?? "ACTIVE").toUpperCase(),
     });
-    setFormError(null);
-    setIsModalOpen(true);
-  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingProject(null);
-    setFormError(null);
-  };
+    setError("");
+    setSuccess("");
+    setModalOpen(true);
+  }
 
-  // ==============================
-  // SUBMIT (POST) / UPDATE (PATCH)
-  // ==============================
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFormError(null);
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
 
-    const body = {
-      code: Number(formData.code), // swagger e code number
-      name: formData.name.trim(),
-      projectType: formData.projectType.trim(),
-      areaCategory: formData.areaCategory.trim(),
-      location: formData.location.trim(),
-      description: formData.description.trim(),
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      contactPersonName: formData.contactPersonName.trim(),
-      contactPhone: formData.contactPhone.trim(),
-      clientEmail: formData.clientEmail.trim(),
-      contractorCompany: formData.contractorCompany.trim(),
-      projectManager: formData.projectManager.trim(),
-      budget: Number(formData.budget) || 0,
-      storeys: Number(formData.storeys) || 0,
-      progress: Number(formData.progress) || 0,
-      status: formData.status,
+    const code = form.code.trim();
+    const name = form.name.trim();
+
+    if (!code) {
+      setError("Project code is required.");
+      return;
+    }
+
+    if (!name) {
+      setError("Project name is required.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    const payload = {
+      code,
+      name,
+      projectType: form.projectType.trim() || null,
+      areaCategory: form.areaCategory.trim(),
+      location: form.location.trim(),
+      description: form.description.trim(),
+      startDate: form.startDate || null,
+      endDate: form.endDate || null,
+      contactPersonName: form.contactPersonName.trim(),
+      contactPhone: form.contactPhone.trim(),
+      clientEmail: form.clientEmail.trim(),
+      contractorCompany: form.contractorCompany.trim(),
+      projectManager: form.projectManager.trim(),
+      status: form.status,
     };
 
     try {
+      let url = API_URL;
+      let method = "POST";
+
       if (editingProject) {
-        await request(`${API_URL}/${editingProject.id}`, {
-          method: "PATCH",
-          body: JSON.stringify(body),
-        });
-      } else {
-        await request(API_URL, {
-          method: "POST",
-          body: JSON.stringify({ ...body, createdBy: DEFAULT_USER_ID }),
-        });
-        setPage(1);
+        const uuid = getProjectUuid(editingProject);
+
+        if (!uuid) {
+          throw new Error("Project UUID পাওয়া যায়নি।");
+        }
+
+        url = `${API_URL}/${encodeURIComponent(uuid)}`;
+        method = "PATCH";
       }
 
-      handleCloseModal();
-      await fetchProjects();
+      await apiRequest(url, {
+        method,
+        body: JSON.stringify(payload),
+      });
+
+      setModalOpen(false);
+      setEditingProject(null);
+      setForm(EMPTY_FORM);
+
+      setSuccess(
+        editingProject
+          ? "Project successfully updated."
+          : "Project successfully created.",
+      );
+
+      await loadProjects();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Something went wrong");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Project save করা যায়নি।",
+      );
     } finally {
-      setIsSubmitting(false);
+      setSaving(false);
     }
-  };
+  }
 
-  // ==============================
-  // DELETE (soft delete)
-  // ==============================
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
+  // Delete by UUID and update UI immediately.
+  async function handleDelete() {
+    if (!deleteTarget || deleting) return;
 
-    setDeletingId(id);
-    setError(null);
+    const uuid = getProjectUuid(deleteTarget);
+
+    if (!uuid) {
+      setError("এই project-এর UUID response-এ পাওয়া যায়নি।");
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+    setSuccess("");
+
     try {
-      await request(`${API_URL}/${id}`, { method: "DELETE" });
-      await fetchProjects();
+      await apiRequest(
+        `${API_URL}/${encodeURIComponent(uuid)}`,
+        { method: "DELETE" },
+      );
+
+      setProjects((previous) =>
+        previous.filter(
+          (project) => getProjectUuid(project) !== uuid,
+        ),
+      );
+
+      setDeleteTarget(null);
+      setSuccess("Project successfully deleted.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Project delete করা যায়নি।",
+      );
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
-  };
+  }
 
-  // ==============================
-  // FILTER + PAGINATION (client-side)
-  // ==============================
-  const areaOptions = useMemo(
-    () =>
-      Array.from(new Set(projects.map((p) => p.areaCategory).filter(Boolean))),
-    [projects]
-  );
+  function exportCsv() {
+    const columns: (keyof Project)[] = [
+      "code",
+      "name",
+      "projectType",
+      "areaCategory",
+      "location",
+      "description",
+      "startDate",
+      "endDate",
+      "contactPersonName",
+      "contactPhone",
+      "clientEmail",
+      "contractorCompany",
+      "projectManager",
+      "status",
+    ];
 
-  const filteredProjects = projects.filter((item) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      (item.name ?? "").toLowerCase().includes(q) ||
-      String(item.code ?? "").toLowerCase().includes(q) ||
-      (item.location ?? "").toLowerCase().includes(q) ||
-      (item.contractorCompany ?? "").toLowerCase().includes(q) ||
-      (item.contactPersonName ?? "").toLowerCase().includes(q);
-    const matchesStatus =
-      selectedStatus === "All Status" || item.status === selectedStatus;
-    const matchesArea =
-      selectedArea === "All Area" || item.areaCategory === selectedArea;
-    return matchesSearch && matchesStatus && matchesArea;
-  });
+    const rows = [
+      columns.map(escapeCsv).join(","),
+      ...filteredProjects.map((project) =>
+        columns
+          .map((column) => escapeCsv(project[column]))
+          .join(","),
+      ),
+    ];
 
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_LIMIT));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * PAGE_LIMIT;
-  const pagedProjects = filteredProjects.slice(
-    startIndex,
-    startIndex + PAGE_LIMIT
-  );
+    const blob = new Blob(["\uFEFF" + rows.join("\r\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = objectUrl;
+    anchor.download = "projects.csv";
+    anchor.click();
+
+    URL.revokeObjectURL(objectUrl);
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50/60 p-4 font-sans text-slate-800">
-      {/* Breadcrumb */}
-      <nav className="mb-3 flex items-center text-xs font-medium text-slate-500">
-        <a
-          href="#"
-          className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
-        >
-          <Home className="h-3.5 w-3.5" /> Home
-        </a>
-        <span className="mx-2 text-slate-300">/</span>
-        <span className="text-indigo-600 font-semibold">
-          Projects Management
-        </span>
-      </nav>
+    <main className="min-h-screen bg-gray-50 p-4 text-gray-900 sm:p-6">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Projects</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage all your projects.
+            </p>
+          </div>
 
-      {/* Error banner */}
-      {error && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-
-      {/* Top Filter Panel */}
-      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-            Filter by Status
-          </label>
-          <select
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value);
-              setPage(1);
-            }}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-700 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"
-          >
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Pending</option>
-            <option>Completed</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-            Filter by Area
-          </label>
-          <select
-            value={selectedArea}
-            onChange={(e) => {
-              setSelectedArea(e.target.value);
-              setPage(1);
-            }}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-700 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"
-          >
-            <option>All Area</option>
-            {areaOptions.map((a) => (
-              <option key={a}>{a}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-            Quick Search Across All Fields
-          </label>
-          <input
-            type="text"
-            placeholder="Type project name, location, contractor..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-700 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"
-          />
-        </div>
-      </div>
-
-      {/* Action Utility Bar */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3.5 shadow-sm border border-slate-100">
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
-            <Copy className="h-3 w-3 text-slate-500" /> Copy
-          </button>
-          <button className="flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-orange-700 transition-all">
-            <FileSpreadsheet className="h-3 w-3" /> Export CSV
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" /> Columns (
-            {filteredProjects.length} items)
-          </button>
-          <button
-            onClick={handleOpenAdd}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700 transition-all"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Project
-          </button>
-        </div>
-      </div>
-
-      {/* Main Table */}
-      <div className="rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse min-w-[1250px]">
-            <thead>
-              <tr className="bg-[#58427c] text-white text-[11px] uppercase tracking-wider">
-                <th className="py-3 px-3 font-semibold">ID</th>
-                <th className="py-3 px-3 font-semibold">Code & Name</th>
-                <th className="py-3 px-3 font-semibold">Type & Area</th>
-                <th className="py-3 px-3 font-semibold">Duration & Timeline</th>
-                <th className="py-3 px-3 font-semibold">Location</th>
-                <th className="py-3 px-3 font-semibold">Contact & Client</th>
-                <th className="py-3 px-3 font-semibold">Contractor</th>
-                <th className="py-3 px-3 font-semibold">Budget (৳)</th>
-                <th className="py-3 px-3 font-semibold">Storeys</th>
-                <th className="py-3 px-3 font-semibold">Progress</th>
-                <th className="py-3 px-3 font-semibold">Status</th>
-                <th className="py-3 px-3 font-semibold text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={12} className="py-12 text-center text-slate-400">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </td>
-                </tr>
-              ) : pagedProjects.length > 0 ? (
-                pagedProjects.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className={`transition-colors hover:bg-indigo-50/40 ${
-                      index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
-                    }`}
-                  >
-                    <td className="py-3.5 px-3 font-medium text-slate-500">
-                      #{item.id}
-                    </td>
-
-                    <td className="py-3.5 px-3">
-                      <p className="font-mono text-[10px] text-indigo-600 font-bold">
-                        {item.code}
-                      </p>
-                      <p className="font-semibold text-slate-900 text-xs hover:text-indigo-600 cursor-pointer">
-                        {item.name}
-                      </p>
-                      <p className="text-[10px] text-slate-400 truncate max-w-[160px]">
-                        {item.description}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3">
-                      <p className="font-medium text-slate-800 flex items-center gap-1">
-                        <Tag className="h-3 w-3 text-indigo-500" />{" "}
-                        {item.projectType}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {item.areaCategory} Area
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-[11px] text-slate-600 whitespace-nowrap">
-                      <p className="flex items-center gap-1 font-medium text-slate-700">
-                        <Calendar className="h-3 w-3 text-emerald-600" />{" "}
-                        {item.startDate}
-                      </p>
-                      <p className="text-slate-400 text-[10px]">
-                        To: {item.endDate}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-[11px]">
-                      <p className="font-medium text-slate-800 flex items-center gap-1">
-                        <MapPin className="h-3 w-3 text-rose-500" />{" "}
-                        {item.location || "N/A"}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-[11px]">
-                      <p className="font-medium text-slate-800 flex items-center gap-1">
-                        <User className="h-3 w-3 text-indigo-500" />{" "}
-                        {item.contactPersonName || "N/A"}
-                      </p>
-                      <p className="text-slate-500 flex items-center gap-1">
-                        <PhoneCall className="h-3 w-3 text-emerald-500" />{" "}
-                        {item.contactPhone || "N/A"}
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        {item.clientEmail}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-[11px]">
-                      <p className="font-medium text-slate-700 flex items-center gap-1">
-                        <Building2 className="h-3 w-3 text-amber-600" />{" "}
-                        {item.contractorCompany || "N/A"}
-                      </p>
-                      <p className="text-[10px] text-slate-500">
-                        Mgr: {item.projectManager || "N/A"}
-                      </p>
-                    </td>
-
-                    <td className="py-3.5 px-3 font-semibold text-slate-800 whitespace-nowrap">
-                      {item.budget ? `৳${Number(item.budget).toLocaleString()}` : "—"}
-                    </td>
-
-                    <td className="py-3.5 px-3 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded bg-slate-100 font-mono text-[11px] font-semibold text-slate-700">
-                        {item.storeys ? `${item.storeys} Fl` : "—"}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-3 w-28">
-                      <div className="flex items-center justify-between text-[10px] mb-1 font-semibold text-slate-600">
-                        <span>Progress</span>
-                        <span>{item.progress}%</span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-indigo-600 h-1.5 rounded-full"
-                          style={{ width: `${item.progress}%` }}
-                        ></div>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          item.status === "Active"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : item.status === "Completed"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="rounded-md bg-indigo-600 p-1.5 text-white hover:bg-indigo-700 transition-colors shadow-sm"
-                          title="Edit"
-                        >
-                          <Edit3 className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
-                          className="rounded-md bg-rose-600 p-1.5 text-white hover:bg-rose-700 transition-colors shadow-sm disabled:opacity-60"
-                          title="Delete"
-                        >
-                          {deletingId === item.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={12} className="py-12 text-center text-slate-400">
-                    No matching projects found. Try checking your search or filter
-                    values.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer Pagination */}
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 bg-slate-50/50">
-          <p className="text-xs text-slate-500">
-            Showing{" "}
-            <span className="font-medium text-slate-700">
-              {filteredProjects.length === 0 ? 0 : startIndex + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-slate-700">
-              {startIndex + pagedProjects.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-slate-700">
-              {filteredProjects.length}
-            </span>{" "}
-            entries
-          </p>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap gap-2">
             <button
-              disabled={currentPage <= 1}
-              onClick={() => setPage(currentPage - 1)}
-              className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={exportCsv}
+              disabled={!filteredProjects.length}
+              className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-50"
             >
-              <ChevronLeft className="h-3.5 w-3.5" /> Prev
+              Export CSV
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={`rounded-md px-3 py-1 text-xs font-medium ${
-                  n === currentPage
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => void loadProjects()}
+              disabled={loading}
+              className="rounded-lg border bg-white px-4 py-2 text-sm disabled:opacity-50"
+            >
+              Refresh
+            </button>
 
             <button
-              disabled={currentPage >= totalPages}
-              onClick={() => setPage(currentPage + 1)}
-              className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={openCreateModal}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
-              Next <ChevronRight className="h-3.5 w-3.5" />
+              + Create Project
             </button>
           </div>
-        </div>
+        </header>
+
+        {success && (
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+            <span>{success}</span>
+            <button
+              type="button"
+              onClick={() => setSuccess("")}
+              aria-label="Dismiss success message"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {error && !modalOpen && !deleteTarget && (
+          <div className="mb-4 flex items-start justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => setError("")}
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        <section className="rounded-xl border bg-white p-4 shadow-sm">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search projects..."
+              className="rounded-lg border px-3 py-2 text-sm"
+            />
+
+            <select
+              value={statusFilter}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setPage(1);
+              }}
+              className="rounded-lg border px-3 py-2 text-sm"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              className="rounded-lg border px-3 py-2 text-sm"
+            >
+              <option value={10}>10 per page</option>
+              <option value={25}>25 per page</option>
+              <option value={50}>50 per page</option>
+              <option value={100}>100 per page</option>
+            </select>
+          </div>
+
+          <p className="mb-3 text-sm text-gray-500">
+            {loading
+              ? "Loading..."
+              : `${filteredProjects.length} project(s)`}
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 text-gray-600">
+                  <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Area Category</th>
+                  <th className="px-4 py-3">Location</th>
+                  <th className="px-4 py-3">Contact Person</th>
+                  <th className="px-4 py-3">Start Date</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center">
+                      Loading projects...
+                    </td>
+                  </tr>
+                ) : paginatedProjects.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-10 text-center text-gray-500"
+                    >
+                      No projects found.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedProjects.map((project, index) => (
+                    <tr
+                      key={project.uuid ?? String(project.id ?? index)}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-3 font-medium">
+                        {project.code ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="font-medium">
+                          {project.name ?? "—"}
+                        </div>
+                        <div className="max-w-xs truncate text-xs text-gray-500">
+                          {project.description ?? ""}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {project.areaCategory ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {project.location ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {project.contactPersonName ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {project.startDate ?? "—"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(project.status)}`}
+                        >
+                          {project.status ?? "N/A"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(project)}
+                            className="rounded-md border px-3 py-1.5 text-xs hover:bg-gray-100"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setError("");
+                              setSuccess("");
+                              setDeleteTarget(project);
+                            }}
+                            className="rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex flex-col justify-between gap-3 border-t pt-4 sm:flex-row sm:items-center">
+            <p className="text-sm text-gray-500">
+              Page {currentPage} of {totalPages}
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() =>
+                  setPage((previous) => Math.max(1, previous - 1))
+                }
+                className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() =>
+                  setPage((previous) =>
+                    Math.min(totalPages, previous + 1),
+                  )
+                }
+                className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
 
-      {/* Add / Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 overflow-y-auto">
-          <div className="w-full max-w-4xl rounded-xl bg-white shadow-2xl border border-slate-100 overflow-hidden my-6">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-3">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                {editingProject ? "Edit Project Details" : "Add New Project"}
-              </h3>
+      {/* Create / Edit Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4">
+          <div className="my-8 w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold">
+                {editingProject ? "Edit Project" : "Create Project"}
+              </h2>
+
               <button
-                onClick={handleCloseModal}
-                className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+                type="button"
+                onClick={() => {
+                  if (!saving) {
+                    setModalOpen(false);
+                    setEditingProject(null);
+                    setError("");
+                  }
+                }}
+                disabled={saving}
+                className="text-2xl text-gray-500"
+                aria-label="Close"
               >
-                <ChevronLeft className="h-3.5 w-3.5" /> Prev
-              </button>
-              <button className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white shadow-sm">
-                1
-              </button>
-              <button
-                disabled
-                className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-              >
-                Next <ChevronRight className="h-3.5 w-3.5" />
+                ×
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="p-5 bg-slate-50/30 space-y-3.5"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Field label="Project Code (number)">
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Project Code *
+                  </label>
                   <input
-                    type="number"
+                    type="text"
+                    value={form.code}
+                    onChange={(event) =>
+                      updateForm("code", event.target.value)
+                    }
                     required
-                    placeholder="101"
-                    value={formData.code}
-                    onChange={(e) => setField("code", e.target.value)}
-                    className={`${inputClass} font-mono`}
+                    placeholder="e.g. PRJ-2026-001"
+                    className="w-full rounded-lg border px-3 py-2"
                   />
-                </Field>
+                </div>
 
-                <Field label="Project Name">
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Skyline Heights"
-                    value={formData.name}
-                    onChange={(e) => setField("name", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
+                {(
+                  [
+                    ["name", "Project Name *", true],
+                    ["projectType", "Project Type", false],
+                    ["areaCategory", "Area Category", false],
+                    ["location", "Location", false],
+                    ["startDate", "Start Date", false],
+                    ["endDate", "End Date", false],
+                    ["contactPersonName", "Contact Person", false],
+                    ["contactPhone", "Contact Phone", false],
+                    ["clientEmail", "Client Email", false],
+                    ["contractorCompany", "Contractor Company", false],
+                    ["projectManager", "Project Manager", false],
+                  ] as [keyof ProjectForm, string, boolean][]
+                ).map(([key, label, required]) => (
+                  <div key={key}>
+                    <label className="mb-1 block text-sm font-medium">
+                      {label}
+                    </label>
 
-                <Field label="Project Type">
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Commercial"
-                    value={formData.projectType}
-                    onChange={(e) => setField("projectType", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
+                    <input
+                      type={
+                        key === "startDate" || key === "endDate"
+                          ? "date"
+                          : key === "clientEmail"
+                            ? "email"
+                            : "text"
+                      }
+                      value={form[key]}
+                      onChange={(event) =>
+                        updateForm(key, event.target.value)
+                      }
+                      required={required}
+                      className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                ))}
 
-                <Field label="Area Category">
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Urban"
-                    value={formData.areaCategory}
-                    onChange={(e) => setField("areaCategory", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Status
+                  </label>
 
-                <Field label="Location / Address">
-                  <input
-                    type="text"
-                    placeholder="e.g. Gulshan-2, Dhaka"
-                    value={formData.location}
-                    onChange={(e) => setField("location", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Total Budget (৳)">
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="15000000"
-                    value={formData.budget}
-                    onChange={(e) => setField("budget", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Contact Person Name">
-                  <input
-                    type="text"
-                    placeholder="Person Name"
-                    value={formData.contactPersonName}
-                    onChange={(e) => setField("contactPersonName", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Contact Phone">
-                  <input
-                    type="text"
-                    placeholder="01XXXXXXXXX"
-                    value={formData.contactPhone}
-                    onChange={(e) => setField("contactPhone", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Client Email">
-                  <input
-                    type="email"
-                    placeholder="client@domain.com"
-                    value={formData.clientEmail}
-                    onChange={(e) => setField("clientEmail", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Contractor Company">
-                  <input
-                    type="text"
-                    placeholder="Contractor Name"
-                    value={formData.contractorCompany}
-                    onChange={(e) => setField("contractorCompany", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Project Manager">
-                  <input
-                    type="text"
-                    placeholder="Manager Name"
-                    value={formData.projectManager}
-                    onChange={(e) => setField("projectManager", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Number of Storeys">
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="e.g. 10"
-                    value={formData.storeys}
-                    onChange={(e) => setField("storeys", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Start Date">
-                  <input
-                    type="date"
-                    required
-                    value={formData.startDate}
-                    onChange={(e) => setField("startDate", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="End Date">
-                  <input
-                    type="date"
-                    required
-                    value={formData.endDate}
-                    onChange={(e) => setField("endDate", e.target.value)}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Status">
                   <select
-                    value={formData.status}
-                    onChange={(e) => setField("status", e.target.value)}
-                    className={inputClass}
+                    value={form.status}
+                    onChange={(event) =>
+                      updateForm("status", event.target.value)
+                    }
+                    className="w-full rounded-lg border px-3 py-2"
                   >
-                    <option>Active</option>
-                    <option>Pending</option>
-                    <option>Completed</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
                   </select>
-                </Field>
-
-                <Field label="Progress Percentage (%)">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.progress}
-                    onChange={(e) => setField("progress", Number(e.target.value))}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <Field label="Project Description" className="md:col-span-3">
-                  <textarea
-                    rows={2}
-                    placeholder="Short description about the project..."
-                    value={formData.description}
-                    onChange={(e) => setField("description", e.target.value)}
-                    className={inputClass}
-                  ></textarea>
-                </Field>
-
-                {formError && (
-                  <p className="text-xs text-red-600 md:col-span-3">{formError}</p>
-                )}
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200/60">
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Description
+                </label>
+                <textarea
+                  value={form.description}
+                  onChange={(event) =>
+                    updateForm("description", event.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-lg border px-3 py-2"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 border-t pt-4">
                 <button
                   type="button"
-                  onClick={handleCloseModal}
-                  disabled={isSubmitting}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-60"
+                  onClick={() => {
+                    if (!saving) {
+                      setModalOpen(false);
+                      setEditingProject(null);
+                      setError("");
+                    }
+                  }}
+                  disabled={saving}
+                  className="rounded-lg border px-4 py-2 text-sm"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-200 hover:bg-indigo-700 transition-all disabled:opacity-60"
+                  disabled={saving}
+                  className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {isSubmitting && <Loader2 className="h-3 w-3 animate-spin" />}
-                  {editingProject ? "Update Project" : "Save Project"}
+                  {saving
+                    ? "Saving..."
+                    : editingProject
+                      ? "Update Project"
+                      : "Create Project"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-bold">Delete Project</h2>
+
+            <p className="mt-3 text-sm text-gray-600">
+              Delete{" "}
+              <strong>{deleteTarget.name ?? "this project"}</strong>?
+            </p>
+
+            <p className="mt-2 break-all text-xs text-gray-500">
+              UUID: {deleteTarget.uuid ?? "Missing"}
+            </p>
+
+            {error && (
+              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!deleting) {
+                    setDeleteTarget(null);
+                    setError("");
+                  }
+                }}
+                disabled={deleting}
+                className="rounded-lg border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleDelete()}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
   );
 }
