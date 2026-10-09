@@ -4,128 +4,6 @@ import type { MaterialUsageItem } from "@/app/(admin-dashbord)/dashboard/invento
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
-// Fallback Default Data matching the reference screenshot
-const DEFAULT_MATERIAL_USAGES: MaterialUsageItem[] = [
-  {
-    id: 1,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU8733021",
-    purchaseGrn: "PUR7987198, GRN7501856",
-    date: "07 Sept 2026",
-    subTotal: 1602,
-    grandTotal: 1602,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 2,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU8733020",
-    purchaseGrn: "PURCHASE00008",
-    date: "07 Sept 2026",
-    subTotal: 6000,
-    grandTotal: 6000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 3,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU8733019",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Tazmul Reza",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-  },
-  {
-    id: 4,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU8733018",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 5,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU7997797",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 6,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU00006",
-    purchaseGrn: "PURCHASE00005",
-    date: "07 Sept 2026",
-    subTotal: 17760,
-    grandTotal: 17760,
-    addedBy: "Tazmul Reza",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-  },
-  {
-    id: 7,
-    projectType: "Real Estate",
-    project: "Estern 19",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU00005",
-    purchaseGrn: "PUR0017",
-    date: "03 Sept 2026",
-    subTotal: 82,
-    grandTotal: 82,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-];
 
 interface MaterialUsageTableProps {
   apiEndpoint?: string;
@@ -178,13 +56,10 @@ export default function MaterialUsageTable({
               approver: "Admin",
             }))
           : [];
-        setUsages(list.length > 0 ? list : DEFAULT_MATERIAL_USAGES);
+        setUsages(list);
       } catch (error) {
-        console.warn(
-          "API unavailable, loading default material usage data...",
-          error,
-        );
-        setUsages(DEFAULT_MATERIAL_USAGES);
+        console.error("Error fetching material usages:", error);
+        setUsages([]);
       } finally {
         setLoading(false);
       }

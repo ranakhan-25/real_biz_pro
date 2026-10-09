@@ -4,34 +4,6 @@ import type { StockTransferItem } from "@/app/(admin-dashbord)/dashboard/invento
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
-// Fallback Default Data in case API is empty or fails
-const DEFAULT_STOCK_TRANSFERS: StockTransferItem[] = [
-  {
-    id: 1,
-    code: "ST458921",
-    date: "08 Sept 2026",
-    fromProject: "Rifat Eyecon City",
-    fromSite: "Main Site",
-    fromTask: "Foundation",
-    toProject: "Estern 19",
-    toSite: "Site B",
-    toTask: "Finishing",
-    contact: "01700000000",
-  },
-  {
-    id: 2,
-    code: "ST458922",
-    date: "09 Sept 2026",
-    fromProject: "Estern 19",
-    fromSite: "Site B",
-    fromTask: "Wiring",
-    toProject: "Rifat Eyecon City",
-    toSite: "Main Site",
-    toTask: "Installation",
-    contact: "01800000000",
-  },
-];
-
 interface StockTransferTableProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -53,7 +25,7 @@ export default function StockTransferTable({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetching data from API with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     const fetchStockTransfers = async () => {
       try {
@@ -78,13 +50,10 @@ export default function StockTransferTable({
               contact: t.contact || "01700000000",
             }))
           : [];
-        setTransfers(list.length > 0 ? list : DEFAULT_STOCK_TRANSFERS);
+        setTransfers(list);
       } catch (error) {
-        console.warn(
-          "API unavailable, loading default stock transfer data...",
-          error,
-        );
-        setTransfers(DEFAULT_STOCK_TRANSFERS);
+        console.error("Error fetching stock transfers:", error);
+        setTransfers([]);
       } finally {
         setLoading(false);
       }

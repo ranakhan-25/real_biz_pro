@@ -5,15 +5,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import { API_BASE } from "@/lib/inventoryApi";
 
-// Default unit items based on the reference image
-const DEFAULT_UNITS: Unit[] = [
-  { id: 73, code: "KG", name: "Kg", conversionUnit: "", rate: "" },
-  { id: 74, code: "BAG", name: "Bag", conversionUnit: "", rate: "" },
-  { id: 75, code: "CFT", name: "Cft", conversionUnit: "", rate: "" },
-  { id: 76, code: "LTR", name: "Litre", conversionUnit: "", rate: "" },
-  { id: 77, code: "PCS", name: "Pcs", conversionUnit: "", rate: "" },
-];
-
 interface UnitListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -36,7 +27,7 @@ export default function UnitList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchUnits() {
       try {
@@ -54,10 +45,10 @@ export default function UnitList({
               rate: u.rate || "",
             }))
           : [];
-        setUnits(list.length > 0 ? list : DEFAULT_UNITS);
+        setUnits(list);
       } catch (error) {
-        console.warn("Using default unit data due to fetch error:", error);
-        setUnits(DEFAULT_UNITS);
+        console.error("Error fetching units:", error);
+        setUnits([]);
       } finally {
         setLoading(false);
       }

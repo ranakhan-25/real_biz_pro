@@ -2,117 +2,44 @@
 
 import type { MaterialUsageItem } from "@/components/inventory/MaterialUsageReportTable";
 import MaterialUsageReportTable from "@/components/inventory/MaterialUsageReportTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
-const INITIAL_DATA: MaterialUsageItem[] = [
-  {
-    id: 1,
-    date: "2026-09-03",
-    invoiceNo: "MU00005",
-    titleOfWork: "",
-    workerName: "--",
-    project: "Estern 19",
-    site: "",
-    itemName: "16mm Rod",
-    category: "Rod",
-    quantity: 1,
-    unit: "Kg",
-  },
-  {
-    id: 2,
-    date: "2026-09-07",
-    invoiceNo: "MU00006",
-    titleOfWork: "",
-    workerName: "--",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "16mm Rod",
-    category: "Rod",
-    quantity: 120,
-    unit: "Kg",
-  },
-  {
-    id: 3,
-    date: "2026-09-07",
-    invoiceNo: "MU00006",
-    titleOfWork: "",
-    workerName: "--",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "20mm Rod",
-    category: "Rod",
-    quantity: 90,
-    unit: "Kg",
-  },
-  {
-    id: 4,
-    date: "2026-09-07",
-    invoiceNo: "MU7997797",
-    titleOfWork: "",
-    workerName: "Tazmul Reza__",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "1st Class Brick",
-    category: "Bricks",
-    quantity: 1000,
-    unit: "Pcs",
-  },
-  {
-    id: 5,
-    date: "2026-09-07",
-    invoiceNo: "MU8733018",
-    titleOfWork: "",
-    workerName: "Tazmul Reza__",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "1st Class Brick",
-    category: "Bricks",
-    quantity: 1000,
-    unit: "Pcs",
-  },
-  {
-    id: 6,
-    date: "2026-09-07",
-    invoiceNo: "MU8733019",
-    titleOfWork: "",
-    workerName: "--",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "1st Class Brick",
-    category: "Bricks",
-    quantity: 1000,
-    unit: "Pcs",
-  },
-  {
-    id: 7,
-    date: "2026-09-07",
-    invoiceNo: "MU8733020",
-    titleOfWork: "",
-    workerName: "--",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "1st Class Brick",
-    category: "Bricks",
-    quantity: 500,
-    unit: "Pcs",
-  },
-  {
-    id: 8,
-    date: "2026-09-07",
-    invoiceNo: "MU8733021",
-    titleOfWork: "",
-    workerName: "Tazmul Reza__",
-    project: "Rifat Eyecon City",
-    site: "",
-    itemName: "Sand (FM 2.50)",
-    category: "Sand",
-    quantity: 32,
-    unit: "Cft",
-  },
-];
 
 export default function MaterialUsageReportContainer() {
-  const [data] = useState<MaterialUsageItem[]>(INITIAL_DATA);
+  const [data, setData] = useState<MaterialUsageItem[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+        const res = await fetch(`${apiBase}/inventory/material-usage`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const raw = json.data !== undefined ? json.data : json;
+        if (Array.isArray(raw)) {
+          const list = raw.map((u, idx) => ({
+            id: u.id || idx + 1,
+            invoiceNo: u.usage_no || u.code || `MU-${idx + 1}`,
+            date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+            project: u.project?.name || u.project_name || "Head Office",
+            titleOfWork: u.title_of_work || "-",
+            task: u.task || "-",
+            site: u.site?.name || u.site_name || "Main Site",
+            workerName: u.worker_staff_name || "-",
+            category: "General",
+            itemCode: u.item_code || "-",
+            itemName: u.item_name || "Material",
+            quantity: Number(u.quantity || 0),
+            unit: u.unit || "Pcs",
+          }));
+          setData(list);
+        }
+      } catch (err) {
+        setData([]);
+      }
+    }
+    loadData();
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

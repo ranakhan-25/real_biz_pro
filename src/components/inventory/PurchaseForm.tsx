@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { purchasesApi, suppliersApi, itemsApi } from "@/lib/inventoryApi";
 
 // Purchase item type definition
@@ -96,7 +97,7 @@ export default function PurchaseForm() {
   // Add Item to Table handler (triggered by '+' button)
   const handleAddItem = () => {
     if (!selectedItem) {
-      alert("Please select an item first!");
+      toast.error("Please select an item first!");
       return;
     }
     const found = itemsList.find((i) => i.id === selectedItem || i.name === selectedItem);
@@ -125,7 +126,7 @@ export default function PurchaseForm() {
   // Add Payment handler
   const handleAddPayment = () => {
     if (paymentAmount <= 0) {
-      alert("Please enter a valid payment amount!");
+      toast.error("Please enter a valid payment amount!");
       return;
     }
     const newPayment: PaymentTransaction = {
@@ -152,11 +153,11 @@ export default function PurchaseForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supplier) {
-      alert("Please select a supplier!");
+      toast.error("Please select a supplier!");
       return;
     }
     if (items.length === 0) {
-      alert("Please add at least one item to the purchase table!");
+      toast.error("Please add at least one item to the purchase table!");
       return;
     }
 
@@ -181,11 +182,11 @@ export default function PurchaseForm() {
       };
 
       await purchasesApi.create(payload);
-      alert("Purchase saved successfully!");
+      toast.success("Purchase saved successfully!");
       router.push("/dashboard/inventory/purchase/purchase-list");
     } catch (err: any) {
       console.error("Failed to save purchase:", err);
-      alert(err.message || "Failed to save purchase");
+      toast.error(err.message || "Failed to save purchase");
     } finally {
       setIsSubmitting(false);
     }
@@ -243,8 +244,9 @@ export default function PurchaseForm() {
               </select>
               <button
                 type="button"
-                onClick={() => alert("Add Supplier modal")}
+                onClick={() => router.push("/dashboard/inventory/contracts/supplier-accounts")}
                 className="bg-[var(--lime)] text-white px-2.5 py-1.5 rounded text-xs"
+                title="Add New Supplier"
               >
                 <FiPlus />
               </button>

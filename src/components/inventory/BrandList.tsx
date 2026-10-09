@@ -5,15 +5,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import { API_BASE } from "@/lib/inventoryApi";
 
-// Default brand items based on the reference image
-const DEFAULT_BRANDS: Brand[] = [
-  { id: 1, code: "BR755338387", name: "Seven Rings" },
-  { id: 2, code: "BR755338400", name: "BSRM" },
-  { id: 3, code: "BR755338418", name: "BBH" },
-  { id: 4, code: "B9221202", name: "ABC" },
-  { id: 5, code: "B9221202", name: "Stone Brick" },
-];
-
 interface BrandListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -36,7 +27,7 @@ export default function BrandList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchBrands() {
       try {
@@ -52,10 +43,10 @@ export default function BrandList({
               name: item.name || "",
             }))
           : [];
-        setBrands(list.length > 0 ? list : DEFAULT_BRANDS);
+        setBrands(list);
       } catch (error) {
-        console.warn("Using default brand data due to fetch error:", error);
-        setBrands(DEFAULT_BRANDS);
+        console.error("Error fetching brands:", error);
+        setBrands([]);
       } finally {
         setLoading(false);
       }

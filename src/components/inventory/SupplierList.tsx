@@ -14,107 +14,6 @@ import {
   FiEye,
 } from "react-icons/fi";
 
-// Default fallback data in case API request fails or returns nothing
-const DEFAULT_SUPPLIERS: Supplier[] = [
-  { id: 1, code: "SUP2733131", name: "Riva Steel Mils", under: "Sundry Creditors" },
-  {
-    id: 2,
-    code: "SUP8286898",
-    name: "Rifat Thai House",
-    company: "Rifat Thai House",
-    under: "Sundry Creditors",
-  },
-  { id: 3, code: "SUP8103073", name: "Mohin Business solution", under: "Sundry Creditors" },
-  {
-    id: 4,
-    code: "SUP8191957",
-    name: "Safety First Suppliers",
-    phone: "01312345695",
-    address: "Motijheel",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 5,
-    code: "SUP6544555",
-    name: "Delta Glass & Aluminium",
-    phone: "01312345694",
-    address: "Mirpur",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 6,
-    code: "SUP8156944",
-    name: "Prime Tiles",
-    phone: "01312345693",
-    address: "Mohakhali",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 7,
-    code: "SUP7215205",
-    name: "Modern Sanitary",
-    phone: "01312345692",
-    address: "Paltan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 8,
-    code: "SUP2351579",
-    name: "Techno Cables Ltd",
-    phone: "01312345691",
-    address: "Mirpur",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 9,
-    code: "SUP2504049",
-    name: "Fresh Paint House",
-    phone: "01312345690",
-    address: "Paltan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 10,
-    code: "SUP2252190",
-    name: "BuildMart Bangladesh",
-    phone: "01312345689",
-    address: "Gulshan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 11,
-    code: "SUP1122334",
-    name: "Alpha Traders",
-    phone: "01312345688",
-    address: "Banani",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 12,
-    code: "SUP5566778",
-    name: "Beta Enterprise",
-    phone: "01312345687",
-    address: "Uttara",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 13,
-    code: "SUP9988776",
-    name: "Gamma Steel",
-    phone: "01312345686",
-    address: "Tejgaon",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 14,
-    code: "SUP4433221",
-    name: "Delta Builders",
-    phone: "01312345685",
-    address: "Dhanmondi",
-    under: "Sundry Creditors",
-  },
-];
-
 interface SupplierListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -138,7 +37,7 @@ export default function SupplierList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data from API with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchSuppliers() {
       try {
@@ -161,10 +60,10 @@ export default function SupplierList({
               opening_balance: s.opening_balance || 0,
             }))
           : [];
-        setSuppliers(list.length > 0 ? list : DEFAULT_SUPPLIERS);
+        setSuppliers(list);
       } catch (error) {
-        console.warn("API fetch failed, falling back to default data:", error);
-        setSuppliers(DEFAULT_SUPPLIERS);
+        console.error("Error fetching suppliers:", error);
+        setSuppliers([]);
       } finally {
         setLoading(false);
       }

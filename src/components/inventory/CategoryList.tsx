@@ -5,34 +5,6 @@ import { FiEdit, FiTrash2, FiSearch, FiChevronLeft, FiChevronRight } from "react
 import type { Category } from "@/app/(admin-dashbord)/dashboard/inventory/products/categories/page";
 import { API_BASE } from "@/lib/inventoryApi";
 
-// Default category items based on the reference image
-const DEFAULT_CATEGORIES: Category[] = [
-  {
-    id: 1,
-    type: "Material",
-    code: "C1979373",
-    name: "Bricks",
-    inventoryCoa: "Bricks Inventory",
-    consumptionCoa: "Bricks Consumption",
-  },
-  {
-    id: 2,
-    type: "Material",
-    code: "",
-    name: "Others",
-    inventoryCoa: "Others Inventory",
-    consumptionCoa: "Others Consumption",
-  },
-  {
-    id: 3,
-    type: "Material",
-    code: "",
-    name: "Sanitary Work",
-    inventoryCoa: "Sanitary Work Inventory",
-    consumptionCoa: "Sanitary Work Consumption",
-  },
-];
-
 interface CategoryListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -56,7 +28,7 @@ export default function CategoryList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -75,10 +47,10 @@ export default function CategoryList({
               consumptionCoa: c.consumptionCoa || "Consumption",
             }))
           : [];
-        setCategories(list.length > 0 ? list : DEFAULT_CATEGORIES);
+        setCategories(list);
       } catch (error) {
-        console.warn("Using default category data due to fetch error:", error);
-        setCategories(DEFAULT_CATEGORIES);
+        console.error("Error fetching categories:", error);
+        setCategories([]);
       } finally {
         setLoading(false);
       }

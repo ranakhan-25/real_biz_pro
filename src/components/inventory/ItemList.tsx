@@ -5,30 +5,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import { API_BASE } from "@/lib/inventoryApi";
 
-// Default item list matching the reference design image
-const DEFAULT_ITEMS: Item[] = [
-  {
-    id: 1,
-    code: "M0083",
-    name: "Steel Bar 12mm",
-    category: "Rod",
-    unit: "Set",
-    brand: "BSRM",
-    purchasePrice: 95,
-    salePrice: 105,
-  },
-  {
-    id: 2,
-    code: "M0082",
-    name: "Portland Cement",
-    category: "Cement",
-    unit: "Bag",
-    brand: "Seven Rings",
-    purchasePrice: 480,
-    salePrice: 520,
-  },
-];
-
 interface ItemListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -51,7 +27,7 @@ export default function ItemList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchItems() {
       try {
@@ -75,10 +51,10 @@ export default function ItemList({
               salePrice: Number(it.sale_price ?? 0),
             }))
           : [];
-        setItems(list.length > 0 ? list : DEFAULT_ITEMS);
+        setItems(list);
       } catch (error) {
-        console.warn("Using default item data due to fetch error:", error);
-        setItems(DEFAULT_ITEMS);
+        console.error("Error fetching items:", error);
+        setItems([]);
       } finally {
         setLoading(false);
       }

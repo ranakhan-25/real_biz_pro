@@ -5,86 +5,9 @@ import MaterialComparisonTable from "@/components/inventory/MaterialComparisonTa
 import React, { useState, useEffect, useMemo } from "react";
 import { reportsApi } from "@/lib/inventoryApi";
 
-const INITIAL_DATA: MaterialItem[] = [
-  {
-    id: 1,
-    description: "10mm Rod",
-    budgetQty: 86363.33,
-    budgetAmount: 7563973.04,
-    purchaseQty: 10000.0,
-    purchaseAmount: 820000.0,
-    issueQty: 100.0,
-    issueAmount: 8200.0,
-    stockQty: 9900.0,
-    stockAmount: 811800.0,
-    availableQty: 86263.33,
-    availableAmount: 7555773.04,
-    status: "Under",
-  },
-  {
-    id: 2,
-    description: "16mm Rod",
-    budgetQty: 33122.57,
-    budgetAmount: 2830786.16,
-    purchaseQty: 0.0,
-    purchaseAmount: 0.0,
-    issueQty: 0.0,
-    issueAmount: 0.0,
-    stockQty: 0.0,
-    stockAmount: 0.0,
-    availableQty: 33122.57,
-    availableAmount: 2830786.16,
-    status: "Under",
-  },
-  {
-    id: 3,
-    description: "Cement (OPC/ CEM-I)",
-    budgetQty: 14650.8,
-    budgetAmount: 7156392.0,
-    purchaseQty: 0.0,
-    purchaseAmount: 0.0,
-    issueQty: 0.0,
-    issueAmount: 0.0,
-    stockQty: 0.0,
-    stockAmount: 0.0,
-    availableQty: 14650.8,
-    availableAmount: 7156392.0,
-    status: "Under",
-  },
-  {
-    id: 4,
-    description: "Sand (FM 2.50)",
-    budgetQty: 35138.42,
-    budgetAmount: 3617034.1,
-    purchaseQty: 100.0,
-    purchaseAmount: 9250.0,
-    issueQty: 0.0,
-    issueAmount: 0.0,
-    stockQty: 100.0,
-    stockAmount: 9250.0,
-    availableQty: 35138.42,
-    availableAmount: 3617034.1,
-    status: "Under",
-  },
-  {
-    id: 5,
-    description: "Viti Sand",
-    budgetQty: 16881.94,
-    budgetAmount: 290124.92,
-    purchaseQty: 0.0,
-    purchaseAmount: 0.0,
-    issueQty: 0.0,
-    issueAmount: 0.0,
-    stockQty: 0.0,
-    stockAmount: 0.0,
-    availableQty: 16881.94,
-    availableAmount: 290124.92,
-    status: "Under",
-  },
-];
 
 export default function MaterialComparisonContainer() {
-  const [data, setData] = useState<MaterialItem[]>(INITIAL_DATA);
+  const [data, setData] = useState<MaterialItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

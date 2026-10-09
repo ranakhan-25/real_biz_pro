@@ -5,19 +5,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import { API_BASE } from "@/lib/inventoryApi";
 
-// Default sub-category items based on the reference image
-const DEFAULT_SUB_CATEGORIES: SubCategory[] = [
-  {
-    id: "1",
-    category: "Global Link City",
-    code: "AA00058",
-    name: "Global Link City",
-  },
-  { id: "2", category: "Mega Project", code: "AA00058", name: "Mega Project" },
-  { id: "3", category: "Black Marble", code: "SC5155496", name: "Black Marble" },
-  { id: "4", category: "White Marble", code: "SC6110881", name: "White Marble" },
-];
-
 interface SubCategoryListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -42,7 +29,7 @@ export default function SubCategoryList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchSubCategories() {
       try {
@@ -60,13 +47,10 @@ export default function SubCategoryList({
               name: item.name || "",
             }))
           : [];
-        setSubCategories(list.length > 0 ? list : DEFAULT_SUB_CATEGORIES);
+        setSubCategories(list);
       } catch (error) {
-        console.warn(
-          "Using default sub-category data due to fetch error:",
-          error,
-        );
-        setSubCategories(DEFAULT_SUB_CATEGORIES);
+        console.error("Error fetching sub-categories:", error);
+        setSubCategories([]);
       } finally {
         setLoading(false);
       }

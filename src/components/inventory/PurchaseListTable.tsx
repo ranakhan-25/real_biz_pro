@@ -12,52 +12,7 @@ import {
   FiLayers,
 } from "react-icons/fi";
 
-const DEFAULT_PURCHASES: PurchaseListItem[] = [
-  {
-    id: 1,
-    projectType: "Real Estate",
-    project: "Sheba Eyecon Tower",
-    titleOfWork: "-",
-    supplierName: "Safety First Suppliers",
-    code: "PUR7987200",
-    reference: "taz00010",
-    creditLedger: "-",
-    date: "08 Sept 2026",
-    subTotal: 0,
-    discount: 0,
-    deliveryCharge: 0,
-    grandTotal: 0,
-    paid: 0,
-    due: 0,
-    attachment: "-",
-    note: "-",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 2,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    supplierName: "Mohin Business solution",
-    code: "PUR7987199",
-    reference: "taz00016",
-    creditLedger: "-",
-    date: "08 Sept 2026",
-    subTotal: 0,
-    discount: 0,
-    deliveryCharge: 0,
-    grandTotal: 0,
-    paid: 0,
-    due: 0,
-    attachment: "-",
-    note: "-",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-];
+import { toast } from "sonner";
 
 interface PurchaseListTableProps {
   apiEndpoint?: string;
@@ -74,7 +29,7 @@ export default function PurchaseListTable({
   onView,
   onDelete,
 }: PurchaseListTableProps) {
-  const [purchases, setPurchases] = useState<PurchaseListItem[]>(DEFAULT_PURCHASES);
+  const [purchases, setPurchases] = useState<PurchaseListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -112,10 +67,10 @@ export default function PurchaseListTable({
               approver: "Admin",
             }))
           : [];
-        setPurchases(list.length > 0 ? list : DEFAULT_PURCHASES);
+        setPurchases(list);
       } catch (err) {
-        console.warn("Could not fetch purchases, using defaults:", err);
-        setPurchases(DEFAULT_PURCHASES);
+        console.error("Could not fetch purchases:", err);
+        setPurchases([]);
       } finally {
         setLoading(false);
       }
@@ -147,13 +102,13 @@ export default function PurchaseListTable({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => alert("Exporting to Excel...")}
+              onClick={() => toast.info("Exporting to Excel...")}
               className="flex items-center gap-1.5 bg-[#10b981] text-white px-3.5 py-1.5 rounded text-xs font-medium"
             >
               <FiDownload className="text-sm" /> Excel
             </button>
             <button
-              onClick={() => alert("Exporting to PDF...")}
+              onClick={() => toast.info("Exporting to PDF...")}
               className="flex items-center gap-1.5 bg-[#ef4444] text-white px-3.5 py-1.5 rounded text-xs font-medium"
             >
               <FiFileText className="text-sm" /> PDF
@@ -199,7 +154,20 @@ export default function PurchaseListTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredPurchases.map((item) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="py-6 text-center text-xs text-muted-foreground">
+                    Loading purchases...
+                  </td>
+                </tr>
+              ) : filteredPurchases.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-6 text-center text-xs text-muted-foreground">
+                    No data available in table
+                  </td>
+                </tr>
+              ) : (
+                filteredPurchases.map((item) => (
                 <tr
                   key={item.id}
                   className="hover:bg-muted/50 transition-colors align-top whitespace-nowrap"
@@ -221,7 +189,7 @@ export default function PurchaseListTable({
                     <div className="flex flex-col items-center gap-1">
                       <button
                         onClick={() =>
-                          alert(`Material Usages for ${item.code}`)
+                          toast.info(`Material Usages for ${item.code}`)
                         }
                         className="flex items-center gap-1 bg-[#00bcd4] text-white px-2 py-1 rounded text-[10px] font-medium w-full justify-center"
                       >
@@ -256,7 +224,7 @@ export default function PurchaseListTable({
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
