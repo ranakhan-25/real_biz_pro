@@ -25,25 +25,35 @@ export async function GET(request: Request) {
 
     const data = {
       quickCards: {
-        totalStock: {
+        customers: {
+          value: 128,
+          changePercent: 12,
+          trend: [40, 45, 42, 50, 55, 52, 60, 58, 65, 70, 68, 75],
+        },
+        suppliers: {
+          value: 54,
+          changePercent: 6,
+          trend: [30, 32, 35, 33, 38, 40, 42, 41, 45, 48, 47, 50],
+        },
+        materialReq: {
+          value: totalItems > 0 ? totalItems : 342,
+          changePercent: -4,
+          trend: [70, 68, 65, 66, 60, 58, 55, 57, 52, 50, 48, 45],
+        },
+        serviceReq: {
+          value: 76,
+          changePercent: 15,
+          trend: [20, 25, 24, 30, 32, 35, 33, 40, 42, 45, 48, 52],
+        },
+        purchases: {
           value: totalStockValue,
-          changePercent: 12.5,
-          trend: [28, 32, 30, 35, 34, 38, 42],
+          changePercent: 18,
+          trend: [30, 35, 32, 40, 45, 42, 50, 55, 52, 60, 58, 65],
         },
-        materialIssues: {
-          value: 1200000,
-          changePercent: -4.2,
-          trend: [15, 14, 16, 13, 14, 12, 11],
-        },
-        wasteScrap: {
-          value: 45000,
-          changePercent: 1.8,
-          trend: [5, 4, 6, 5, 7, 5, 6],
-        },
-        overflowMaterial: {
-          value: 180000,
-          changePercent: -8.0,
-          trend: [22, 20, 21, 19, 18, 17, 16],
+        sales: {
+          value: 153310,
+          changePercent: 24,
+          trend: [25, 28, 30, 35, 33, 40, 45, 43, 50, 55, 58, 62],
         },
       },
       purchaseDonut: {
@@ -61,32 +71,49 @@ export async function GET(request: Request) {
       ],
       pendingItems: [
         {
-          id: 1,
-          itemName: "MS Rod 16mm (BSRM)",
-          category: "Rod",
-          unit: "Ton",
-          pendingQty: 25,
-          requiredBy: "2026-10-15",
-          status: "Pending Approval",
+          project: "Sheba Eyecon Tower",
+          contact: "Mr. Raju raz",
+          addedBy: "Admin",
+          date: "03-Sept-2026",
+          reference: "SaleOffer-5154844",
+          type: "Offer",
         },
         {
-          id: 2,
-          itemName: "Portland Cement CEM-II",
-          category: "Cement",
-          unit: "Bag",
-          pendingQty: 300,
-          requiredBy: "2026-10-18",
-          status: "Pending PO",
+          project: "Lake Garden",
+          contact: "Mr. Raju raz",
+          addedBy: "Admin",
+          date: "03-Sept-2026",
+          reference: "SaleOffer-4181717",
+          type: "Offer",
         },
       ],
       overflowMaterial: [
         {
-          id: 1,
-          itemName: "1st Class Brick",
-          project: "Rifat Eyecon City",
-          excessQty: 1500,
-          unit: "Pcs",
-          action: "Transfer Recommended",
+          sl: 1,
+          description: "Cement (OPC 52.5N)",
+          budgetQty: 500,
+          budgetAmount: 275000,
+          issueQty: 560,
+          issueAmount: 308000,
+          status: "Issued",
+        },
+        {
+          sl: 2,
+          description: "MS Rod 20mm",
+          budgetQty: 1200,
+          budgetAmount: 912000,
+          issueQty: 1340,
+          issueAmount: 1018400,
+          status: "Approved",
+        },
+        {
+          sl: 3,
+          description: "Bricks (1st Class)",
+          budgetQty: 20000,
+          budgetAmount: 240000,
+          issueQty: 21500,
+          issueAmount: 258000,
+          status: "Pending",
         },
       ],
     };
