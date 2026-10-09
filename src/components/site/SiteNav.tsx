@@ -128,7 +128,7 @@ export function SiteNav() {
 
           {/* Login — Desktop */}
           <Link
-            href="/admin/login"
+            href="/login"
             className="hidden rounded-md px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 sm:inline-flex"
             style={{ backgroundColor: brandColor }}
           >

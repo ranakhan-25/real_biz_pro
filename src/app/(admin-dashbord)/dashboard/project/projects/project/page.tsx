@@ -1,17 +1,9 @@
-/* eslint-disable prettier/prettier */
-
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "http://localhost:5002"
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002"
 ).replace(/\/+$/, "");
 
 const API_URL = `${BASE_URL}/realbizpro/api/v1/project`;
@@ -83,9 +75,7 @@ async function apiRequest<T>(
     ...options,
     headers: {
       Accept: "application/json",
-      ...(options.body
-        ? { "Content-Type": "application/json" }
-        : {}),
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
       ...options.headers,
     },
   });
@@ -134,13 +124,7 @@ function normalizeProjects(response: unknown): Project[] {
 
   const object = response as Record<string, unknown>;
 
-  for (const key of [
-    "data",
-    "projects",
-    "items",
-    "rows",
-    "results",
-  ]) {
+  for (const key of ["data", "projects", "items", "rows", "results"]) {
     const value = object[key];
 
     if (Array.isArray(value)) {
@@ -159,11 +143,8 @@ function normalizeProjects(response: unknown): Project[] {
   return [];
 }
 
-function getProjectUuid(
-  project: Project,
-): string | undefined {
-  return typeof project.uuid === "string" &&
-    project.uuid.trim()
+function getProjectUuid(project: Project): string | undefined {
+  return typeof project.uuid === "string" && project.uuid.trim()
     ? project.uuid.trim()
     : undefined;
 }
@@ -205,10 +186,8 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingProject, setEditingProject] =
-    useState<Project | null>(null);
-  const [deleteTarget, setDeleteTarget] =
-    useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [form, setForm] = useState<ProjectForm>(EMPTY_FORM);
 
   // Load projects and exclude soft-deleted records.
@@ -224,16 +203,10 @@ export default function ProjectsPage() {
 
       const loadedProjects = normalizeProjects(response);
 
-      setProjects(
-        loadedProjects.filter(
-          (project) => !project.deletedAt,
-        ),
-      );
+      setProjects(loadedProjects.filter((project) => !project.deletedAt));
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Projects load করতে সমস্যা হয়েছে।",
+        err instanceof Error ? err.message : "Projects load করতে সমস্যা হয়েছে।",
       );
     } finally {
       setLoading(false);
@@ -278,10 +251,7 @@ export default function ProjectsPage() {
     });
   }, [projects, search, statusFilter]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProjects.length / pageSize),
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
 
   const currentPage = Math.min(page, totalPages);
 
@@ -340,9 +310,7 @@ export default function ProjectsPage() {
     setModalOpen(true);
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const code = form.code.trim();
@@ -411,11 +379,7 @@ export default function ProjectsPage() {
 
       await loadProjects();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Project save করা যায়নি।",
-      );
+      setError(err instanceof Error ? err.message : "Project save করা যায়নি।");
     } finally {
       setSaving(false);
     }
@@ -437,24 +401,19 @@ export default function ProjectsPage() {
     setSuccess("");
 
     try {
-      await apiRequest(
-        `${API_URL}/${encodeURIComponent(uuid)}`,
-        { method: "DELETE" },
-      );
+      await apiRequest(`${API_URL}/${encodeURIComponent(uuid)}`, {
+        method: "DELETE",
+      });
 
       setProjects((previous) =>
-        previous.filter(
-          (project) => getProjectUuid(project) !== uuid,
-        ),
+        previous.filter((project) => getProjectUuid(project) !== uuid),
       );
 
       setDeleteTarget(null);
       setSuccess("Project successfully deleted.");
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Project delete করা যায়নি।",
+        err instanceof Error ? err.message : "Project delete করা যায়নি।",
       );
     } finally {
       setDeleting(false);
@@ -482,9 +441,7 @@ export default function ProjectsPage() {
     const rows = [
       columns.map(escapeCsv).join(","),
       ...filteredProjects.map((project) =>
-        columns
-          .map((column) => escapeCsv(project[column]))
-          .join(","),
+        columns.map((column) => escapeCsv(project[column])).join(","),
       ),
     ];
 
@@ -613,9 +570,7 @@ export default function ProjectsPage() {
           </div>
 
           <p className="mb-3 text-sm text-gray-500">
-            {loading
-              ? "Loading..."
-              : `${filteredProjects.length} project(s)`}
+            {loading ? "Loading..." : `${filteredProjects.length} project(s)`}
           </p>
 
           <div className="overflow-x-auto">
@@ -660,9 +615,7 @@ export default function ProjectsPage() {
                       </td>
 
                       <td className="px-4 py-3">
-                        <div className="font-medium">
-                          {project.name ?? "—"}
-                        </div>
+                        <div className="font-medium">{project.name ?? "—"}</div>
                         <div className="max-w-xs truncate text-xs text-gray-500">
                           {project.description ?? ""}
                         </div>
@@ -672,17 +625,13 @@ export default function ProjectsPage() {
                         {project.areaCategory ?? "—"}
                       </td>
 
-                      <td className="px-4 py-3">
-                        {project.location ?? "—"}
-                      </td>
+                      <td className="px-4 py-3">{project.location ?? "—"}</td>
 
                       <td className="px-4 py-3">
                         {project.contactPersonName ?? "—"}
                       </td>
 
-                      <td className="px-4 py-3">
-                        {project.startDate ?? "—"}
-                      </td>
+                      <td className="px-4 py-3">{project.startDate ?? "—"}</td>
 
                       <td className="px-4 py-3">
                         <span
@@ -731,9 +680,7 @@ export default function ProjectsPage() {
               <button
                 type="button"
                 disabled={currentPage <= 1}
-                onClick={() =>
-                  setPage((previous) => Math.max(1, previous - 1))
-                }
+                onClick={() => setPage((previous) => Math.max(1, previous - 1))}
                 className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
               >
                 Previous
@@ -743,9 +690,7 @@ export default function ProjectsPage() {
                 type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() =>
-                  setPage((previous) =>
-                    Math.min(totalPages, previous + 1),
-                  )
+                  setPage((previous) => Math.min(totalPages, previous + 1))
                 }
                 className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
               >
@@ -797,9 +742,7 @@ export default function ProjectsPage() {
                   <input
                     type="text"
                     value={form.code}
-                    onChange={(event) =>
-                      updateForm("code", event.target.value)
-                    }
+                    onChange={(event) => updateForm("code", event.target.value)}
                     required
                     placeholder="e.g. PRJ-2026-001"
                     className="w-full rounded-lg border px-3 py-2"
@@ -835,9 +778,7 @@ export default function ProjectsPage() {
                             : "text"
                       }
                       value={form[key]}
-                      onChange={(event) =>
-                        updateForm(key, event.target.value)
-                      }
+                      onChange={(event) => updateForm(key, event.target.value)}
                       required={required}
                       className="w-full rounded-lg border px-3 py-2 outline-none focus:border-blue-500"
                     />
@@ -919,8 +860,7 @@ export default function ProjectsPage() {
             <h2 className="text-lg font-bold">Delete Project</h2>
 
             <p className="mt-3 text-sm text-gray-600">
-              Delete{" "}
-              <strong>{deleteTarget.name ?? "this project"}</strong>?
+              Delete <strong>{deleteTarget.name ?? "this project"}</strong>?
             </p>
 
             <p className="mt-2 break-all text-xs text-gray-500">
