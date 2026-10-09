@@ -30,12 +30,19 @@ export default function StockTransferTable({
     const fetchStockTransfers = async () => {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
+        const sep = apiEndpoint.includes("?") ? "&" : "?";
+        const response = await fetch(`${apiEndpoint}${sep}_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
         if (!response.ok) {
           throw new Error("API request failed");
         }
         const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
+        let raw = json.data !== undefined ? json.data : json;
+        if (raw && Array.isArray(raw.data)) {
+          raw = raw.data;
+        }
         const list = Array.isArray(raw)
           ? raw.map((t: any, idx: number) => ({
               id: t.id,

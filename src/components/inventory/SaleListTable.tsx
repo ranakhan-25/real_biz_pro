@@ -5,24 +5,27 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
 interface SaleListTableProps {
+  refreshTrigger?: number;
   onEdit?: (item: SaleListItem) => void;
   onView?: (item: SaleListItem) => void;
 }
 
-export default function SaleListTable({ onEdit, onView }: SaleListTableProps) {
+export default function SaleListTable({ refreshTrigger, onEdit, onView }: SaleListTableProps) {
   const [sales, setSales] = useState<SaleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetching Data from backend API
+  // Fetching Data from backend / API route
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
         setLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
-        const response = await fetch(`${apiBase}/sales`);
+        const response = await fetch(`/api/sales?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch from API");
@@ -40,7 +43,7 @@ export default function SaleListTable({ onEdit, onView }: SaleListTableProps) {
     };
 
     fetchSalesData();
-  }, []);
+  }, [refreshTrigger]);
 
   // Delete handler
   const handleDelete = (id: number) => {

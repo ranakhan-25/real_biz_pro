@@ -26,15 +26,19 @@ const SaleListAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
   const [selectedSale, setSelectedSale] = useState<Partial<SaleListItem>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handler to open Create Module
   const handleCreateNewSale = () => {
     setModalMode("create");
     setSelectedSale({
-      code: `SALE${Math.floor(100000 + Math.random() * 900000)}`,
-      date: "10 Sept 2026",
+      code: `SALE-${Math.floor(100000 + Math.random() * 900000)}`,
+      date: new Date().toISOString().split("T")[0],
       projectType: "Real Estate",
       project: "Sheba Eyecon Tower",
+      customerName: "",
+      grandTotal: 0,
     });
     setIsModalOpen(true);
   };
@@ -44,6 +48,33 @@ const SaleListAccounts = () => {
     setModalMode(mode);
     setSelectedSale(item);
     setIsModalOpen(true);
+  };
+
+  const handleSaveSale = async () => {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/sales", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedSale),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.message || "Failed to save sale");
+      }
+
+      toast.success(
+        `${modalMode === "create" ? "Sale Created" : "Sale Updated"} successfully!`,
+      );
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save sale:", err);
+      toast.error(err.message || "Failed to save sale");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,6 +99,7 @@ const SaleListAccounts = () => {
 
       {/* Child Component for Table, API fetching & Default Data fallback */}
       <SaleListTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModal(item, "update")}
         onView={(item) => handleOpenModal(item, "view")}
       />
@@ -161,15 +193,15 @@ const SaleListAccounts = () => {
               {modalMode !== "view" && (
                 <button
                   type="button"
-                  onClick={() => {
-                    toast.success(
-                      `${modalMode === "create" ? "Sale Created" : "Sale Updated"} successfully!`,
-                    );
-                    setIsModalOpen(false);
-                  }}
-                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm"
+                  disabled={isSubmitting}
+                  onClick={handleSaveSale}
+                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm disabled:opacity-60"
                 >
-                  {modalMode === "create" ? "Save Sale" : "Save Changes"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : modalMode === "create"
+                    ? "Save Sale"
+                    : "Save Changes"}
                 </button>
               )}
             </div>

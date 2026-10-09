@@ -36,16 +36,20 @@ export default function MaterialRequisitionAccounts() {
   const [selectedRequisition, setSelectedRequisition] = useState<Partial<MaterialRequisitionItem>>(
     {},
   );
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handler to open Create Module
   const handleCreateNew = () => {
     setModalMode("create");
     setSelectedRequisition({
-      code: `taz${Math.floor(10000 + Math.random() * 90000)}`,
-      date: "10 Sept 2026",
-      demandDate: "10 Sept 2026",
-      projectType: "Office",
-      project: "Rifat Eyecon City",
+      code: `MR-${Math.floor(10000 + Math.random() * 90000)}`,
+      date: new Date().toISOString().split("T")[0],
+      demandDate: new Date().toISOString().split("T")[0],
+      projectType: "Real Estate",
+      project: "Head Office",
+      titleOfWork: "General Works",
+      ref: "REF-001",
     });
     setIsModalOpen(true);
   };
@@ -55,6 +59,46 @@ export default function MaterialRequisitionAccounts() {
     setModalMode(mode);
     setSelectedRequisition(item);
     setIsModalOpen(true);
+  };
+
+  const handleSaveRequisition = async () => {
+    try {
+      setIsSubmitting(true);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+      const payload = {
+        projectType: selectedRequisition.projectType || "Real Estate",
+        projectName: selectedRequisition.project || "Head Office",
+        titleOrNameOfWork: selectedRequisition.titleOfWork || "General Construction",
+        code: selectedRequisition.code || `REQ-${Date.now().toString().slice(-6)}`,
+        referenceNumber: selectedRequisition.ref || `REF-${Date.now().toString().slice(-4)}`,
+        demandDate: selectedRequisition.demandDate && !isNaN(Date.parse(selectedRequisition.demandDate))
+          ? new Date(selectedRequisition.demandDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        company: company || "Somikoron IT Ltd",
+      };
+
+      const res = await fetch(`${apiBase}/material-requisition`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Failed to create requisition");
+      }
+
+      toast.success(
+        `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,
+      );
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save requisition:", err);
+      toast.error(err.message || "Failed to save requisition");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -168,6 +212,7 @@ export default function MaterialRequisitionAccounts() {
 
       {/* Child Component for Table */}
       <MaterialRequisitionTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModalFromTable(item, "update")}
         onView={(item) => handleOpenModalFromTable(item, "view")}
       />
@@ -265,15 +310,15 @@ export default function MaterialRequisitionAccounts() {
               {modalMode !== "view" && (
                 <button
                   type="button"
-                  onClick={() => {
-                    toast.success(
-                      `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,
-                    );
-                    setIsModalOpen(false);
-                  }}
-                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm"
+                  disabled={isSubmitting}
+                  onClick={handleSaveRequisition}
+                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm disabled:opacity-60"
                 >
-                  {modalMode === "create" ? "Save Requisition" : "Save Changes"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : modalMode === "create"
+                    ? "Save Requisition"
+                    : "Save Changes"}
                 </button>
               )}
             </div>
