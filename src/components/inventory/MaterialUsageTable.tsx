@@ -31,12 +31,21 @@ export default function MaterialUsageTable({
     const fetchMaterialUsages = async () => {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
+        const response = await fetch(apiEndpoint, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch API");
         }
         const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
+        let raw = json.data !== undefined ? json.data : json;
+        if (raw && Array.isArray(raw.data)) {
+          raw = raw.data;
+        }
         const list = Array.isArray(raw)
           ? raw.map((u: any, idx: number) => ({
               id: u.id,

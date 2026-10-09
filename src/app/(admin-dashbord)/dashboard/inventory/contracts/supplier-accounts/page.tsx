@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import type { Supplier } from "@/types/invetory";
 import { suppliersApi } from "@/lib/inventoryApi";
+import { toast } from "sonner";
 
 const SupplierAccounts = () => {
   // Modal state management
@@ -57,15 +58,17 @@ const SupplierAccounts = () => {
 
       if (modalMode === "add") {
         await suppliersApi.create(payload);
+        toast.success("Supplier created successfully");
       } else if (modalMode === "update" && selectedSupplier.id) {
         await suppliersApi.update(selectedSupplier.id, payload);
+        toast.success("Supplier updated successfully");
       }
 
       setRefreshTrigger((prev) => prev + 1);
       setIsModalOpen(false);
     } catch (err: any) {
       console.error("Failed to save supplier:", err);
-      alert(err.message || "Failed to save supplier");
+      toast.error(err.message || "Failed to save supplier");
     } finally {
       setIsSubmitting(false);
     }
@@ -73,13 +76,13 @@ const SupplierAccounts = () => {
 
   // Delete handler
   const handleDelete = async (id: string | number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete supplier "${name}"?`)) return;
     try {
       await suppliersApi.delete(id);
+      toast.success(`Supplier "${name}" deleted successfully`);
       setRefreshTrigger((prev) => prev + 1);
     } catch (err: any) {
       console.error("Failed to delete supplier:", err);
-      alert(err.message || "Failed to delete supplier");
+      toast.error(err.message || "Failed to delete supplier");
     }
   };
 
