@@ -42,10 +42,12 @@ export default function SupplierList({
     async function fetchSuppliers() {
       try {
         setLoading(true);
-        const sep = apiEndpoint.includes("?") ? "&" : "?";
-        const response = await fetch(`${apiEndpoint}${sep}_t=${Date.now()}`, {
+        const response = await fetch(apiEndpoint, {
           cache: "no-store",
-          headers: { "Cache-Control": "no-cache" },
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
         });
         if (!response.ok) throw new Error("API response failed");
         const json = await response.json();

@@ -39,9 +39,12 @@ export default function MaterialRequisitionTable({
       try {
         setLoading(true);
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
-        const response = await fetch(`${apiBase}/material-requisition?_t=${Date.now()}`, {
+        const response = await fetch(`${apiBase}/material-requisition`, {
           cache: "no-store",
-          headers: { "Cache-Control": "no-cache" },
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
         });
         if (!response.ok) {
           throw new Error("API request failed");
