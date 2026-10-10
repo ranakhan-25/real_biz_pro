@@ -4,6 +4,7 @@ import MaterialRequisitionTable from "@/components/inventory/MaterialRequisition
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiRefreshCw, FiShoppingCart, FiFileText, FiX } from "react-icons/fi";
+import { toast } from "sonner";
 
 export interface MaterialRequisitionItem {
   id: number;
@@ -35,16 +36,20 @@ export default function MaterialRequisitionAccounts() {
   const [selectedRequisition, setSelectedRequisition] = useState<Partial<MaterialRequisitionItem>>(
     {},
   );
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handler to open Create Module
   const handleCreateNew = () => {
     setModalMode("create");
     setSelectedRequisition({
-      code: `taz${Math.floor(10000 + Math.random() * 90000)}`,
-      date: "10 Sept 2026",
-      demandDate: "10 Sept 2026",
-      projectType: "Office",
-      project: "Rifat Eyecon City",
+      code: `MR-${Math.floor(10000 + Math.random() * 90000)}`,
+      date: new Date().toISOString().split("T")[0],
+      demandDate: new Date().toISOString().split("T")[0],
+      projectType: "Real Estate",
+      project: "Head Office",
+      titleOfWork: "General Works",
+      ref: "REF-001",
     });
     setIsModalOpen(true);
   };
@@ -56,19 +61,59 @@ export default function MaterialRequisitionAccounts() {
     setIsModalOpen(true);
   };
 
+  const handleSaveRequisition = async () => {
+    try {
+      setIsSubmitting(true);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+      const payload = {
+        projectType: selectedRequisition.projectType || "Real Estate",
+        projectName: selectedRequisition.project || "Head Office",
+        titleOrNameOfWork: selectedRequisition.titleOfWork || "General Construction",
+        code: selectedRequisition.code || `REQ-${Date.now().toString().slice(-6)}`,
+        referenceNumber: selectedRequisition.ref || `REF-${Date.now().toString().slice(-4)}`,
+        demandDate: selectedRequisition.demandDate && !isNaN(Date.parse(selectedRequisition.demandDate))
+          ? new Date(selectedRequisition.demandDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        company: company || "Somikoron IT Ltd",
+      };
+
+      const res = await fetch(`${apiBase}/material-requisition`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Failed to create requisition");
+      }
+
+      toast.success(
+        `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,
+      );
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save requisition:", err);
+      toast.error(err.message || "Failed to save requisition");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 font-sans">
       {/* Top Header & Action Buttons */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
           <RouteBreadcrumb />
-          <h1 className="text-xl font-bold mt-1">Material Requisition List</h1>
+          <h1 className="text-xl font-bold mt-1">Material Requisiition List</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Multiple PO Convert */}
           <button
-            onClick={() => alert("Converting selected items to PO...")}
+            onClick={() => toast.info("Converting selected items to PO...")}
             className="flex items-center gap-1.5 bg-[#06b6d4] hover:bg-[#0891b2] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiRefreshCw size={14} /> Multiple PO Convert
@@ -76,7 +121,7 @@ export default function MaterialRequisitionAccounts() {
 
           {/* Multiple RFQ Convert */}
           <button
-            onClick={() => alert("Converting selected items to RFQ...")}
+            onClick={() => toast.info("Converting selected items to RFQ...")}
             className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiFileText size={14} /> Multiple RFQ Convert
@@ -84,7 +129,7 @@ export default function MaterialRequisitionAccounts() {
 
           {/* Multiple Purchase Convert */}
           <button
-            onClick={() => alert("Converting selected items to Purchase...")}
+            onClick={() => toast.info("Converting selected items to Purchase...")}
             className="flex items-center gap-1.5 bg-[#3b82f6] hover:bg-[#2563eb] text-white px-3 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiShoppingCart size={14} /> Multiple Purchase Convert
@@ -167,6 +212,7 @@ export default function MaterialRequisitionAccounts() {
 
       {/* Child Component for Table */}
       <MaterialRequisitionTable
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModalFromTable(item, "update")}
         onView={(item) => handleOpenModalFromTable(item, "view")}
       />
@@ -264,15 +310,15 @@ export default function MaterialRequisitionAccounts() {
               {modalMode !== "view" && (
                 <button
                   type="button"
-                  onClick={() => {
-                    alert(
-                      `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,
-                    );
-                    setIsModalOpen(false);
-                  }}
-                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm"
+                  disabled={isSubmitting}
+                  onClick={handleSaveRequisition}
+                  className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 shadow-sm disabled:opacity-60"
                 >
-                  {modalMode === "create" ? "Save Requisition" : "Save Changes"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : modalMode === "create"
+                    ? "Save Requisition"
+                    : "Save Changes"}
                 </button>
               )}
             </div>

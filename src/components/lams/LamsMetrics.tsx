@@ -23,9 +23,9 @@ import {
   Cell,
 } from "recharts";
 import {
-  mockKpiMetrics,
-  mockPipelineStages,
-  mockMouzaDistribution,
+  kpiMetrics,
+  pipelineStages,
+  mouzaDistribution,
 } from "@/data/lams/lams.mock";
 
 interface LamsMetricsProps {
@@ -63,18 +63,102 @@ const COLOR_MAP = {
   },
 };
 
-export function LamsMetrics({ showInsights }: LamsMetricsProps) {
+export function LamsMetrics({ showInsights, leads = [], owners = [], negotiations = [], documents = [], followUps = [] }: LamsMetricsProps) {
+  // --- DYNAMIC CALCULATIONS ---
+  const totalLeads = leads.length;
+  const totalArea = leads.reduce((sum, l) => sum + (parseFloat(l.landArea as any) || 0), 0);
+  const activeNegotiations = negotiations.filter(n => n.negotiationStatus === "In Progress" || n.negotiationStatus === "Pending").length;
+  const verifiedDocs = documents.filter(d => d.verificationStatus === "Verified").length;
+
+  const kpiMetrics: LamsKpiMetric[] = [
+    {
+      uuid: "total-leads",
+      title: "Total Acquisition Leads",
+      value: `${totalLeads} Parcels`,
+      numericValue: totalLeads,
+      change: "Active Pipeline",
+      isPositive: true,
+      description: "Total prospective parcels tracked",
+      color: "cyan",
+    },
+    {
+      uuid: "total-land",
+      title: "Target Land Area",
+      value: `${Number(totalArea || 0).toFixed(1)} Decimals`,
+      numericValue: totalArea,
+      change: "In Progress",
+      isPositive: true,
+      description: "Total area in acquisition pipeline",
+      color: "emerald",
+    },
+    {
+      uuid: "active-negotiations",
+      title: "Active Negotiations",
+      value: `${activeNegotiations} Deals`,
+      numericValue: activeNegotiations,
+      change: "Awaiting Action",
+      isPositive: true,
+      description: "Parcels currently under negotiation",
+      color: "amber",
+    },
+    {
+      uuid: "verified-docs",
+      title: "Verified Documents",
+      value: `${verifiedDocs} Clean`,
+      numericValue: verifiedDocs,
+      change: "Legal Clear",
+      isPositive: true,
+      description: "Documents vetted by legal team",
+      color: "indigo",
+    },
+  ];
+
+  // Pipeline Stages Chart Data
+  const stages = ["New", "Contacted", "In Negotiation", "Legal Verification", "Agreement Ready", "Acquired"];
+  const pipelineStages: PipelineStageStat[] = stages.map(stage => {
+    const stageLeads = leads.filter(l => l.leadStage === stage);
+    const area = stageLeads.reduce((sum, l) => sum + (parseFloat(l.landArea as any) || 0), 0);
+    return {
+      stage,
+      count: stageLeads.length,
+      areaDecimals: area,
+      percentage: totalArea ? Math.round((area / totalArea) * 100) : 0,
+    };
+  }).filter(s => s.count > 0 || s.stage === "New"); // Keep at least one to show chart
+
+  // Mouza Distribution Pie Chart
+  const mouzaMap: Record<string, { area: number; count: number }> = {};
+  leads.forEach(l => {
+    const m = l.mouza || "Unknown";
+    if (!mouzaMap[m]) mouzaMap[m] = { area: 0, count: 0 };
+    mouzaMap[m].area += (parseFloat(l.landArea as any) || 0);
+    mouzaMap[m].count += 1;
+  });
+  
+  const colors = ["#06b6d4", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#ef4444"];
+  const mouzaDistribution: MouzaDistributionStat[] = Object.keys(mouzaMap).map((mouza, idx) => ({
+    mouza,
+    district: "",
+    areaDecimals: mouzaMap[mouza].area,
+    leadsCount: mouzaMap[mouza].count,
+    color: colors[idx % colors.length]
+  }));
+  if (mouzaDistribution.length === 0) {
+    mouzaDistribution.push({ mouza: "No Data", district: "", areaDecimals: 1, leadsCount: 0, color: "#cbd5e1" });
+  }
+  // -----------------------------
+
   return (
     <div className="space-y-4">
       {/* 4-Card KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {mockKpiMetrics.map((kpi) => {
+        {kpiMetrics.map((kpi) => {
           const config = COLOR_MAP[kpi.color];
           const Icon = config.icon;
 
           return (
             <div
-              key={kpi.id}
+              key={kpi.uuid}
               className={`bg-white dark:bg-slate-900 rounded-2xl p-5 border ${config.border} shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between`}
             >
               {/* Background ambient glow */}
@@ -138,7 +222,7 @@ export function LamsMetrics({ showInsights }: LamsMetricsProps) {
 
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockPipelineStages} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={pipelineStages} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.6} />
                   <XAxis
                     dataKey="stage"
@@ -187,7 +271,7 @@ export function LamsMetrics({ showInsights }: LamsMetricsProps) {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={mockMouzaDistribution}
+                      data={mouzaDistribution}
                       dataKey="areaDecimals"
                       nameKey="mouza"
                       cx="50%"
@@ -196,7 +280,7 @@ export function LamsMetrics({ showInsights }: LamsMetricsProps) {
                       outerRadius={65}
                       paddingAngle={3}
                     >
-                      {mockMouzaDistribution.map((entry, index) => (
+                      {mouzaDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -218,7 +302,7 @@ export function LamsMetrics({ showInsights }: LamsMetricsProps) {
 
               {/* Legend List */}
               <div className="space-y-1.5 flex-1 min-w-0 text-xs">
-                {mockMouzaDistribution.map((item) => (
+                {mouzaDistribution.map((item) => (
                   <div key={item.mouza} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 truncate">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />

@@ -4,137 +4,21 @@ import type { MaterialUsageItem } from "@/app/(admin-dashbord)/dashboard/invento
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
-// Fallback Default Data matching the reference screenshot
-const DEFAULT_MATERIAL_USAGES: MaterialUsageItem[] = [
-  {
-    id: 1,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU8733021",
-    purchaseGrn: "PUR7987198, GRN7501856",
-    date: "07 Sept 2026",
-    subTotal: 1602,
-    grandTotal: 1602,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 2,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU8733020",
-    purchaseGrn: "PURCHASE00008",
-    date: "07 Sept 2026",
-    subTotal: 6000,
-    grandTotal: 6000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 3,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU8733019",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Tazmul Reza",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-  },
-  {
-    id: 4,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU8733018",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 5,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "Tazmul Reza",
-    code: "MU7997797",
-    purchaseGrn: "PURCHASE00007",
-    date: "07 Sept 2026",
-    subTotal: 13000,
-    grandTotal: 13000,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-  {
-    id: 6,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU00006",
-    purchaseGrn: "PURCHASE00005",
-    date: "07 Sept 2026",
-    subTotal: 17760,
-    grandTotal: 17760,
-    addedBy: "Tazmul Reza",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-  },
-  {
-    id: 7,
-    projectType: "Real Estate",
-    project: "Estern 19",
-    titleOfWork: "-",
-    task: "-",
-    workerStaffName: "-",
-    code: "MU00005",
-    purchaseGrn: "PUR0017",
-    date: "03 Sept 2026",
-    subTotal: 82,
-    grandTotal: 82,
-    addedBy: "Admin",
-    attachment: "-",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-  },
-];
 
 interface MaterialUsageTableProps {
+  apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (item: MaterialUsageItem) => void;
   onView?: (item: MaterialUsageItem) => void;
+  onDelete?: (id: string | number, code: string) => void;
 }
 
 export default function MaterialUsageTable({
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/material-usage`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: MaterialUsageTableProps) {
   const [usages, setUsages] = useState<MaterialUsageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,32 +31,54 @@ export default function MaterialUsageTable({
     const fetchMaterialUsages = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/material-usages");
+        const response = await fetch(apiEndpoint, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch API");
         }
-        const data = await response.json();
-        if (!data || data.length === 0) {
-          setUsages(DEFAULT_MATERIAL_USAGES);
-        } else {
-          setUsages(data);
+        const json = await response.json();
+        let raw = json.data !== undefined ? json.data : json;
+        if (raw && Array.isArray(raw.data)) {
+          raw = raw.data;
         }
+        const list = Array.isArray(raw)
+          ? raw.map((u: any, idx: number) => ({
+              id: u.id,
+              projectType: u.project_type || "Office",
+              project: u.project?.name || u.project_name || "Head Office",
+              titleOfWork: u.title_of_work || "-",
+              task: u.task || "-",
+              workerStaffName: u.worker_staff_name || "-",
+              code: u.usage_no || u.code || `MU-${idx + 1}`,
+              purchaseGrn: u.purchase_grn || "-",
+              date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+              subTotal: Number(u.subtotal || 0),
+              grandTotal: Number(u.grand_total || 0),
+              addedBy: u.added_by || "Admin",
+              attachment: "-",
+              approvalStatus: "All Approvals Completed",
+              approver: "Admin",
+            }))
+          : [];
+        setUsages(list);
       } catch (error) {
-        console.warn(
-          "API unavailable, loading default material usage data...",
-          error,
-        );
-        setUsages(DEFAULT_MATERIAL_USAGES);
+        console.error("Error fetching material usages:", error);
+        setUsages([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMaterialUsages();
-  }, []);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Delete handler
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this material usage?")) {
       setUsages(usages.filter((item) => item.id !== id));
     }
@@ -347,7 +253,11 @@ export default function MaterialUsageTable({
                         </button>
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() =>
+                            onDelete
+                              ? onDelete(item.id, item.code)
+                              : handleDelete(item.id)
+                          }
                           title="Delete"
                           className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded shadow-sm transition-colors"
                         >

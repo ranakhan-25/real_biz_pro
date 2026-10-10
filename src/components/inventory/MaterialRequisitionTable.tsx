@@ -11,152 +11,16 @@ import {
   FiRefreshCw,
   FiTrash2,
 } from "react-icons/fi";
-
-// Fallback Default Data matching the reference screenshot
-const DEFAULT_REQUISITIONS: MaterialRequisitionItem[] = [
-  {
-    id: 1,
-    select: false,
-    projectType: "Real Estate",
-    project: "Hena Heights",
-    titleOfWork: "-",
-    code: "taz00017",
-    ref: "-",
-    date: "08 Sept 2026",
-    demandDate: "08 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 2,
-    select: false,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    code: "taz00016",
-    ref: "-",
-    date: "08 Sept 2026",
-    demandDate: "08 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 3,
-    select: false,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    code: "taz00015",
-    ref: "-",
-    date: "08 Sept 2026",
-    demandDate: "08 Sept 2026",
-    addedBy: "Tazmul Reza",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-    attachment: "-",
-  },
-  {
-    id: 4,
-    select: false,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    code: "taz00014",
-    ref: "-",
-    date: "07 Sept 2026",
-    demandDate: "07 Sept 2026",
-    addedBy: "Tazmul Reza",
-    approvalStatus: "All Approvals Completed",
-    approver: "Rifat Hosain\nAdmin",
-    attachment: "-",
-  },
-  {
-    id: 5,
-    select: false,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    code: "taz00013",
-    ref: "-",
-    date: "07 Sept 2026",
-    demandDate: "07 Sept 2026",
-    addedBy: "Tazmul Reza",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 6,
-    select: false,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "-",
-    code: "taz00012",
-    ref: "-",
-    date: "07 Sept 2026",
-    demandDate: "07 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 7,
-    select: false,
-    projectType: "Real Estate",
-    project: "Hena Heights",
-    titleOfWork: "Bricks Works",
-    code: "taz00011",
-    ref: "-",
-    date: "05 Sept 2026",
-    demandDate: "10 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 8,
-    select: false,
-    projectType: "Real Estate",
-    project: "Sheba Eyecon Tower",
-    titleOfWork: "-",
-    code: "taz00010",
-    ref: "-",
-    date: "03 Sept 2026",
-    demandDate: "03 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "-",
-  },
-  {
-    id: 9,
-    select: false,
-    projectType: "Real Estate",
-    project: "Estern 19",
-    titleOfWork: "-",
-    code: "taz00009",
-    ref: "-",
-    date: "01 Sept 2026",
-    demandDate: "01 Sept 2026",
-    addedBy: "Admin",
-    approvalStatus: "All Approvals Completed",
-    approver: "Admin",
-    attachment: "Available",
-  },
-];
+import { toast } from "sonner";
 
 interface MaterialRequisitionTableProps {
+  refreshTrigger?: number;
   onEdit?: (item: MaterialRequisitionItem) => void;
   onView?: (item: MaterialRequisitionItem) => void;
 }
 
 export default function MaterialRequisitionTable({
+  refreshTrigger,
   onEdit,
   onView,
 }: MaterialRequisitionTableProps) {
@@ -169,34 +33,52 @@ export default function MaterialRequisitionTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
 
-  // Fetching data from API with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     const fetchRequisitions = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/material-requisitions");
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+        const response = await fetch(`${apiBase}/material-requisition`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         if (!response.ok) {
           throw new Error("API request failed");
         }
-        const data = await response.json();
-        if (!data || data.length === 0) {
-          setRequisitions(DEFAULT_REQUISITIONS);
-        } else {
-          setRequisitions(data);
-        }
+        const json = await response.json();
+        const raw = json.data?.data !== undefined ? json.data.data : (json.data || json);
+        const list = Array.isArray(raw)
+          ? raw.map((r: any, idx: number) => ({
+              id: r.id || idx + 1,
+              select: false,
+              projectType: r.project_type || "Real Estate",
+              project: r.project?.name || r.project_name || "Head Office",
+              titleOfWork: r.title_of_work || "-",
+              code: r.req_no || r.code || `MR-${idx + 1}`,
+              ref: r.ref || "-",
+              date: r.date ? new Date(r.date).toLocaleDateString() : "-",
+              demandDate: r.demand_date ? new Date(r.demand_date).toLocaleDateString() : "-",
+              addedBy: r.added_by || "Admin",
+              approvalStatus: "All Approvals Completed",
+              approver: "Admin",
+              attachment: "-",
+            }))
+          : [];
+        setRequisitions(list);
       } catch (error) {
-        console.warn(
-          "API unavailable, loading default requisition data...",
-          error,
-        );
-        setRequisitions(DEFAULT_REQUISITIONS);
+        console.error("Error fetching requisitions:", error);
+        setRequisitions([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRequisitions();
-  }, []);
+  }, [refreshTrigger]);
 
   // Select all checkbox handler
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -418,7 +300,7 @@ export default function MaterialRequisitionTable({
                             {/* Convert To Purchase */}
                             <button
                               onClick={() => {
-                                alert(
+                                toast.info(
                                   `Converting Requisition ${item.code} to Purchase...`,
                                 );
                                 setActiveDropdown(null);
@@ -431,7 +313,7 @@ export default function MaterialRequisitionTable({
                             {/* Convert To Purchase Order */}
                             <button
                               onClick={() => {
-                                alert(
+                                toast.info(
                                   `Converting Requisition ${item.code} to Purchase Order...`,
                                 );
                                 setActiveDropdown(null);
@@ -445,7 +327,7 @@ export default function MaterialRequisitionTable({
                             {/* Convert To RFQ */}
                             <button
                               onClick={() => {
-                                alert(
+                                toast.info(
                                   `Converting Requisition ${item.code} to RFQ...`,
                                 );
                                 setActiveDropdown(null);

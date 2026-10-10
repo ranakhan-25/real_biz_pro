@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -18,9 +19,9 @@ import { Customer } from "@/types/customer";
 
 // ---------- API helpers ----------
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
+ console.log(API_BASE)
 async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
-  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, {
+  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, { 
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -35,10 +36,9 @@ async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
 
   const json = await res.json();
 
-  // Map API response → your Customer type
   const mapped: Customer[] = (json?.data?.data || []).map((item: any) => ({
-    id: Number(item.id) || item.uuid, // keep numeric id if possible
-    uuid: item.uuid, // important for PATCH/DELETE
+    id: Number(item.id) || item.uuid,
+    uuid: item.uuid,
     code: item.customerCode || "",
     name: item.customerName || "",
     business: item.businessName || "",
@@ -48,7 +48,6 @@ async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
     under: item.underGroup || "",
     address: item.address || "",
     status: item.status || "active",
-    // optional fields that may not exist yet
     buyerReference: item.buyerReference,
     creditLimit: item.creditLimit,
     chartOfGroups: item.chartOfGroups,
@@ -56,6 +55,7 @@ async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
     flatInfo: item.flatInfo || [],
     paymentSchedule: item.paymentSchedule || [],
     paymentDetails: item.paymentDetails || [],
+    image: item.image || item.photo || null,
   }));
 
   return { data: mapped, meta: json?.data?.meta };
@@ -70,10 +70,10 @@ async function softDeleteCustomer(uuid: string) {
     },
   );
   if (!res.ok) throw new Error("Delete failed");
-  return res.json();
+  return res.json().catch(() => ({}));
 }
 
-// ---------- Form Modal (unchanged logic, small cleanup) ----------
+// ---------- Form Modal ----------
 function CustomerFormModal({
   title,
   initialData,
@@ -118,7 +118,6 @@ function CustomerFormModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* same fields as before */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase mb-1">
                 Customer Name *
@@ -297,18 +296,20 @@ export default function CustomerListPage() {
     if (!confirm(`Delete ${customer.name}?`)) return;
 
     try {
-      // Prefer uuid for API
       const uuid = (customer as any).uuid;
       if (uuid) {
         await softDeleteCustomer(uuid);
       }
-      // Optimistic UI update
       setCustomers((prev) => prev.filter((c) => c.id !== customer.id));
     } catch (err) {
       console.error(err);
       alert("Delete failed. Please try again.");
     }
   };
+
+  // Helper to safely read extra fields not in Customer type
+  const getExtra = (c: Customer | null, key: string) =>
+    c ? (c as any)[key] : undefined;
 
   return (
     <div className="min-h-screen bg-white text-slate-800 p-4 md:p-6 space-y-4 antialiased">
@@ -440,9 +441,9 @@ export default function CustomerListPage() {
                           {customer.under || "-"}
                         </td>
                         <td className="py-3 px-4 text-slate-400">
-                          {customer.image ? (
+                          {getExtra(customer, "image") ? (
                             <img
-                              src={customer.image}
+                              src={getExtra(customer, "image")}
                               alt=""
                               className="w-8 h-8 rounded-full object-cover"
                             />
@@ -493,11 +494,245 @@ export default function CustomerListPage() {
         </div>
       )}
 
-      {/* Profile Modal – keep your existing code */}
+      {/* ================= PROFILE MODAL ================= */}
       {selectedProfile && (
-        // ... (same profile modal you already have)
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          {/* paste your full profile modal here – it already works */}
+          <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100">
+              <span className="font-semibold text-slate-700 text-sm">
+                Customer Profile
+              </span>
+              <button
+                onClick={() => setSelectedProfile(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              {/* Profile Card */}
+              <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="h-28 bg-gradient-to-r from-cyan-400 to-indigo-600 relative flex items-center justify-center">
+                  <div className="absolute -bottom-8 w-20 h-20 rounded-full border-4 border-white bg-slate-200 flex items-center justify-center shadow-md overflow-hidden text-slate-500 font-bold text-xl">
+                    {getExtra(selectedProfile, "image") ? (
+                      <img
+                        src={getExtra(selectedProfile, "image")}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      selectedProfile.name?.charAt(0)?.toUpperCase() || "?"
+                    )}
+                  </div>
+                </div>
+                <div className="pt-10 pb-4 px-6 text-center">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    {selectedProfile.name}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {selectedProfile.business || "—"}
+                  </p>
+
+                  <div className="mt-3 border-t border-slate-100 divide-y divide-slate-100 text-xs text-left">
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Code</span>
+                      <span className="font-medium text-slate-800 font-mono">
+                        {selectedProfile.code || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Mobile</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedProfile.mobile || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Email</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedProfile.email || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">NID / Passport</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedProfile.nidPassport || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Under Group</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedProfile.under || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Address</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedProfile.address || "—"}
+                      </span>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <span className="text-slate-400">Status</span>
+                      <span
+                        className={`font-medium ${
+                          getExtra(selectedProfile, "status") === "active"
+                            ? "text-emerald-600"
+                            : "text-rose-600"
+                        }`}
+                      >
+                        {getExtra(selectedProfile, "status") || "—"}
+                      </span>
+                    </div>
+                    {getExtra(selectedProfile, "creditLimit") != null && (
+                      <div className="py-2 flex justify-between">
+                        <span className="text-slate-400">Credit Limit</span>
+                        <span className="font-medium text-slate-800">
+                          {getExtra(selectedProfile, "creditLimit")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Land Info */}
+              {Array.isArray(getExtra(selectedProfile, "landInfo")) &&
+                getExtra(selectedProfile, "landInfo").length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Land Info
+                    </h3>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="bg-indigo-600 text-white">
+                            <th className="py-2 px-3">#</th>
+                            <th className="py-2 px-3">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {getExtra(selectedProfile, "landInfo").map(
+                            (item: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-slate-50">
+                                <td className="py-2 px-3">{idx + 1}</td>
+                                <td className="py-2 px-3">
+                                  {typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+              {/* Flat Info */}
+              {Array.isArray(getExtra(selectedProfile, "flatInfo")) &&
+                getExtra(selectedProfile, "flatInfo").length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Flat Info
+                    </h3>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="bg-indigo-600 text-white">
+                            <th className="py-2 px-3">#</th>
+                            <th className="py-2 px-3">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {getExtra(selectedProfile, "flatInfo").map(
+                            (item: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-slate-50">
+                                <td className="py-2 px-3">{idx + 1}</td>
+                                <td className="py-2 px-3">
+                                  {typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+              {/* Payment Schedule */}
+              {Array.isArray(getExtra(selectedProfile, "paymentSchedule")) &&
+                getExtra(selectedProfile, "paymentSchedule").length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Payment Schedule
+                    </h3>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="bg-indigo-600 text-white">
+                            <th className="py-2 px-3">#</th>
+                            <th className="py-2 px-3">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {getExtra(selectedProfile, "paymentSchedule").map(
+                            (item: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-slate-50">
+                                <td className="py-2 px-3">{idx + 1}</td>
+                                <td className="py-2 px-3">
+                                  {typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+              {/* Payment Details */}
+              {Array.isArray(getExtra(selectedProfile, "paymentDetails")) &&
+                getExtra(selectedProfile, "paymentDetails").length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-slate-800">
+                      Payment Details
+                    </h3>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="bg-indigo-600 text-white">
+                            <th className="py-2 px-3">#</th>
+                            <th className="py-2 px-3">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {getExtra(selectedProfile, "paymentDetails").map(
+                            (item: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-slate-50">
+                                <td className="py-2 px-3">{idx + 1}</td>
+                                <td className="py-2 px-3">
+                                  {typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -508,7 +743,6 @@ export default function CustomerListPage() {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={async (newData) => {
             // TODO: call POST /realbizpro/api/v1/customer-account
-            // For now just optimistic add
             setCustomers([
               {
                 id: Date.now(),
