@@ -7,6 +7,9 @@ import toast, { Toaster } from "react-hot-toast";
 // =====================================================
 // Types
 // =====================================================
+type FlatLandStatus = "Available" | "Sold" | "Booked" | "Deleted";
+type ApiFlatLandStatus = Exclude<FlatLandStatus, "Deleted">;
+
 interface FlatLandItem {
   uuid: string;
   project: string;
@@ -22,7 +25,60 @@ interface FlatLandItem {
   utilityCharge: number;
   grandTotal: number;
   customer: string;
-  status: "Available" | "Sold" | "Booked" | "Deleted";
+  status: FlatLandStatus;
+}
+
+interface FlatLandFormData {
+  project: string;
+  site: string;
+  flatLandNo: string;
+  unit: string;
+  bedroom: number;
+  bathroom: number;
+  size: string;
+  price: number;
+  parkingCost: number;
+  utilityCharge: number;
+  customer: string;
+  status: ApiFlatLandStatus;
+}
+
+interface ApiFlatLand {
+  uuid?: string;
+  id?: string | number;
+  _id?: string;
+  projectName?: string;
+  project_name?: string;
+  project?: string;
+  siteBlock?: string;
+  site_block?: string;
+  site?: string;
+  flatLandNo?: string;
+  flat_land_no?: string;
+  unit?: string;
+  bedroom?: number | string | null;
+  bathroom?: number | string | null;
+  size?: string | number | null;
+  pricePerUnit?: number | string | null;
+  price_per_unit?: number | string | null;
+  price?: number | string | null;
+  parkingCost?: number | string | null;
+  parking_cost?: number | string | null;
+  utilityCharge?: number | string | null;
+  utility_charge?: number | string | null;
+  customerName?: string;
+  customer_name?: string;
+  customer?: string;
+  status?: ApiFlatLandStatus;
+  subtotal?: number | string | null;
+  grandTotal?: number | string | null;
+  grand_total?: number | string | null;
+}
+
+interface ApiResponse {
+  data?: unknown;
+  result?: unknown;
+  message?: string | string[];
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
@@ -41,7 +97,7 @@ export default function FlatLandPage() {
   const [currentUuid, setCurrentUuid] = useState<string | null>(null);
 
   // Form
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FlatLandFormData>({
     project: "",
     site: "",
     flatLandNo: "",
@@ -67,14 +123,25 @@ export default function FlatLandPage() {
 
       const data = await res.json();
 
-      let list: any[] = [];
-      if (Array.isArray(data)) list = data;
-      else if (Array.isArray(data?.data)) list = data.data;
-      else if (Array.isArray(data?.data?.data)) list = data.data.data;
-      else if (Array.isArray(data?.result)) list = data.result;
+      const response = data as ApiResponse & { data?: unknown };
+      let list: ApiFlatLand[] = [];
 
-      const mapped: FlatLandItem[] = list.map((item: any) => {
-        const price = Number(item.price ?? 0);
+      if (Array.isArray(data)) {
+        list = data as ApiFlatLand[];
+      } else if (Array.isArray(response.data)) {
+        list = response.data as ApiFlatLand[];
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        Array.isArray((response.data as { data?: unknown }).data)
+      ) {
+        list = (response.data as { data: ApiFlatLand[] }).data;
+      } else if (Array.isArray(response.result)) {
+        list = response.result as ApiFlatLand[];
+      }
+
+      const mapped: FlatLandItem[] = list.map((item) => {
+        const price = Number(item.pricePerUnit ?? item.price_per_unit ?? item.price ?? 0);
         const parkingCost = Number(item.parkingCost ?? item.parking_cost ?? 0);
         const utilityCharge = Number(item.utilityCharge ?? item.utility_charge ?? 0);
         const numericSize = parseFloat(item.size) || 0;
@@ -82,21 +149,21 @@ export default function FlatLandPage() {
         const grandTotal = Number(item.grandTotal ?? item.grand_total ?? subtotal + parkingCost + utilityCharge);
 
         return {
-          uuid: item.uuid || item.id || String(item._id),
-          project: item.project || "",
-          site: item.site || "",
+          uuid: String(item.uuid ?? item.id ?? item._id ?? ""),
+          project: item.projectName ?? item.project_name ?? item.project ?? "",
+          site: item.siteBlock ?? item.site_block ?? item.site ?? "",
           flatLandNo: item.flatLandNo || item.flat_land_no || "",
           unit: item.unit || "",
           bedroom: Number(item.bedroom ?? 0),
           bathroom: Number(item.bathroom ?? 0),
-          size: item.size || "",
+          size: String(item.size ?? ""),
           price,
           subtotal,
           parkingCost,
           utilityCharge,
           grandTotal,
-          customer: item.customer || "N/A",
-          status: item.status || "Available",
+          customer: item.customerName ?? item.customer_name ?? item.customer ?? "N/A",
+          status: (item.status || "Available") as FlatLandStatus,
         };
       });
 
@@ -116,19 +183,60 @@ export default function FlatLandPage() {
   // =====================================================
   // Input Change
   // =====================================================
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        name === "bedroom" ||
-        name === "bathroom" ||
-        name === "price" ||
-        name === "parkingCost" ||
-        name === "utilityCharge"
-          ? Number(value)
-          : value,
-    }));
+    const numericFields = [
+      "bedroom",
+      "bathroom",
+      "price",
+      "parkingCost",
+      "utilityCharge",
+    ];
+
+    setFormData((previous) => {
+      if (numericFields.includes(name)) {
+        const numericValue = value === "" ? 0 : Number(value);
+
+        switch (name) {
+          case "bedroom":
+            return { ...previous, bedroom: numericValue };
+          case "bathroom":
+            return { ...previous, bathroom: numericValue };
+          case "price":
+            return { ...previous, price: numericValue };
+          case "parkingCost":
+            return { ...previous, parkingCost: numericValue };
+          case "utilityCharge":
+            return { ...previous, utilityCharge: numericValue };
+          default:
+            return previous;
+        }
+      }
+
+      switch (name) {
+        case "project":
+          return { ...previous, project: value };
+        case "site":
+          return { ...previous, site: value };
+        case "flatLandNo":
+          return { ...previous, flatLandNo: value };
+        case "unit":
+          return { ...previous, unit: value };
+        case "size":
+          return { ...previous, size: value };
+        case "customer":
+          return { ...previous, customer: value };
+        case "status":
+          return {
+            ...previous,
+            status: value as ApiFlatLandStatus,
+          };
+        default:
+          return previous;
+      }
+    });
   };
 
   // =====================================================
@@ -222,29 +330,33 @@ export default function FlatLandPage() {
   // =====================================================
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.project.trim() || !formData.flatLandNo.trim()) {
+      toast.error("Project Name and Flat/Land No are required");
+      return;
+    }
+
     setSaving(true);
 
     const numericSize = parseFloat(formData.size) || 0;
     const subtotal = formData.price * numericSize;
     const grandTotal = subtotal + formData.parkingCost + formData.utilityCharge;
 
+    // Match the backend CreateFlatLandDto field names exactly.
+    // subtotal and grandTotal are calculated for display only because
+    // the current FlatLand model/DTO does not define those database fields.
     const payload = {
-      project: formData.project,
-      site: formData.site,
-      flatLandNo: formData.flatLandNo,
-      unit: formData.unit,
-      bedroom: formData.bedroom,
-      bathroom: formData.bathroom,
-      size: formData.size,
-      price: formData.price,
-      parkingCost: formData.parkingCost,
-      utilityCharge: formData.utilityCharge,
-      customer: formData.customer || "N/A",
+      projectName: formData.project.trim(),
+      siteBlock: formData.site.trim() || undefined,
+      flatLandNo: formData.flatLandNo.trim(),
+      unit: formData.unit.trim() || undefined,
+      bedroom: Number(formData.bedroom),
+      bathroom: Number(formData.bathroom),
+      size: formData.size.trim() || undefined,
+      pricePerUnit: Number(formData.price),
+      parkingCost: Number(formData.parkingCost),
+      utilityCharge: Number(formData.utilityCharge),
+      customerName: formData.customer.trim() || "N/A",
       status: formData.status,
-      // subtotal & grandTotal calculated on backend usually,
-      // but sending them if backend accepts
-      subtotal,
-      grandTotal,
     };
 
     try {
@@ -265,16 +377,21 @@ export default function FlatLandPage() {
       }
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Failed to save");
+        const errorBody = (await res.json().catch(() => ({}))) as ApiResponse;
+        const message = Array.isArray(errorBody.message)
+          ? errorBody.message.join(", ")
+          : errorBody.message || "Failed to save";
+        throw new Error(message);
       }
 
       toast.success(isEditMode ? "Updated successfully!" : "Created successfully!");
       setIsModalOpen(false);
       await fetchItems();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || "Something went wrong");
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
