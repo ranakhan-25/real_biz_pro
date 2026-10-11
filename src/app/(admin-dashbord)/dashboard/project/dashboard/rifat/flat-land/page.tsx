@@ -752,7 +752,7 @@ export default function FlatLandPage() {
                   disabled={saving}
                   className="px-5 py-2 bg-[#655bea] text-white rounded-lg text-xs font-bold hover:bg-[#534ac7] transition-colors shadow-sm disabled:opacity-60"
                 >
-                  {saving ? "Saving..." : isEditMode ? "Update Changes" : "Save Flat/Land"}
+                  {saving ? "Saving..." : isEditMode ? "Update Changeses" : "Save Flat/Land"}
                 </button>
               </div>
             </form>
