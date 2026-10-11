@@ -15,13 +15,64 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
-import { Customer } from "@/types/customer";
+
+// ---------- Types ----------
+export interface Customer {
+  id: number | string;
+  uuid?: string;
+  code: string;
+  name: string;
+  business: string;
+  mobile: string;
+  email: string;
+  nidPassport: string;
+  under: string;
+  address: string;
+  status: string;
+  buyerReference?: any;
+  creditLimit?: any;
+  chartOfGroups?: any;
+  landInfo?: any[];
+  flatInfo?: any[];
+  paymentSchedule?: any[];
+  paymentDetails?: any[];
+  image?: string | null;
+}
 
 // ---------- API helpers ----------
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
- console.log(API_BASE)
+
+// form values -> backend field names
+function toPayload(form: Partial<Customer>) {
+  const clean = (v?: string) => {
+    const t = (v || "").trim();
+    return t === "" ? undefined : t;
+  };
+  return {
+    customerCode: (form.code || "").trim(),
+    customerName: (form.name || "").trim(),
+    mobileNo: (form.mobile || "").trim(),
+    email: clean(form.email),
+    businessName: clean(form.business),
+    nidOrPassport: clean(form.nidPassport),
+    underGroup: clean(form.under),
+    address: clean(form.address),
+  };
+}
+
+// shared response checker
+async function handleRes(res: Response, action: string) {
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg =
+      json?.message || json?.error || `Failed to ${action} (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return json;
+}
+
 async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
-  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, { 
+  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -30,11 +81,7 @@ async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch customers: ${res.status}`);
-  }
-
-  const json = await res.json();
+  const json = await handleRes(res, "fetch customers");
 
   const mapped: Customer[] = (json?.data?.data || []).map((item: any) => ({
     id: Number(item.id) || item.uuid,
@@ -61,6 +108,30 @@ async function fetchCustomers(): Promise<{ data: Customer[]; meta: any }> {
   return { data: mapped, meta: json?.data?.meta };
 }
 
+// POST /realbizpro/api/v1/customer-account
+async function createCustomer(form: Partial<Customer>) {
+  const res = await fetch(`${API_BASE}/realbizpro/api/v1/customer-account`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(toPayload(form)),
+  });
+  return handleRes(res, "create customer");
+}
+
+// PATCH /realbizpro/api/v1/customer-account/{uuid}
+async function updateCustomer(uuid: string, form: Partial<Customer>) {
+  const res = await fetch(
+    `${API_BASE}/realbizpro/api/v1/customer-account/${uuid}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toPayload(form)),
+    },
+  );
+  return handleRes(res, "update customer");
+}
+
+// DELETE /realbizpro/api/v1/customer-account/{uuid}
 async function softDeleteCustomer(uuid: string) {
   const res = await fetch(
     `${API_BASE}/realbizpro/api/v1/customer-account/${uuid}`,
@@ -69,8 +140,7 @@ async function softDeleteCustomer(uuid: string) {
       headers: { "Content-Type": "application/json" },
     },
   );
-  if (!res.ok) throw new Error("Delete failed");
-  return res.json().catch(() => ({}));
+  return handleRes(res, "delete customer");
 }
 
 // ---------- Form Modal ----------
@@ -83,7 +153,7 @@ function CustomerFormModal({
   title: string;
   initialData?: Customer;
   onClose: () => void;
-  onSubmit: (data: Partial<Customer>) => void;
+  onSubmit: (data: Partial<Customer>) => Promise<void>;
 }) {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -97,10 +167,20 @@ function CustomerFormModal({
       initialData?.code ||
       `CUS${Math.floor(1000000 + Math.random() * 9000000)}`,
   });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setSaving(true);
+    setFormError(null);
+    try {
+      await onSubmit(formData);
+    } catch (err: any) {
+      setFormError(err?.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -233,6 +313,12 @@ function CustomerFormModal({
             </div>
           </div>
 
+          {formError && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-xs">
+              {formError}
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
             <button
               type="button"
@@ -243,9 +329,18 @@ function CustomerFormModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-xs shadow-sm transition cursor-pointer flex items-center"
+              disabled={saving}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg font-medium text-xs shadow-sm transition cursor-pointer flex items-center"
             >
-              <Check className="w-4 h-4 mr-1.5" /> Save Customer
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-1.5" /> Save Customer
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -267,22 +362,21 @@ export default function CustomerListPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  // Load data from API
+  // Load data from API (database theke)
+  const loadCustomers = async () => {
+    try {
+      setError(null);
+      const { data } = await fetchCustomers();
+      setCustomers(data);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to load customers");
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const { data } = await fetchCustomers();
-        setCustomers(data);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to load customers");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    setLoading(true);
+    loadCustomers().finally(() => setLoading(false));
   }, []);
 
   const filteredCustomers = customers.filter(
@@ -297,13 +391,12 @@ export default function CustomerListPage() {
 
     try {
       const uuid = (customer as any).uuid;
-      if (uuid) {
-        await softDeleteCustomer(uuid);
-      }
-      setCustomers((prev) => prev.filter((c) => c.id !== customer.id));
-    } catch (err) {
+      if (!uuid) throw new Error("Customer UUID is missing");
+      await softDeleteCustomer(uuid);
+      await loadCustomers(); // database theke abar load
+    } catch (err: any) {
       console.error(err);
-      alert("Delete failed. Please try again.");
+      alert(err?.message || "Delete failed. Please try again.");
     }
   };
 
@@ -742,25 +835,9 @@ export default function CustomerListPage() {
           title="Customer Add"
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={async (newData) => {
-            // TODO: call POST /realbizpro/api/v1/customer-account
-            setCustomers([
-              {
-                id: Date.now(),
-                ...newData,
-                code:
-                  newData.code ||
-                  `CUS${Math.floor(1000000 + Math.random() * 9000000)}`,
-                name: newData.name || "",
-                business: newData.business || "",
-                mobile: newData.mobile || "",
-                email: newData.email || "",
-                nidPassport: newData.nidPassport || "",
-                under: newData.under || "",
-                address: newData.address || "",
-              } as Customer,
-              ...customers,
-            ]);
+            await createCustomer(newData); // POST /realbizpro/api/v1/customer-account
             setIsAddModalOpen(false);
+            await loadCustomers(); // database theke abar load
           }}
         />
       )}
@@ -772,13 +849,12 @@ export default function CustomerListPage() {
           initialData={editingCustomer}
           onClose={() => setEditingCustomer(null)}
           onSubmit={async (updatedData) => {
-            // TODO: call PATCH /realbizpro/api/v1/customer-account/{uuid}
-            setCustomers(
-              customers.map((c) =>
-                c.id === editingCustomer.id ? { ...c, ...updatedData } : c,
-              ),
-            );
+            if (!editingCustomer.uuid)
+              throw new Error("Customer UUID is missing");
+            // PATCH /realbizpro/api/v1/customer-account/{uuid}
+            await updateCustomer(editingCustomer.uuid, updatedData);
             setEditingCustomer(null);
+            await loadCustomers(); // database theke abar load
           }}
         />
       )}
