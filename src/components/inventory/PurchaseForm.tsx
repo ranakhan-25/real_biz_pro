@@ -167,25 +167,55 @@ export default function PurchaseForm() {
       toast.error("Please select a supplier!");
       return;
     }
-    if (items.length === 0) {
-      toast.error("Please add at least one item to the purchase table!");
+
+    let currentItems = [...items];
+    // If user selected an item in the dropdown but didn't click '+', auto-add it
+    if (currentItems.length === 0 && selectedItem) {
+      const found = itemsList.find((i) => i.id === selectedItem || i.name === selectedItem);
+      if (found) {
+        const autoItem: PurchaseItem = {
+          id: Date.now(),
+          itemId: found.id,
+          itemCode: found.item_code || found.code || "ITM",
+          itemName: found.name,
+          details: "Item Details",
+          unit: found.unit?.name || "Pcs",
+          quantity: 1,
+          rate: found.purchase_price ? Number(found.purchase_price) : 100,
+          budgetQty: 10,
+          purchaseQty: 1,
+          stockQty: 5,
+        };
+        currentItems = [autoItem];
+        setItems(currentItems);
+        setSelectedItem("");
+      }
+    }
+
+    if (currentItems.length === 0) {
+      toast.error("Please add at least one item to the purchase table! Select an item above and click '+' to add.");
       return;
     }
 
     try {
       setIsSubmitting(true);
+      const computedSubtotal = currentItems.reduce((acc, curr) => acc + curr.quantity * curr.rate, 0);
+      const computedGrandTotal = computedSubtotal - discount + deliveryLabour;
+      const computedPaid = paid > 0 ? paid : (paymentAmount > 0 ? paymentAmount : 0);
+      const computedDue = computedGrandTotal - computedPaid;
+
       const payload = {
         date: date || new Date().toISOString().split("T")[0],
         supplier_id: supplier,
         payment_method: isCheque ? "Cheque" : paymentMethod,
-        subtotal: Number(subtotal || 0),
+        subtotal: Number(computedSubtotal || 0),
         discount: Number(discount || 0),
         delivery_charge: Number(deliveryLabour || 0),
-        grand_total: Number(grandTotal || 0),
-        paid_amount: Number(paid || 0),
-        due_amount: Number(due || 0),
+        grand_total: Number(computedGrandTotal || 0),
+        paid_amount: Number(computedPaid || 0),
+        due_amount: Number(computedDue || 0),
         projectId: project || "PRJ-1001",
-        items: items.map((it) => ({
+        items: currentItems.map((it) => ({
           item_id: it.itemId || it.id.toString(),
           quantity: Number(it.quantity || 1),
           rate: Number(it.rate || 0),
@@ -695,7 +725,7 @@ export default function PurchaseForm() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-2 pb-16">
             <button
               type="button"
               onClick={handleAddPayment}
@@ -706,9 +736,10 @@ export default function PurchaseForm() {
 
             <button
               type="submit"
-              className="bg-[#10b981] hover:bg-[#059669] text-white px-6 py-2 rounded text-sm font-medium transition-all shadow-sm"
+              disabled={isSubmitting}
+              className="bg-[#10b981] hover:bg-[#059669] text-white px-8 py-2.5 rounded text-sm font-semibold transition-all shadow-md mr-16 sm:mr-20 disabled:opacity-50"
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>
