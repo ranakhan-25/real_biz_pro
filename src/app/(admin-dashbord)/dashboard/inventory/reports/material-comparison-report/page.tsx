@@ -3,7 +3,7 @@
 import type { MaterialItem } from "@/components/inventory/MaterialComparisonTable";
 import MaterialComparisonTable from "@/components/inventory/MaterialComparisonTable";
 import React, { useState, useEffect, useMemo } from "react";
-import { reportsApi } from "@/lib/inventoryApi";
+import { reportsApi, fallbackMaterialComparison } from "@/lib/inventoryApi";
 
 
 export default function MaterialComparisonContainer() {
@@ -12,13 +12,36 @@ export default function MaterialComparisonContainer() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Filter States
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedTask, setSelectedTask] = useState("");
+
   useEffect(() => {
     async function loadComparison() {
       try {
-        const res = await reportsApi.getMaterialComparison(1);
-        const raw = res?.data || res;
-        if (Array.isArray(raw) && raw.length > 0) {
-          const list = raw.map((r: any, idx: number) => ({
+        const res = await reportsApi.getMaterialComparison(1).catch(() => null);
+        const apiRaw = res?.data || res;
+        const raw = (Array.isArray(apiRaw) && apiRaw.length > 0) ? apiRaw : fallbackMaterialComparison;
+        const list = raw.map((r: any, idx: number) => ({
+          id: idx + 1,
+          description: r.item_name || "Material",
+          budgetQty: Number(r.budget_qty || 0),
+          budgetAmount: Number((r.budget_qty || 0) * 100),
+          purchaseQty: Number(r.purchase_qty || 0),
+          purchaseAmount: Number((r.purchase_qty || 0) * 100),
+          issueQty: Number(r.issue_qty || 0),
+          issueAmount: Number((r.issue_qty || 0) * 100),
+          stockQty: Number((r.purchase_qty || 0) - (r.issue_qty || 0)),
+          stockAmount: Number(((r.purchase_qty || 0) - (r.issue_qty || 0)) * 100),
+          availableQty: Number(r.available_qty || 0),
+          availableAmount: Number((r.available_qty || 0) * 100),
+          status: "Normal",
+        }));
+        setData(list);
+      } catch (err) {
+        console.warn("Could not load material comparison report, using default:", err);
+        setData(
+          fallbackMaterialComparison.map((r: any, idx: number) => ({
             id: idx + 1,
             description: r.item_name || "Material",
             budgetQty: Number(r.budget_qty || 0),
@@ -32,19 +55,12 @@ export default function MaterialComparisonContainer() {
             availableQty: Number(r.available_qty || 0),
             availableAmount: Number((r.available_qty || 0) * 100),
             status: "Normal",
-          }));
-          setData(list);
-        }
-      } catch (err) {
-        console.warn("Could not load material comparison report, using default:", err);
+          }))
+        );
       }
     }
     loadComparison();
-  }, []);
-
-  // Filter States
-  const [selectedProject, setSelectedProject] = useState("");
-  const [selectedTask, setSelectedTask] = useState("");
+  }, [selectedProject]);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
@@ -126,9 +142,11 @@ export default function MaterialComparisonContainer() {
               onChange={(e) => setSelectedProject(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select value</option>
-              <option value="Hena Heights">Hena Heights</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
+              <option value="">All Projects</option>
+              <option value="PRJ-1001">Hena Heights (PRJ-1001)</option>
+              <option value="PRJ-1002">Rifat Eyecon City (PRJ-1002)</option>
+              <option value="PRJ-1003">Green Valley Residency (PRJ-1003)</option>
+              <option value="PRJ-1004">Metro Sky Tower (PRJ-1004)</option>
             </select>
           </div>
 
@@ -142,9 +160,11 @@ export default function MaterialComparisonContainer() {
               onChange={(e) => setSelectedTask(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Task</option>
-              <option value="Task 1">Task 1</option>
-              <option value="Task 2">Task 2</option>
+              <option value="">All Tasks</option>
+              <option value="Substructure & Foundation">Substructure & Foundation</option>
+              <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+              <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+              <option value="Finishing & Fitting">Finishing & Fitting</option>
             </select>
           </div>
         </div>

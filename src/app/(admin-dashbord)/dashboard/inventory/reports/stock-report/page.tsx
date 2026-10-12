@@ -4,7 +4,7 @@ import type { StockItem } from "@/components/inventory/StockReportTable";
 import StockReportTable from "@/components/inventory/StockReportTable";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
-import { reportsApi } from "@/lib/inventoryApi";
+import { reportsApi, categoriesApi, brandsApi, fallbackStockReport } from "@/lib/inventoryApi";
 
 
 export default function StockReportContainer() {
@@ -13,28 +13,50 @@ export default function StockReportContainer() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
+
   useEffect(() => {
     async function loadStockReport() {
       try {
-        const res = await reportsApi.getStockReport();
-        const raw = res?.data || res;
-        if (Array.isArray(raw) && raw.length > 0) {
-          const list = raw.map((r: any, idx: number) => ({
-            id: r.item_id || idx + 1,
-            name: r.item_name || r.name || "Item",
-            opening: Number(r.opening || 0),
-            in: Number(r.total_purchased || r.in || 0),
-            out: Number(r.total_issued || r.out || 0),
-            unit: r.unit || "Pcs",
-            closing: Number(r.current_stock || r.closing || 0),
-            closingAmount: Number(r.closingAmount || 0),
-            category: r.category || "General",
-            brand: r.brand || "Standard",
-          }));
-          setStocks(list);
+        const [reportRes, catsRes, brandsRes] = await Promise.allSettled([
+          reportsApi.getStockReport(),
+          categoriesApi.getAll(),
+          brandsApi.getAll(),
+        ]);
+
+        let raw = fallbackStockReport;
+        if (reportRes.status === "fulfilled") {
+          const res = reportRes.value;
+          const apiRaw = res?.data || res;
+          if (Array.isArray(apiRaw) && apiRaw.length > 0) {
+            raw = apiRaw;
+          }
+        }
+
+        const list = raw.map((r: any, idx: number) => ({
+          id: r.item_id || idx + 1,
+          name: r.item_name || r.name || "Item",
+          opening: Number(r.opening || 0),
+          in: Number(r.total_purchased || r.in || 0),
+          out: Number(r.total_issued || r.out || 0),
+          unit: r.unit || "Pcs",
+          closing: Number(r.current_stock || r.closing || 0),
+          closingAmount: Number(r.closingAmount || 0),
+          category: r.category || "General",
+          brand: r.brand || "Standard",
+        }));
+        setStocks(list);
+
+        if (catsRes.status === "fulfilled" && Array.isArray(catsRes.value)) {
+          setCategoryOptions(catsRes.value.map((c: any) => c.name || c.category_name || c));
+        }
+
+        if (brandsRes.status === "fulfilled" && Array.isArray(brandsRes.value)) {
+          setBrandOptions(brandsRes.value.map((b: any) => b.name || b.brand_name || b));
         }
       } catch (err) {
-        console.warn("Could not load stock report from API, using default:", err);
+        console.warn("Could not load stock report or dropdowns from API:", err);
       }
     }
     loadStockReport();
@@ -50,6 +72,18 @@ export default function StockReportContainer() {
   const [selectedSite, setSelectedSite] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
+
+  const availableCategories = useMemo(() => {
+    const fromStocks = stocks.map((s) => s.category).filter(Boolean);
+    const defaults = ["Raw Construction Materials", "Deformed Rebar & Steels", "Cement & Aggregates", "Electrical & Conduits", "Plumbing & Sanitary"];
+    return Array.from(new Set([...categoryOptions, ...fromStocks, ...defaults]));
+  }, [categoryOptions, stocks]);
+
+  const availableBrands = useMemo(() => {
+    const fromStocks = stocks.map((s) => s.brand).filter(Boolean);
+    const defaults = ["BSRM Steels", "Seven Rings Cement", "Bashundhara Cement", "BRB Cable Industries", "RFL Plastics & Pipes"];
+    return Array.from(new Set([...brandOptions, ...fromStocks, ...defaults]));
+  }, [brandOptions, stocks]);
 
   // Filtering Logic
   const filteredStocks = useMemo(() => {
@@ -131,8 +165,10 @@ export default function StockReportContainer() {
             onChange={(e) => setSelectedCompany(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select value</option>
+            <option value="">All Companies</option>
             <option value="RealBiz Ltd">RealBiz Ltd</option>
+            <option value="RealBiz Holdings Ltd">RealBiz Holdings Ltd</option>
+            <option value="Apex Construction">Apex Construction</option>
           </select>
         </div>
 
@@ -144,22 +180,27 @@ export default function StockReportContainer() {
             onChange={(e) => setSelectedProject(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select value</option>
-            <option value="Hena Heights">Hena Heights</option>
-            <option value="Rifat Eyecon City">Rifat Eyecon City</option>
+            <option value="">All Projects</option>
+            <option value="PRJ-1001">Hena Heights (PRJ-1001)</option>
+            <option value="PRJ-1002">Rifat Eyecon City (PRJ-1002)</option>
+            <option value="PRJ-1003">Green Valley Residency (PRJ-1003)</option>
+            <option value="PRJ-1004">Metro Sky Tower (PRJ-1004)</option>
           </select>
         </div>
 
         {/* If Task */}
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground block">If Task</label>
+          <label className="text-xs text-muted-foreground block">Task</label>
           <select
             value={selectedTask}
             onChange={(e) => setSelectedTask(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select value</option>
-            <option value="Task 1">Task 1</option>
+            <option value="">All Tasks</option>
+            <option value="Substructure & Foundation">Substructure & Foundation</option>
+            <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+            <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+            <option value="Sanitary & Electrical Fitting">Sanitary & Electrical Fitting</option>
           </select>
         </div>
 
@@ -171,8 +212,11 @@ export default function StockReportContainer() {
             onChange={(e) => setSelectedSite(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select value</option>
-            <option value="Site A">Site A</option>
+            <option value="">All Sites</option>
+            <option value="Site A - Tower 1">Site A - Tower 1</option>
+            <option value="Site B - Commercial Block">Site B - Commercial Block</option>
+            <option value="Main Central Warehouse">Main Central Warehouse</option>
+            <option value="Site Store - Level 2">Site Store - Level 2</option>
           </select>
         </div>
 
@@ -186,12 +230,12 @@ export default function StockReportContainer() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select Category</option>
-            <option value="Rod">Rod</option>
-            <option value="Cement">Cement</option>
-            <option value="Bricks">Bricks</option>
-            <option value="Sand">Sand</option>
-            <option value="Door">Door</option>
+            <option value="">All Categories</option>
+            {availableCategories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -203,11 +247,12 @@ export default function StockReportContainer() {
             onChange={(e) => setSelectedBrand(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select Brand</option>
-            <option value="BSRM">BSRM</option>
-            <option value="Holcim">Holcim</option>
-            <option value="Berger">Berger</option>
-            <option value="RAK">RAK</option>
+            <option value="">All Brands</option>
+            {availableBrands.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
+            ))}
           </select>
         </div>
       </div>

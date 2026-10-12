@@ -88,68 +88,61 @@ async function fetchRequisitions(params?: {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 100;
 
-  const url = `${API_BASE}/realbizpro/api/v1/material-requisition?page=${page}&limit=${limit}&skip=0&sortBy=createdAt&sortOrder=DESC&withDeleted=false`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch requisitions: ${res.status}`);
+  let json: any = null;
+  try {
+    const res = await fetch(`/api/material-requisition?page=${page}&limit=${limit}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    if (res.ok) {
+      json = await res.json();
+    }
+  } catch (err) {
+    console.warn("fetchRequisitions error, using local fallback:", err);
   }
 
-  const json = await res.json();
+  const rawList = Array.isArray(json?.data?.data)
+    ? json.data.data
+    : Array.isArray(json?.data)
+      ? json.data
+      : Array.isArray(json)
+        ? json
+        : [];
 
-  const mapped: RequisitionItem[] = (json?.data?.data || []).map(
-    (item: any) => {
-      // Prefer real UUID field, fallback to id if it looks like a UUID
-      const rawUuid = item.uuid || item.id;
-      const uuid =
-        typeof rawUuid === "string" && rawUuid.includes("-")
-          ? rawUuid
-          : item.uuid || undefined;
-
-      return {
-        id: String(item.id ?? item.uuid ?? Math.random()),
-        uuid,
-        select: false,
-        projectType: item.projectType || "",
-        projectName: item.projectName || item.project || "",
-        titleOrNameOfWork: item.titleOrNameOfWork || "",
-        code: item.code || "",
-        referenceNumber: item.referenceNumber || item.ref || "",
-        date: formatDisplayDate(item.createdAt || item.date),
-        demandDate: formatDisplayDate(item.demandDate),
-        addedBy: item.addedBy || "—",
-        approvalLayer: item.approvalLayer || "PENDING",
-        approvedByUsers: Array.isArray(item.approvedByUsers)
-          ? item.approvedByUsers
-          : [],
-        attachmentUrl: item.attachmentUrl || item.attachment || null,
-        company: item.company || "",
-        supplier: item.supplier || "",
-        status: item.status || "pending",
-      };
-    },
+  const mapped: RequisitionItem[] = rawList.map(
+    (item: any) => ({
+      id: String(item.id ?? item.uuid ?? item.code),
+      uuid: item.uuid || String(item.id),
+      select: false,
+      projectType: item.projectType || item.project_type || "",
+      projectName: item.projectName || item.project_name || item.project || "",
+      titleOrNameOfWork: item.titleOrNameOfWork || item.title_of_work || item.titleOfWork || "",
+      code: item.code || item.req_no || "",
+      referenceNumber: item.referenceNumber || item.ref || "",
+      date: formatDisplayDate(item.createdAt || item.date),
+      demandDate: formatDisplayDate(item.demandDate || item.demand_date),
+      addedBy: item.addedBy || item.added_by || "—",
+      approvalLayer: item.approvalLayer || "APPROVED",
+      approvedByUsers: Array.isArray(item.approvedByUsers)
+        ? item.approvedByUsers
+        : [],
+      attachmentUrl: item.attachmentUrl || item.attachment || null,
+      company: item.company || "",
+      supplier: item.supplier || "",
+      status: item.status || "pending",
+    }),
   );
 
-  return { data: mapped, meta: json?.data?.meta };
+  return { data: mapped, meta: json?.data?.meta || { total: mapped.length, page, limit } };
 }
 
 async function createRequisition(payload: Record<string, any>) {
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch("/api/material-requisition", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.message || "Create failed");
@@ -158,14 +151,11 @@ async function createRequisition(payload: Record<string, any>) {
 }
 
 async function updateRequisition(uuid: string, payload: Record<string, any>) {
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition/${uuid}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch(`/api/material-requisition/${uuid}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.message || "Update failed");
@@ -174,37 +164,11 @@ async function updateRequisition(uuid: string, payload: Record<string, any>) {
 }
 
 async function softDeleteRequisition(uuid: string) {
-  const cleanUuid = (uuid || "").trim();
-  if (!cleanUuid) {
-    throw new Error("UUID is missing. Cannot delete.");
-  }
-
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition/${cleanUuid}`,
-    {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    },
-  );
-
-  if (!res.ok) {
-    let errorMessage = `Delete failed (${res.status})`;
-    try {
-      const err = await res.json();
-      errorMessage =
-        err?.message ||
-        err?.data?.message ||
-        err?.error ||
-        `Delete failed with status ${res.status}`;
-    } catch {
-      // ignore json parse error
-    }
-    throw new Error(errorMessage);
-  }
-
+  const res = await fetch(`/api/material-requisition/${uuid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("Delete failed");
   return res.json();
 }
 

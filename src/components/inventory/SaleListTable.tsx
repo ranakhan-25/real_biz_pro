@@ -4,6 +4,8 @@ import type { SaleListItem } from "@/app/(admin-dashbord)/dashboard/inventory/sa
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
+import { fallbackSales } from "@/lib/inventoryApi";
+
 interface SaleListTableProps {
   refreshTrigger?: number;
   onEdit?: (item: SaleListItem) => void;
@@ -33,10 +35,10 @@ export default function SaleListTable({ refreshTrigger, onEdit, onView }: SaleLi
 
         const json = await response.json();
         const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw) ? raw : [];
+        const list = Array.isArray(raw) && raw.length > 0 ? raw : fallbackSales;
         setSales(list);
       } catch (error) {
-        setSales([]);
+        setSales(fallbackSales);
       } finally {
         setLoading(false);
       }

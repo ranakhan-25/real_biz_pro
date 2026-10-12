@@ -105,10 +105,6 @@ export function ModulePage({
    */
 
   const renderModuleDashboard = () => {
-    if (module === "lams") {
-      return <LamsDashboardWrapper path={path} />;
-    }
-
     // Only overview/dashboard route
     if (!isOverview) {
       return null;

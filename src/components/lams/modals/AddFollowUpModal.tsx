@@ -28,29 +28,32 @@ export function AddFollowUpModal({
 
   useEffect(() => {
     if (isOpen && editData) {
-      setAcquisitionLeadId(editData.acquisitionLeadId || "");
-      setDate(editData.date || new Date().toISOString().split("T")[0]);
-      setFollowUpType(editData.followUpType || "Call");
-      setStatus(editData.status || "Pending");
-      setNote(editData.note || "");
+      setAcquisitionLeadId(editData.acquisitionLeadId || editData.lead_id || "");
+      setDate(editData.date || (editData.follow_up_date ? new Date(editData.follow_up_date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]));
+      setFollowUpType(editData.followUpType || editData.follow_up_type || "Call");
+      setStatus(editData.status || (editData.outcome === "Interested" ? "Completed" : "Pending"));
+      setNote(editData.note || editData.remarks || "");
     } else if (isOpen && !editData) {
-      // reset 
+      const defaultId = acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+      if (!acquisitionLeadId || !acquisitionLeads.some((l) => (l.uuid || l.id) === acquisitionLeadId)) {
+        setAcquisitionLeadId(defaultId);
+      }
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, acquisitionLeads]);
 
   if (!isOpen) return null;
 
-  
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
+    const effectiveLeadId = acquisitionLeadId || acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+    const lead = acquisitionLeads.find((l) => (l.uuid || l.id) === effectiveLeadId) || acquisitionLeads[0];
 
     const newItem: FollowUpItem = {
       id: `FLW-${Date.now()}`,
+      uuid: `FLW-${Date.now()}`,
       sl: Date.now(),
       date: date || new Date().toISOString().split("T")[0],
-      acquisitionLeadId,
+      acquisitionLeadId: effectiveLeadId,
       landDetails: lead ? `${lead.title} (${lead.mouza}), ${lead.landArea} Dec` : "Land Parcel",
       ownerDetails: lead ? `${lead.ownerName} (Owner)` : "Land Owner",
       contact: lead ? lead.ownerPhone : "+880 1711-000000",
@@ -102,11 +105,18 @@ export function AddFollowUpModal({
               onChange={(e) => setAcquisitionLeadId(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             >
-              {acquisitionLeads.map((l) => (
-                <option key={l.uuid} value={l.uuid}>
-                  {l.title} — {l.ownerName} ({l.ownerPhone})
-                </option>
-              ))}
+              {acquisitionLeads.length > 0 ? (
+                acquisitionLeads.map((l) => {
+                  const lId = l.uuid || l.id;
+                  return (
+                    <option key={lId} value={lId}>
+                      {l.title} — {l.ownerName} ({l.ownerPhone})
+                    </option>
+                  );
+                })
+              ) : (
+                <option value="">No acquisition leads available</option>
+              )}
             </select>
           </div>
 

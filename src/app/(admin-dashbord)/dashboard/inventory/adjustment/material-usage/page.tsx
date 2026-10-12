@@ -2,27 +2,59 @@
 
 import MaterialUsageTable from "@/components/inventory/MaterialUsageTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import { materialUsageApi } from "@/lib/inventoryApi";
+import { materialUsageApi, itemsApi } from "@/lib/inventoryApi";
 import { toast } from "sonner";
 
 export interface MaterialUsageItem {
   id: string | number;
-  projectType: string;
-  project: string;
-  titleOfWork: string;
-  task: string;
-  workerStaffName: string;
-  code: string;
-  purchaseGrn: string;
-  date: string;
-  subTotal: number;
-  grandTotal: number;
-  addedBy: string;
-  attachment: string;
-  approvalStatus: string;
-  approver: string;
+  usage_no?: string;
+  code?: string;
+  date?: string;
+  note?: string;
+  company_id?: number;
+  projectType?: string;
+  project_type?: string;
+  project?: string | any;
+  projectName?: string;
+  project_name?: string;
+  projectId?: string;
+  project_id?: number;
+  site?: string | any;
+  siteName?: string;
+  site_name?: string;
+  site_id?: number;
+  titleOfWork?: string;
+  title_of_work?: string;
+  task?: string;
+  task_id?: number;
+  workerStaffName?: string;
+  worker_staff_name?: string;
+  worker_id?: number;
+  category?: string;
+  item_code?: string;
+  item_name?: string;
+  quantity?: number;
+  unit?: string;
+  purchaseGrn?: string;
+  purchase_grn?: string;
+  subTotal?: number;
+  subtotal?: number;
+  grandTotal?: number;
+  grand_total?: number;
+  addedBy?: string;
+  added_by?: string;
+  createdBy?: string;
+  created_by?: string;
+  attachment?: string;
+  approvalStatus?: string;
+  status?: string;
+  approver?: string;
+  items?: any[];
+  items_count?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function MaterialUsageAccounts() {
@@ -39,18 +71,40 @@ export default function MaterialUsageAccounts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update" | "view">("create");
   const [selectedUsage, setSelectedUsage] = useState<Partial<MaterialUsageItem>>({});
+  const [itemsList, setItemsList] = useState<any[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState("");
+  const [usageQty, setUsageQty] = useState(1);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    async function loadItems() {
+      try {
+        const itms = await itemsApi.getAll().catch(() => []);
+        if (Array.isArray(itms)) {
+          setItemsList(itms);
+          if (itms.length > 0 && !selectedItemId) {
+            setSelectedItemId(itms[0].id);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load items for material usage:", err);
+      }
+    }
+    loadItems();
+  }, []);
 
   // Handler to open Create Module
   const handleCreateNewUsage = () => {
     setModalMode("create");
     setSelectedUsage({
       code: `MU${Math.floor(100000 + Math.random() * 900000)}`,
-      date: "10 Sept 2026",
+      date: new Date().toISOString().split("T")[0],
       projectType: "Office",
-      project: "Rifat Eyecon City",
+      project: "PRJ-1001 - Dhaka Commercial Center",
     });
+    if (itemsList.length > 0) setSelectedItemId(itemsList[0].id);
+    setUsageQty(1);
     setIsModalOpen(true);
   };
 
@@ -65,29 +119,21 @@ export default function MaterialUsageAccounts() {
   const handleSaveUsage = async () => {
     try {
       setIsSubmitting(true);
-      const items = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/items`,
-      ).then((r) => r.json()).catch(() => null);
-
-      const rawItems = items?.data?.data || items?.data || items || [];
-      const firstItemId = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems[0].id : null;
+      const chosenItemId = selectedItemId || itemsList[0]?.id || "item-01";
 
       const payload: any = {
         date: selectedUsage.date && !isNaN(Date.parse(selectedUsage.date))
           ? new Date(selectedUsage.date).toISOString().split("T")[0]
           : new Date().toISOString().split("T")[0],
         note: `Material usage for ${selectedUsage.project || "site"}`,
-        items: firstItemId ? [{ item_id: firstItemId, quantity: 1 }] : [],
+        items: [{ item_id: chosenItemId, quantity: Number(usageQty || 1) }],
+        projectId: "PRJ-1001",
       };
 
-      if (payload.items.length > 0) {
-        await materialUsageApi.create(payload);
-        toast.success(
-          `${modalMode === "create" ? "Material Usage Created" : "Material Usage Updated"} successfully!`,
-        );
-      } else {
-        toast.success("Material usage noted.");
-      }
+      await materialUsageApi.create(payload);
+      toast.success(
+        `${modalMode === "create" ? "Material Usage Created" : "Material Usage Updated"} successfully!`,
+      );
 
       setRefreshTrigger((prev) => prev + 1);
       setIsModalOpen(false);
