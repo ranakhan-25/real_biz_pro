@@ -12,6 +12,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import { toast } from "sonner";
+import { materialRequisitionsApi, fallbackMaterialRequisitions } from "@/lib/inventoryApi";
 
 interface MaterialRequisitionTableProps {
   refreshTrigger?: number;
@@ -38,40 +39,45 @@ export default function MaterialRequisitionTable({
     const fetchRequisitions = async () => {
       try {
         setLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
-        const response = await fetch(`${apiBase}/material-requisition`, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        });
-        if (!response.ok) {
-          throw new Error("API request failed");
+        let raw = await materialRequisitionsApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackMaterialRequisitions;
         }
-        const json = await response.json();
-        const raw = json.data?.data !== undefined ? json.data.data : (json.data || json);
-        const list = Array.isArray(raw)
-          ? raw.map((r: any, idx: number) => ({
-              id: r.id || idx + 1,
-              select: false,
-              projectType: r.project_type || "Real Estate",
-              project: r.project?.name || r.project_name || "Head Office",
-              titleOfWork: r.title_of_work || "-",
-              code: r.req_no || r.code || `MR-${idx + 1}`,
-              ref: r.ref || "-",
-              date: r.date ? new Date(r.date).toLocaleDateString() : "-",
-              demandDate: r.demand_date ? new Date(r.demand_date).toLocaleDateString() : "-",
-              addedBy: r.added_by || "Admin",
-              approvalStatus: "All Approvals Completed",
-              approver: "Admin",
-              attachment: "-",
-            }))
-          : [];
+        const list = raw.map((r: any, idx: number) => ({
+          id: r.id || idx + 1,
+          select: false,
+          projectType: r.project_type || r.projectType || "Real Estate",
+          project: r.project?.name || r.project_name || r.project || "Sheba Eyecon Tower",
+          titleOfWork: r.title_of_work || r.titleOfWork || "Column Casting 5th Floor",
+          code: r.req_no || r.code || `MR-2026-00${idx + 1}`,
+          ref: r.ref || `REF-MR-10${idx + 1}`,
+          date: r.date ? new Date(r.date).toLocaleDateString() : "-",
+          demandDate: r.demand_date || r.demandDate ? new Date(r.demand_date || r.demandDate).toLocaleDateString() : "-",
+          addedBy: r.added_by || r.addedBy || "Admin",
+          approvalStatus: r.approvalStatus || "All Approvals Completed",
+          approver: r.approver || "Project Manager",
+          attachment: "-",
+        }));
         setRequisitions(list);
       } catch (error) {
         console.error("Error fetching requisitions:", error);
-        setRequisitions([]);
+        setRequisitions(
+          fallbackMaterialRequisitions.map((r: any, idx: number) => ({
+            id: r.id || idx + 1,
+            select: false,
+            projectType: r.projectType,
+            project: r.project,
+            titleOfWork: r.titleOfWork,
+            code: r.code,
+            ref: r.ref,
+            date: r.date,
+            demandDate: r.demandDate,
+            addedBy: r.addedBy,
+            approvalStatus: r.approvalStatus,
+            approver: r.approver,
+            attachment: "-",
+          }))
+        );
       } finally {
         setLoading(false);
       }

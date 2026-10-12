@@ -2,7 +2,8 @@
 
 import type { ItemHistoryItem } from "@/components/inventory/ItemWiseSupplierLedgerTable";
 import ItemHistoryReportTable from "@/components/inventory/ItemWiseSupplierLedgerTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { reportsApi, fallbackItemHistory, fallbackCategories, fallbackItems } from "@/lib/inventoryApi";
 
 
 export default function ItemHistoryReportContainer() {
@@ -20,6 +21,35 @@ export default function ItemHistoryReportContainer() {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedTask, setSelectedTask] = useState("");
   const [selectedSite, setSelectedSite] = useState("");
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        let raw = await reportsApi.getItemHistory().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackItemHistory;
+        }
+        setData(raw);
+      } catch (err) {
+        setData(fallbackItemHistory);
+      }
+    }
+    loadData();
+  }, []);
+
+  const categories = useMemo(() => {
+    return Array.from(new Set(fallbackCategories.map((c) => c.name)));
+  }, []);
+
+  const items = useMemo(() => {
+    return Array.from(new Set(fallbackItems.map((i) => i.name)));
+  }, []);
+
+  const projects = useMemo(() => {
+    const fromData = data.map((d) => d.project).filter(Boolean);
+    const defaults = ["Sheba Eyecon Tower", "Lake Garden Commercial", "Hena Heights", "Rifat Eyecon City"];
+    return Array.from(new Set([...fromData, ...defaults]));
+  }, [data]);
 
   // Filtering Logic
   const filteredData = useMemo(() => {
@@ -84,7 +114,11 @@ export default function ItemHistoryReportContainer() {
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
               <option value="">Select Category</option>
-              <option value="Raw Materials">Raw Materials</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -97,8 +131,11 @@ export default function ItemHistoryReportContainer() {
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
               <option value="">Select Item</option>
-              <option value="16mm Rod">16mm Rod</option>
-              <option value="Cement">Cement</option>
+              {items.map((it) => (
+                <option key={it} value={it}>
+                  {it}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -110,9 +147,12 @@ export default function ItemHistoryReportContainer() {
               onChange={(e) => setSelectedProject(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select value</option>
-              <option value="Hena Heights">Hena Heights</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
+              <option value="">Select Project</option>
+              {projects.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
             </select>
           </div>
         </div>

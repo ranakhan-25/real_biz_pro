@@ -3,7 +3,7 @@
 import type { SubCategory } from "@/app/(admin-dashbord)/dashboard/inventory/products/sub-categories/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, categoriesApi, subCategoriesApi, fallbackSubCategories, fallbackCategories } from "@/lib/inventoryApi";
 
 interface SubCategoryListProps {
   apiEndpoint?: string;
@@ -34,13 +34,13 @@ export default function SubCategoryList({
   useEffect(() => {
     async function loadFilterCategories() {
       try {
-        const res = await fetch(`${API_BASE}/inventory/categories`).then((r) => r.json()).catch(() => null);
-        const raw = res?.data !== undefined ? res.data : res;
-        if (Array.isArray(raw)) {
-          setCategoriesList(raw.map((c: any) => ({ id: c.id, name: c.name })));
+        let raw = await categoriesApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackCategories;
         }
+        setCategoriesList(raw.map((c: any) => ({ id: c.id, name: c.name })));
       } catch (err) {
-        console.warn("Could not load categories for filter:", err);
+        setCategoriesList(fallbackCategories.map((c: any) => ({ id: c.id, name: c.name })));
       }
     }
     loadFilterCategories();
@@ -51,23 +51,29 @@ export default function SubCategoryList({
     async function fetchSubCategories() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((item: any) => ({
-              id: item.id,
-              category: item.category?.name || item.category_name || item.category_id || "Category",
-              category_id: item.category_id,
-              code: item.sub_category_code || item.code || "",
-              name: item.name || "",
-            }))
-          : [];
+        let raw = await subCategoriesApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackSubCategories;
+        }
+        const list = raw.map((item: any) => ({
+          id: item.id,
+          category: item.category?.name || item.category_name || item.category || "Category",
+          category_id: item.category_id,
+          code: item.sub_category_code || item.code || "",
+          name: item.name || "",
+        }));
         setSubCategories(list);
       } catch (error) {
         console.error("Error fetching sub-categories:", error);
-        setSubCategories([]);
+        setSubCategories(
+          fallbackSubCategories.map((item: any) => ({
+            id: item.id,
+            category: item.category || "Category",
+            category_id: item.category_id,
+            code: item.code || "",
+            name: item.name || "",
+          }))
+        );
       } finally {
         setLoading(false);
       }

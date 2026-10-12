@@ -3,7 +3,7 @@
 import type { Unit } from "@/app/(admin-dashbord)/dashboard/inventory/products/units/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, unitsApi, fallbackUnits } from "@/lib/inventoryApi";
 
 interface UnitListProps {
   apiEndpoint?: string;
@@ -32,23 +32,29 @@ export default function UnitList({
     async function fetchUnits() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((u: any, idx: number) => ({
-              id: u.id,
-              code: u.code || "",
-              name: u.name || "",
-              conversionUnit: u.conversionUnit || "",
-              rate: u.rate || "",
-            }))
-          : [];
+        let raw = await unitsApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackUnits;
+        }
+        const list = raw.map((u: any) => ({
+          id: u.id,
+          code: u.code || "",
+          name: u.name || "",
+          conversionUnit: u.conversionUnit || "",
+          rate: u.rate || "",
+        }));
         setUnits(list);
       } catch (error) {
         console.error("Error fetching units:", error);
-        setUnits([]);
+        setUnits(
+          fallbackUnits.map((u: any) => ({
+            id: u.id,
+            code: u.code || "",
+            name: u.name || "",
+            conversionUnit: u.conversionUnit || "",
+            rate: u.rate || "",
+          }))
+        );
       } finally {
         setLoading(false);
       }

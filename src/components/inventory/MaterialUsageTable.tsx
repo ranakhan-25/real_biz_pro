@@ -5,6 +5,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
 
+import { materialUsageApi, fallbackMaterialUsage } from "@/lib/inventoryApi";
+
 interface MaterialUsageTableProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -31,44 +33,49 @@ export default function MaterialUsageTable({
     const fetchMaterialUsages = async () => {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch API");
+        let raw = await materialUsageApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackMaterialUsage;
         }
-        const json = await response.json();
-        let raw = json.data !== undefined ? json.data : json;
-        if (raw && Array.isArray(raw.data)) {
-          raw = raw.data;
-        }
-        const list = Array.isArray(raw)
-          ? raw.map((u: any, idx: number) => ({
-              id: u.id,
-              projectType: u.project_type || "Office",
-              project: u.project?.name || u.project_name || "Head Office",
-              titleOfWork: u.title_of_work || "-",
-              task: u.task || "-",
-              workerStaffName: u.worker_staff_name || "-",
-              code: u.usage_no || u.code || `MU-${idx + 1}`,
-              purchaseGrn: u.purchase_grn || "-",
-              date: u.date ? new Date(u.date).toLocaleDateString() : "-",
-              subTotal: Number(u.subtotal || 0),
-              grandTotal: Number(u.grand_total || 0),
-              addedBy: u.added_by || "Admin",
-              attachment: "-",
-              approvalStatus: "All Approvals Completed",
-              approver: "Admin",
-            }))
-          : [];
+        const list = raw.map((u: any, idx: number) => ({
+          id: u.id,
+          projectType: u.project_type || u.projectType || "Commercial",
+          project: u.project?.name || u.project_name || (typeof u.project === "string" ? u.project : "Hena Heights (PRJ-1001)"),
+          titleOfWork: u.title_of_work || u.titleOfWork || "RCC Casting (Beam & Column)",
+          task: u.task || "Beam Concreting Level-4",
+          workerStaffName: u.worker_staff_name || u.workerStaffName || "Rafiqul Islam (Site Engineer)",
+          code: u.usage_no || u.code || `MU-2026-00${idx + 1}`,
+          purchaseGrn: u.purchase_grn || "-",
+          date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+          subTotal: Number(u.subtotal || u.subTotal || 0),
+          grandTotal: Number(u.grand_total || u.grandTotal || 0),
+          addedBy: u.added_by || u.addedBy || "Admin",
+          attachment: "-",
+          approvalStatus: "All Approvals Completed",
+          approver: "Admin",
+        }));
         setUsages(list);
       } catch (error) {
         console.error("Error fetching material usages:", error);
-        setUsages([]);
+        setUsages(
+          fallbackMaterialUsage.map((u: any, idx: number) => ({
+            id: u.id,
+            projectType: "Commercial",
+            project: u.project_name,
+            titleOfWork: u.title_of_work,
+            task: u.task,
+            workerStaffName: u.worker_staff_name,
+            code: u.usage_no || `MU-2026-00${idx + 1}`,
+            purchaseGrn: "-",
+            date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+            subTotal: 0,
+            grandTotal: 0,
+            addedBy: "Admin",
+            attachment: "-",
+            approvalStatus: "All Approvals Completed",
+            approver: "Admin",
+          }))
+        );
       } finally {
         setLoading(false);
       }

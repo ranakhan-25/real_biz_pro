@@ -235,3 +235,52 @@ test("Inventory: reportsApi material comparison endpoint builds query parameter 
   const expectedParam = `?project_id=${projectId}`;
   assert.ok(expectedParam.includes("project_id=PRJ-1001"));
 });
+
+test("Inventory: Fallback stock transfers, requisitions, sales, and item history are complete", async () => {
+  const {
+    fallbackStockTransfers,
+    fallbackMaterialRequisitions,
+    fallbackSales,
+    fallbackItemHistory,
+    stockTransfersApi,
+    materialRequisitionsApi,
+    salesApi,
+    reportsApi,
+  } = await import("../lib/inventoryApi.ts");
+
+  assert.ok(Array.isArray(fallbackStockTransfers), "Stock transfers must be array");
+  assert.ok(fallbackStockTransfers.length > 0, "Stock transfers must have records");
+  for (const st of fallbackStockTransfers) {
+    assert.ok(st.id && st.code, "Stock transfer must have id and code");
+    assert.ok(st.fromProject && st.toProject, "Stock transfer must have from and to projects");
+  }
+
+  assert.ok(Array.isArray(fallbackMaterialRequisitions), "Requisitions must be array");
+  assert.ok(fallbackMaterialRequisitions.length > 0, "Requisitions must have records");
+  for (const mr of fallbackMaterialRequisitions) {
+    assert.ok(mr.id && mr.code, "Requisition must have id and code");
+    assert.ok(mr.project, "Requisition must have project");
+  }
+
+  assert.ok(Array.isArray(fallbackSales), "Sales must be array");
+  assert.ok(fallbackSales.length > 0, "Sales must have records");
+  for (const s of fallbackSales) {
+    assert.ok(s.id && s.code, "Sale must have id and code");
+    assert.ok(s.customerName, "Sale must have customerName");
+    assert.ok(s.grandTotal > 0, "Sale must have positive grand total");
+  }
+
+  assert.ok(Array.isArray(fallbackItemHistory), "Item history must be array");
+  assert.ok(fallbackItemHistory.length > 0, "Item history must have records");
+  for (const ih of fallbackItemHistory) {
+    assert.ok(ih.id && ih.invoiceNo, "Item history record must have id and invoiceNo");
+    assert.ok(ih.project, "Item history record must have project");
+    assert.ok(ih.balance >= 0, "Item history record must have balance");
+  }
+
+  assert.strictEqual(typeof stockTransfersApi.getAll, "function");
+  assert.strictEqual(typeof materialRequisitionsApi.getAll, "function");
+  assert.strictEqual(typeof salesApi.getAll, "function");
+  assert.strictEqual(typeof reportsApi.getItemHistory, "function");
+});
+

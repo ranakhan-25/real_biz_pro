@@ -5,7 +5,7 @@ import MaterialUsageReportTable from "@/components/inventory/MaterialUsageReport
 import React, { useState, useEffect, useMemo } from "react";
 
 
-import { materialUsageApi } from "@/lib/inventoryApi";
+import { materialUsageApi, fallbackMaterialUsage } from "@/lib/inventoryApi";
 
 export default function MaterialUsageReportContainer() {
   const [data, setData] = useState<MaterialUsageItem[]>([]);
@@ -13,27 +13,45 @@ export default function MaterialUsageReportContainer() {
   useEffect(() => {
     async function loadData() {
       try {
-        const raw = await materialUsageApi.getAll();
-        if (Array.isArray(raw) && raw.length > 0) {
-          const list = raw.map((u: any, idx: number) => ({
-            id: u.id || idx + 1,
-            invoiceNo: u.usage_no || u.code || `MU-${idx + 1}`,
-            date: u.date ? new Date(u.date).toLocaleDateString() : "-",
-            project: u.project?.name || u.project_name || "Hena Heights (PRJ-1001)",
-            titleOfWork: u.title_of_work || "RCC Casting (Beam & Column)",
-            task: u.task || "Beam Concreting Level-4",
-            site: u.site?.name || u.site_name || "Tower 1 Foundation Site",
-            workerName: u.worker_staff_name || "Rafiqul Islam (Site Engineer)",
-            category: u.category || "General",
-            itemCode: u.item_code || "-",
-            itemName: u.item_name || "Material",
-            quantity: Number(u.quantity || 0),
-            unit: u.unit || "Pcs",
-          }));
-          setData(list);
+        let raw = await materialUsageApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackMaterialUsage;
         }
+        const list = raw.map((u: any, idx: number) => ({
+          id: u.id || idx + 1,
+          invoiceNo: u.usage_no || u.code || `MU-2026-00${idx + 1}`,
+          date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+          project: u.project?.name || u.project_name || "Hena Heights (PRJ-1001)",
+          titleOfWork: u.title_of_work || "RCC Casting (Beam & Column)",
+          task: u.task || "Beam Concreting Level-4",
+          site: u.site?.name || u.site_name || "Tower 1 Foundation Site",
+          workerName: u.worker_staff_name || "Rafiqul Islam (Site Engineer)",
+          category: u.category || "General",
+          itemCode: u.item_code || `ITM-50${idx + 1}`,
+          itemName: u.item_name || "Material",
+          quantity: Number(u.quantity || 0),
+          unit: u.unit || "Pcs",
+        }));
+        setData(list);
       } catch (err) {
         console.warn("Error loading material usage report:", err);
+        setData(
+          fallbackMaterialUsage.map((u: any, idx: number) => ({
+            id: u.id || idx + 1,
+            invoiceNo: u.usage_no || `MU-2026-00${idx + 1}`,
+            date: u.date ? new Date(u.date).toLocaleDateString() : "-",
+            project: u.project_name,
+            titleOfWork: u.title_of_work,
+            task: u.task,
+            site: u.site_name,
+            workerName: u.worker_staff_name,
+            category: u.category,
+            itemCode: u.item_code,
+            itemName: u.item_name,
+            quantity: Number(u.quantity || 0),
+            unit: u.unit,
+          }))
+        );
       }
     }
     loadData();

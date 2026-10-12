@@ -330,6 +330,198 @@ export const fallbackMaterialUsage = [
   },
 ];
 
+export const fallbackStockTransfers = [
+  {
+    id: "st-01",
+    code: "ST-2026-001",
+    date: "2026-09-20",
+    fromProject: "Sheba Eyecon Tower (PRJ-1001)",
+    from_project_name: "Sheba Eyecon Tower (PRJ-1001)",
+    fromSite: "Tower-A Foundation Site",
+    from_site_name: "Tower-A Foundation Site",
+    fromTask: "Piling Work",
+    from_task: "Piling Work",
+    toProject: "Lake Garden (PRJ-1002)",
+    to_project_name: "Lake Garden (PRJ-1002)",
+    toSite: "Block-B Yard",
+    to_site_name: "Block-B Yard",
+    toTask: "Structure Casting",
+    to_task: "Structure Casting",
+    contact: "+880 1711-223344",
+  },
+  {
+    id: "st-02",
+    code: "ST-2026-002",
+    date: "2026-09-22",
+    fromProject: "Head Office Central Depot",
+    from_project_name: "Head Office Central Depot",
+    fromSite: "Central Warehouse",
+    from_site_name: "Central Warehouse",
+    fromTask: "General Stocking",
+    from_task: "General Stocking",
+    toProject: "Rifat Eyecon City (PRJ-1003)",
+    to_project_name: "Rifat Eyecon City (PRJ-1003)",
+    toSite: "Main Site Store",
+    to_site_name: "Main Site Store",
+    toTask: "Substructure Phase",
+    to_task: "Substructure Phase",
+    contact: "+880 1819-556677",
+  },
+];
+
+export const fallbackMaterialRequisitions = [
+  {
+    id: 1,
+    select: false,
+    projectType: "Real Estate",
+    project_type: "Real Estate",
+    project: "Sheba Eyecon Tower",
+    project_name: "Sheba Eyecon Tower",
+    titleOfWork: "Column Casting 5th Floor",
+    title_of_work: "Column Casting 5th Floor",
+    code: "MR-2026-001",
+    req_no: "MR-2026-001",
+    ref: "REF-MR-101",
+    date: "2026-09-15",
+    demandDate: "2026-09-20",
+    demand_date: "2026-09-20",
+    addedBy: "Engr. Kabir Hossain",
+    added_by: "Engr. Kabir Hossain",
+    approvalStatus: "All Approvals Completed",
+    approver: "Project Manager",
+    attachment: "-",
+  },
+  {
+    id: 2,
+    select: false,
+    projectType: "Infrastructure",
+    project_type: "Infrastructure",
+    project: "Lake Garden Commercial",
+    project_name: "Lake Garden Commercial",
+    titleOfWork: "Substructure Piling Reinforcement",
+    title_of_work: "Substructure Piling Reinforcement",
+    code: "MR-2026-002",
+    req_no: "MR-2026-002",
+    ref: "REF-MR-102",
+    date: "2026-09-18",
+    demandDate: "2026-09-25",
+    demand_date: "2026-09-25",
+    addedBy: "Engr. Rafiqul Islam",
+    added_by: "Engr. Rafiqul Islam",
+    approvalStatus: "Approved by Admin",
+    approver: "Operations Head",
+    attachment: "-",
+  },
+];
+
+export const fallbackSales = [
+  {
+    id: 1,
+    projectType: "Real Estate",
+    project: "Sheba Eyecon Tower",
+    titleOfWork: "Commercial Space Allocation",
+    customerName: "Apex Footwear Ltd",
+    code: "SALE-88201",
+    ref: "REF-SL-01",
+    date: "2026-09-10",
+    grandTotal: 4500000,
+    addedBy: "Admin",
+    attachment: "-",
+    approve: "Approved",
+  },
+  {
+    id: 2,
+    projectType: "Real Estate",
+    project: "Lake Garden Luxury Suites",
+    titleOfWork: "Residential Unit Sale",
+    customerName: "Dr. Anisur Rahman",
+    code: "SALE-88202",
+    ref: "REF-SL-02",
+    date: "2026-09-15",
+    grandTotal: 8200000,
+    addedBy: "Sales Manager",
+    attachment: "-",
+    approve: "Approved",
+  },
+  {
+    id: 3,
+    projectType: "Commercial",
+    project: "Rifat Eyecon City",
+    titleOfWork: "Retail Shop 2nd Floor",
+    customerName: "Shwapno Super Shop",
+    code: "SALE-88203",
+    ref: "REF-SL-03",
+    date: "2026-09-20",
+    grandTotal: 12500000,
+    addedBy: "Admin",
+    attachment: "-",
+    approve: "Pending",
+  },
+];
+
+export const fallbackItemHistory = [
+  {
+    id: 1,
+    date: "2026-09-01",
+    invoiceNo: "PUR-2026-001",
+    project: "Sheba Eyecon Tower",
+    task: "Beam Concreting Level-4",
+    in: 25,
+    out: 0,
+    balance: 25,
+    unitCost: 94500,
+    subTotal: 2362500,
+    category: "Deformed Rebar & Steels",
+    itemName: "BSRM 16mm TMT 500W High Strength Bar",
+    site: "Tower 1 Foundation Site",
+  },
+  {
+    id: 2,
+    date: "2026-09-12",
+    invoiceNo: "MU-2026-001",
+    project: "Sheba Eyecon Tower",
+    task: "RCC Casting (Beam & Column)",
+    in: 0,
+    out: 7.5,
+    balance: 17.5,
+    unitCost: 94500,
+    subTotal: 708750,
+    category: "Deformed Rebar & Steels",
+    itemName: "BSRM 16mm TMT 500W High Strength Bar",
+    site: "Tower 1 Foundation Site",
+  },
+  {
+    id: 3,
+    date: "2026-09-15",
+    invoiceNo: "PUR-2026-002",
+    project: "Lake Garden Commercial",
+    task: "Slab Concreting Floor-3",
+    in: 500,
+    out: 0,
+    balance: 500,
+    unitCost: 540,
+    subTotal: 270000,
+    category: "Cement & Aggregates",
+    itemName: "Seven Rings Gold PCC 42.5N Cement",
+    site: "Central Warehouse",
+  },
+  {
+    id: 4,
+    date: "2026-09-18",
+    invoiceNo: "MU-2026-002",
+    project: "Lake Garden Commercial",
+    task: "Slab Concreting Floor-3",
+    in: 0,
+    out: 120,
+    balance: 380,
+    unitCost: 540,
+    subTotal: 64800,
+    category: "Cement & Aggregates",
+    itemName: "Seven Rings Gold PCC 42.5N Cement",
+    site: "Block-B Casting Yard",
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Generic Fetch Helper
 // ---------------------------------------------------------------------------
@@ -360,7 +552,12 @@ async function apiFetch<T>(
     }
 
     const json = await res.json();
-    return (json.data !== undefined ? json.data : json) as T;
+    const data = (json.data !== undefined ? json.data : json) as T;
+    // If backend returns an empty array, and fallbackData is provided and non-empty, use fallbackData
+    if (Array.isArray(data) && data.length === 0 && Array.isArray(fallbackData) && fallbackData.length > 0) {
+      return fallbackData;
+    }
+    return data;
   } catch (err: any) {
     if (fallbackData !== undefined) {
       console.warn(`[inventoryApi] network error fetching ${url}: ${err.message}, using fallback data`);
@@ -570,7 +767,7 @@ export const materialUsageApi = {
 // 9. Stock Transfers
 // ---------------------------------------------------------------------------
 export const stockTransfersApi = {
-  getAll: () => apiFetch<any[]>("/inventory/stock-transfers", {}, []),
+  getAll: () => apiFetch<any[]>("/inventory/stock-transfers", {}, fallbackStockTransfers),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/stock-transfers/${id}`),
   create: (data: {
     date: string;
@@ -589,7 +786,37 @@ export const stockTransfersApi = {
 };
 
 // ---------------------------------------------------------------------------
-// 10. Reports
+// 10. Material Requisitions
+// ---------------------------------------------------------------------------
+export const materialRequisitionsApi = {
+  getAll: () => apiFetch<any[]>("/material-requisition", {}, fallbackMaterialRequisitions),
+  getOne: (id: string | number) => apiFetch<any>(`/material-requisition/${id}`),
+  create: (data: any) =>
+    apiFetch<any>("/material-requisition", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string | number) =>
+    apiFetch<any>(`/material-requisition/${id}`, { method: "DELETE" }),
+};
+
+// ---------------------------------------------------------------------------
+// 11. Sales
+// ---------------------------------------------------------------------------
+export const salesApi = {
+  getAll: () => apiFetch<any[]>("/sales", {}, fallbackSales),
+  getOne: (id: string | number) => apiFetch<any>(`/sales/${id}`),
+  create: (data: any) =>
+    apiFetch<any>("/sales", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string | number) =>
+    apiFetch<any>(`/sales/${id}`, { method: "DELETE" }),
+};
+
+// ---------------------------------------------------------------------------
+// 12. Reports
 // ---------------------------------------------------------------------------
 export const reportsApi = {
   getStockReport: (projectId?: number, itemId?: string) => {
@@ -601,4 +828,6 @@ export const reportsApi = {
   },
   getMaterialComparison: (projectId: number = 1) =>
     apiFetch<any>(`/inventory/reports/material-comparison?project_id=${projectId}`, {}, fallbackMaterialComparison),
+  getItemHistory: () =>
+    apiFetch<any[]>("/inventory/reports/item-history", {}, fallbackItemHistory),
 };

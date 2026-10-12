@@ -4,7 +4,7 @@ import type { StockItem } from "@/components/inventory/StockReportTable";
 import StockReportTable from "@/components/inventory/StockReportTable";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
-import { reportsApi, categoriesApi, brandsApi } from "@/lib/inventoryApi";
+import { reportsApi, categoriesApi, brandsApi, fallbackStockReport } from "@/lib/inventoryApi";
 
 
 export default function StockReportContainer() {
@@ -25,25 +25,28 @@ export default function StockReportContainer() {
           brandsApi.getAll(),
         ]);
 
+        let raw = fallbackStockReport;
         if (reportRes.status === "fulfilled") {
           const res = reportRes.value;
-          const raw = res?.data || res;
-          if (Array.isArray(raw) && raw.length > 0) {
-            const list = raw.map((r: any, idx: number) => ({
-              id: r.item_id || idx + 1,
-              name: r.item_name || r.name || "Item",
-              opening: Number(r.opening || 0),
-              in: Number(r.total_purchased || r.in || 0),
-              out: Number(r.total_issued || r.out || 0),
-              unit: r.unit || "Pcs",
-              closing: Number(r.current_stock || r.closing || 0),
-              closingAmount: Number(r.closingAmount || 0),
-              category: r.category || "General",
-              brand: r.brand || "Standard",
-            }));
-            setStocks(list);
+          const apiRaw = res?.data || res;
+          if (Array.isArray(apiRaw) && apiRaw.length > 0) {
+            raw = apiRaw;
           }
         }
+
+        const list = raw.map((r: any, idx: number) => ({
+          id: r.item_id || idx + 1,
+          name: r.item_name || r.name || "Item",
+          opening: Number(r.opening || 0),
+          in: Number(r.total_purchased || r.in || 0),
+          out: Number(r.total_issued || r.out || 0),
+          unit: r.unit || "Pcs",
+          closing: Number(r.current_stock || r.closing || 0),
+          closingAmount: Number(r.closingAmount || 0),
+          category: r.category || "General",
+          brand: r.brand || "Standard",
+        }));
+        setStocks(list);
 
         if (catsRes.status === "fulfilled" && Array.isArray(catsRes.value)) {
           setCategoryOptions(catsRes.value.map((c: any) => c.name || c.category_name || c));

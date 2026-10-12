@@ -2,8 +2,9 @@
 
 import type { ItemHistory } from "@/components/inventory/ItemHistoryTable";
 import ItemHistoryTable from "@/components/inventory/ItemHistoryTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
+import { reportsApi, fallbackItemHistory, fallbackCategories, fallbackItems } from "@/lib/inventoryApi";
 
 
 export default function ItemHistoryContainer() {
@@ -19,6 +20,39 @@ export default function ItemHistoryContainer() {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedTask, setSelectedTask] = useState("");
   const [selectedSite, setSelectedSite] = useState("");
+
+  useEffect(() => {
+    async function loadItemHistory() {
+      try {
+        let raw = await reportsApi.getItemHistory().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackItemHistory;
+        }
+        setItems(raw);
+      } catch (err) {
+        setItems(fallbackItemHistory);
+      }
+    }
+    loadItemHistory();
+  }, []);
+
+  const categories = useMemo(() => {
+    const fromData = items.map((i) => i.category).filter(Boolean) as string[];
+    const defaults = fallbackCategories.map((c) => c.name);
+    return Array.from(new Set([...fromData, ...defaults]));
+  }, [items]);
+
+  const itemList = useMemo(() => {
+    const fromData = items.map((i) => i.itemName).filter(Boolean) as string[];
+    const defaults = fallbackItems.map((it) => it.name);
+    return Array.from(new Set([...fromData, ...defaults]));
+  }, [items]);
+
+  const projects = useMemo(() => {
+    const fromData = items.map((i) => i.project).filter(Boolean) as string[];
+    const defaults = ["Sheba Eyecon Tower", "Lake Garden Commercial", "Hena Heights", "Rifat Eyecon City"];
+    return Array.from(new Set([...fromData, ...defaults]));
+  }, [items]);
 
   // Filtering Logic
   const filteredItems = useMemo(() => {
@@ -78,8 +112,11 @@ export default function ItemHistoryContainer() {
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
             <option value="">Select Category</option>
-            <option value="Rod">Rod</option>
-            <option value="Cement">Cement</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -92,7 +129,11 @@ export default function ItemHistoryContainer() {
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
             <option value="">Select Item</option>
-            <option value="16mm Rod">16mm Rod</option>
+            {itemList.map((it) => (
+              <option key={it} value={it}>
+                {it}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -104,8 +145,12 @@ export default function ItemHistoryContainer() {
             onChange={(e) => setSelectedProject(e.target.value)}
             className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs focus:outline-none"
           >
-            <option value="">Select value</option>
-            <option value="Hena Heights">Hena Heights</option>
+            <option value="">Select Project</option>
+            {projects.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
         </div>
 

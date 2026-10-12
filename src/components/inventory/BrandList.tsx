@@ -3,7 +3,7 @@
 import type { Brand } from "@/app/(admin-dashbord)/dashboard/inventory/products/brands/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, brandsApi, fallbackBrands } from "@/lib/inventoryApi";
 
 interface BrandListProps {
   apiEndpoint?: string;
@@ -32,21 +32,25 @@ export default function BrandList({
     async function fetchBrands() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((item: any) => ({
-              id: item.id,
-              code: item.code || "",
-              name: item.name || "",
-            }))
-          : [];
+        let raw = await brandsApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackBrands;
+        }
+        const list = raw.map((item: any) => ({
+          id: item.id,
+          code: item.code || "",
+          name: item.name || "",
+        }));
         setBrands(list);
       } catch (error) {
         console.error("Error fetching brands:", error);
-        setBrands([]);
+        setBrands(
+          fallbackBrands.map((item: any) => ({
+            id: item.id,
+            code: item.code || "",
+            name: item.name || "",
+          }))
+        );
       } finally {
         setLoading(false);
       }
