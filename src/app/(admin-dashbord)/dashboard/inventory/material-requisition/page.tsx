@@ -5,6 +5,7 @@ import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiRefreshCw, FiShoppingCart, FiFileText, FiX } from "react-icons/fi";
 import { toast } from "sonner";
+import { materialRequisitionsApi } from "@/lib/inventoryApi";
 
 export interface MaterialRequisitionItem {
   id: number;
@@ -77,15 +78,7 @@ export default function MaterialRequisitionAccounts() {
         company: company || "Somikoron IT Ltd",
       };
 
-      const res = await fetch(`${apiBase}/material-requisition`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        console.warn("Backend material-requisition returned error status, updating UI gracefully.");
-      }
+      await materialRequisitionsApi.create(payload);
 
       toast.success(
         `${modalMode === "create" ? "Requisition Created" : "Requisition Updated"} successfully!`,

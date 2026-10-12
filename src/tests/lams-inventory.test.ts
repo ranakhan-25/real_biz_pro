@@ -284,3 +284,48 @@ test("Inventory: Fallback stock transfers, requisitions, sales, and item history
   assert.strictEqual(typeof reportsApi.getItemHistory, "function");
 });
 
+test("Inventory: Optimistic mutation handles backend failure without crashing", async () => {
+  const { suppliersApi, fallbackSuppliers, categoriesApi, fallbackCategories } = await import(
+    "../lib/inventoryApi.ts"
+  );
+
+  const initialSuppliersCount = fallbackSuppliers.length;
+  // Test creating a supplier (even if backend fails or columns missing)
+  const createdSupplier = await suppliersApi.create({
+    code: "SUP-TEST-99",
+    name: "Test Resilient Supplier",
+    mobile: "01799998888",
+    credit_limit: 50000,
+    opening_balance: 1000,
+  });
+
+  assert.ok(createdSupplier, "Created supplier must return valid response");
+  assert.ok(createdSupplier.name === "Test Resilient Supplier" || createdSupplier.data?.name === "Test Resilient Supplier", "Supplier name must match payload");
+  assert.strictEqual(fallbackSuppliers.length, initialSuppliersCount + 1, "Fallback suppliers array must have new item");
+
+  // Test updating supplier
+  const testId = createdSupplier.id || fallbackSuppliers[0].id;
+  const updatedSupplier = await suppliersApi.update(testId, {
+    name: "Updated Resilient Supplier",
+  });
+  assert.ok(updatedSupplier, "Update must succeed");
+  const found = fallbackSuppliers.find((s) => String(s.id) === String(testId));
+  assert.strictEqual(found?.name, "Updated Resilient Supplier", "Supplier in list must be updated");
+
+  // Test deleting supplier
+  await suppliersApi.delete(testId);
+  const afterDelete = fallbackSuppliers.find((s) => String(s.id) === String(testId));
+  assert.strictEqual(afterDelete, undefined, "Deleted supplier must be removed from list");
+
+  // Test category creation fallback
+  const initialCatCount = fallbackCategories.length;
+  const newCat = await categoriesApi.create({
+    category_code: "CAT-TEST-01",
+    name: "Test Resilient Category",
+  });
+  assert.ok(newCat, "Category creation must return object");
+  assert.strictEqual(fallbackCategories.length, initialCatCount + 1, "Category count must increment");
+  const catFound = fallbackCategories.find((c) => c.category_code === "CAT-TEST-01" || c.code === "CAT-TEST-01");
+  assert.ok(catFound, "New category must be present in fallbackCategories");
+});
+

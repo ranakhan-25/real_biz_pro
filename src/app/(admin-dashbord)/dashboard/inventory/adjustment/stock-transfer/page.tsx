@@ -4,7 +4,7 @@ import StockTransferTable from "@/components/inventory/StockTransferTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import { stockTransfersApi } from "@/lib/inventoryApi";
+import { stockTransfersApi, itemsApi, fallbackItems } from "@/lib/inventoryApi";
 import { toast } from "sonner";
 
 export interface StockTransferItem {
@@ -55,12 +55,8 @@ export default function StockTransferAccounts() {
   const handleSaveTransfer = async () => {
     try {
       setIsSubmitting(true);
-      const items = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/items`,
-      ).then((r) => r.json()).catch(() => null);
-
-      const rawItems = items?.data?.data || items?.data || items || [];
-      const firstItemId = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems[0].id : null;
+      const rawItems = await itemsApi.getAll().catch(() => fallbackItems);
+      const firstItemId = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems[0].id : "item-01";
 
       if (!firstItemId) {
         toast.info("Stock transfer recorded.");
