@@ -38,29 +38,32 @@ export function AddNegotiationModal({
 
   useEffect(() => {
     if (isOpen && editData) {
-      setAcquisitionLeadId(editData.acquisitionLeadId || "");
-      setOfferedTotalPrice(editData.offeredTotalPrice || 0);
-      setCounterOfferByOwner(editData.counterOfferByOwner || 0);
-      setNegotiationStatus(editData.negotiationStatus || "In Progress");
-      setMeetingDate(editData.meetingDate || new Date().toISOString().split("T")[0]);
-      setAttendedBy(editData.attendedBy || "");
-      setRemarks(editData.remarks || "");
+      setAcquisitionLeadId(editData.acquisitionLeadId || editData.lead_id || "");
+      setOfferedTotalPrice(editData.offeredTotalPrice || editData.offered_price || 0);
+      setCounterOfferByOwner(editData.counterOfferByOwner || editData.agreed_price || 0);
+      setNegotiationStatus(editData.negotiationStatus || editData.negotiation_status || "In Progress");
+      setMeetingDate(editData.meetingDate || (editData.negotiation_date ? new Date(editData.negotiation_date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]));
+      setAttendedBy(editData.attendedBy || editData.attended_by || "");
+      setRemarks(editData.remarks || editData.meeting_notes || "");
     } else if (isOpen && !editData) {
-      // reset 
+      const defaultId = acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+      if (!acquisitionLeadId || !acquisitionLeads.some((l) => (l.uuid || l.id) === acquisitionLeadId)) {
+        setAcquisitionLeadId(defaultId);
+      }
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, acquisitionLeads]);
 
   if (!isOpen) return null;
 
-  
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
+    const effectiveLeadId = acquisitionLeadId || acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+    const lead = acquisitionLeads.find((l) => (l.uuid || l.id) === effectiveLeadId) || acquisitionLeads[0];
 
     const newRecord: NegotiationRecord = {
       id: `NEG-${Date.now()}`,
-      acquisitionLeadId,
+      uuid: `NEG-${Date.now()}`,
+      acquisitionLeadId: effectiveLeadId,
       leadTitle: lead ? lead.title : "Land Parcel",
       mouza: lead ? lead.mouza : "Mouza",
       dagNo: lead ? lead.dagNo : "Dag No",
@@ -117,11 +120,18 @@ export function AddNegotiationModal({
                 onChange={(e) => setAcquisitionLeadId(e.target.value)}
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               >
-                {acquisitionLeads.map((l) => (
-                  <option key={l.uuid} value={l.uuid}>
-                    {l.title} (Dag {l.dagNo})
-                  </option>
-                ))}
+                {acquisitionLeads.length > 0 ? (
+                  acquisitionLeads.map((l) => {
+                    const lId = l.uuid || l.id;
+                    return (
+                      <option key={lId} value={lId}>
+                        {l.title} {l.dagNo ? `(Dag ${l.dagNo})` : ""}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option value="">No acquisition leads available</option>
+                )}
               </select>
             </div>
 

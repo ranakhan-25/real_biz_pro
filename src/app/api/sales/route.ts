@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fallbackSales } from "@/lib/inventoryApi";
 
 // In-memory store for sales during dev session so POST saves and GET fetches immediately
-let salesStore: any[] = [];
+let salesStore: any[] = [...fallbackSales];
 
 export async function GET() {
   return NextResponse.json({
     success: true,
-    data: salesStore,
+    data: salesStore.length > 0 ? salesStore : fallbackSales,
   });
 }
 

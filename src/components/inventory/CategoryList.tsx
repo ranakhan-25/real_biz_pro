@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import type { Category } from "@/app/(admin-dashbord)/dashboard/inventory/products/categories/page";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, categoriesApi, fallbackCategories } from "@/lib/inventoryApi";
 
 interface CategoryListProps {
   apiEndpoint?: string;
@@ -33,24 +33,31 @@ export default function CategoryList({
     async function fetchCategories() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((c: any) => ({
-              id: c.id,
-              type: c.type || "Material",
-              code: c.category_code || c.code || "",
-              name: c.name || "",
-              inventoryCoa: c.inventoryCoa || "Inventory",
-              consumptionCoa: c.consumptionCoa || "Consumption",
-            }))
-          : [];
+        let raw = await categoriesApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackCategories;
+        }
+        const list = raw.map((c: any) => ({
+          id: c.id,
+          type: c.type || "Material",
+          code: c.category_code || c.code || "",
+          name: c.name || "",
+          inventoryCoa: c.inventoryCoa || "Inventory Asset",
+          consumptionCoa: c.consumptionCoa || "Site Consumption",
+        }));
         setCategories(list);
       } catch (error) {
         console.error("Error fetching categories:", error);
-        setCategories([]);
+        setCategories(
+          fallbackCategories.map((c: any) => ({
+            id: c.id,
+            type: c.type || "Material",
+            code: c.category_code || c.code || "",
+            name: c.name || "",
+            inventoryCoa: c.inventoryCoa || "Inventory Asset",
+            consumptionCoa: c.consumptionCoa || "Site Consumption",
+          }))
+        );
       } finally {
         setLoading(false);
       }

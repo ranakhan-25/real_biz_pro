@@ -16,6 +16,7 @@ import { LanguageProvider } from "@/lib/language";
 import { LayoutShell } from "@/components/layout-shell";
 import FloatingContact from "@/components/home/floating-contact";
 import { Toaster } from "react-hot-toast";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -92,6 +93,7 @@ export default function RootLayout({
               <FloatingContact />
             </LayoutShell>
             <Toaster position="top-right" />
+            <SonnerToaster position="top-right" />
           </ThemeProvider>
         </LanguageProvider>
       </body>

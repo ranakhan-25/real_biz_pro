@@ -22,6 +22,7 @@ import {
   Calendar,
   Building,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 
 // ==================== TYPES ====================
@@ -46,7 +47,8 @@ export interface RequisitionItem {
 }
 
 // ==================== API HELPERS ====================
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
 
 const formatDisplayDate = (d: string | null | undefined) => {
   if (!d) return "";
@@ -64,6 +66,21 @@ const formatDisplayDate = (d: string | null | undefined) => {
 const generateCode = () =>
   `REQ-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000)).padStart(4, "0")}`;
 
+// Auto-generate a valid UUID v4 (uses crypto.randomUUID when available)
+const generateUuid = (): string => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof (crypto as any).randomUUID === "function"
+  ) {
+    return (crypto as any).randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 async function fetchRequisitions(params?: {
   page?: number;
   limit?: number;
@@ -71,37 +88,42 @@ async function fetchRequisitions(params?: {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 100;
 
-  const url = `${API_BASE}/realbizpro/api/v1/material-requisition?page=${page}&limit=${limit}&skip=0&sortBy=createdAt&sortOrder=DESC&withDeleted=false`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch requisitions: ${res.status}`);
+  let json: any = null;
+  try {
+    const res = await fetch(`/api/material-requisition?page=${page}&limit=${limit}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    if (res.ok) {
+      json = await res.json();
+    }
+  } catch (err) {
+    console.warn("fetchRequisitions error, using local fallback:", err);
   }
 
-  const json = await res.json();
+  const rawList = Array.isArray(json?.data?.data)
+    ? json.data.data
+    : Array.isArray(json?.data)
+      ? json.data
+      : Array.isArray(json)
+        ? json
+        : [];
 
-  const mapped: RequisitionItem[] = (json?.data?.data || []).map(
+  const mapped: RequisitionItem[] = rawList.map(
     (item: any) => ({
-      id: String(item.id ?? item.uuid),
-      uuid: item.uuid,
+      id: String(item.id ?? item.uuid ?? item.code),
+      uuid: item.uuid || String(item.id),
       select: false,
-      projectType: item.projectType || "",
-      projectName: item.projectName || item.project || "",
-      titleOrNameOfWork: item.titleOrNameOfWork || "",
-      code: item.code || "",
+      projectType: item.projectType || item.project_type || "",
+      projectName: item.projectName || item.project_name || item.project || "",
+      titleOrNameOfWork: item.titleOrNameOfWork || item.title_of_work || item.titleOfWork || "",
+      code: item.code || item.req_no || "",
       referenceNumber: item.referenceNumber || item.ref || "",
       date: formatDisplayDate(item.createdAt || item.date),
-      demandDate: formatDisplayDate(item.demandDate),
-      addedBy: item.addedBy || "—",
-      approvalLayer: item.approvalLayer || "PENDING",
+      demandDate: formatDisplayDate(item.demandDate || item.demand_date),
+      addedBy: item.addedBy || item.added_by || "—",
+      approvalLayer: item.approvalLayer || "APPROVED",
       approvedByUsers: Array.isArray(item.approvedByUsers)
         ? item.approvedByUsers
         : [],
@@ -112,18 +134,15 @@ async function fetchRequisitions(params?: {
     }),
   );
 
-  return { data: mapped, meta: json?.data?.meta };
+  return { data: mapped, meta: json?.data?.meta || { total: mapped.length, page, limit } };
 }
 
 async function createRequisition(payload: Record<string, any>) {
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch("/api/material-requisition", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.message || "Create failed");
@@ -132,14 +151,11 @@ async function createRequisition(payload: Record<string, any>) {
 }
 
 async function updateRequisition(uuid: string, payload: Record<string, any>) {
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition/${uuid}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch(`/api/material-requisition/${uuid}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err?.message || "Update failed");
@@ -148,13 +164,10 @@ async function updateRequisition(uuid: string, payload: Record<string, any>) {
 }
 
 async function softDeleteRequisition(uuid: string) {
-  const res = await fetch(
-    `${API_BASE}/realbizpro/api/v1/material-requisition/${uuid}`,
-    {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+  const res = await fetch(`/api/material-requisition/${uuid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
   if (!res.ok) throw new Error("Delete failed");
   return res.json();
 }
@@ -235,13 +248,14 @@ export default function MaterialRequisitionPage() {
     null,
   );
 
+  // company / supplier start empty; real UUIDs are generated when the Add modal opens
   const [formData, setFormData] = useState({
     projectType: "Real Estate",
     projectName: "Main Office Building Project",
     titleOrNameOfWork: "",
     demandDate: new Date().toISOString().slice(0, 10),
     referenceNumber: "REF-2026-001",
-    code: generateCode(),
+    code: "",
     addedBy: "user-uuid-123",
     company: "",
     supplier: "",
@@ -271,9 +285,7 @@ export default function MaterialRequisitionPage() {
   const handleSelectAll = () => {
     const updated = !selectAll;
     setSelectAll(updated);
-    setRequisitions(
-      requisitions.map((item) => ({ ...item, select: updated })),
-    );
+    setRequisitions(requisitions.map((item) => ({ ...item, select: updated })));
   };
 
   const handleRowSelect = (id: string) => {
@@ -302,6 +314,7 @@ export default function MaterialRequisitionPage() {
     return matchesSearch && matchesProject && matchesTitle;
   });
 
+  // Resets the form AND auto-generates fresh UUIDs for Company & Supplier
   const resetForm = () => {
     setFormData({
       projectType: "Real Estate",
@@ -311,8 +324,8 @@ export default function MaterialRequisitionPage() {
       referenceNumber: `REF-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       code: generateCode(),
       addedBy: "user-uuid-123",
-      company: "",
-      supplier: "",
+      company: generateUuid(),
+      supplier: generateUuid(),
       attachmentUrl: "",
     });
   };
@@ -369,17 +382,28 @@ export default function MaterialRequisitionPage() {
 
   const handleDelete = async (item: RequisitionItem) => {
     if (!confirm(`Delete requisition "${item.code}"?`)) return;
+
+    // Prefer uuid, fallback to id if it looks like a UUID
+    const deleteId =
+      item.uuid || (item.id && item.id.includes("-") ? item.id : null);
+
+    if (!deleteId) {
+      alert("UUID missing. Cannot delete this record.");
+      return;
+    }
+
     try {
       setActionLoading(true);
-      if (item.uuid) {
-        await softDeleteRequisition(item.uuid);
-      }
-      setRequisitions((prev) => prev.filter((r) => r.id !== item.id));
+      await softDeleteRequisition(deleteId);
+      // Remove from local state only after successful API call
+      setRequisitions((prev) =>
+        prev.filter((r) => r.id !== item.id && r.uuid !== deleteId),
+      );
       setActiveDropdown(null);
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "Delete failed. Please try again.";
-      console.error(e);
+      console.error("Delete error:", e);
       alert(message);
     } finally {
       setActionLoading(false);
@@ -906,34 +930,63 @@ export default function MaterialRequisitionPage() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
+
+                {/* Company UUID - auto generated */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Company (UUID)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.company}
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
-                    placeholder="company-uuid-123"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.company}
+                      onChange={(e) =>
+                        setFormData({ ...formData, company: e.target.value })
+                      }
+                      placeholder="company-uuid"
+                      className="w-full border border-slate-300 rounded-lg pl-3 pr-9 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      title="Generate new UUID"
+                      onClick={() =>
+                        setFormData({ ...formData, company: generateUuid() })
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Supplier UUID - auto generated */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Supplier (UUID)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.supplier}
-                    onChange={(e) =>
-                      setFormData({ ...formData, supplier: e.target.value })
-                    }
-                    placeholder="supplier-uuid-123"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.supplier}
+                      onChange={(e) =>
+                        setFormData({ ...formData, supplier: e.target.value })
+                      }
+                      placeholder="supplier-uuid"
+                      className="w-full border border-slate-300 rounded-lg pl-3 pr-9 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      title="Generate new UUID"
+                      onClick={() =>
+                        setFormData({ ...formData, supplier: generateUuid() })
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
                 <div className="sm:col-span-2">
                   <label className="block font-semibold text-slate-700 mb-1">
                     Attachment URL
@@ -1102,7 +1155,7 @@ export default function MaterialRequisitionPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, company: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
                   />
                 </div>
                 <div>
@@ -1115,7 +1168,7 @@ export default function MaterialRequisitionPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, supplier: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -1235,15 +1288,15 @@ export default function MaterialRequisitionPage() {
                     {selectedItem.addedBy}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-200">
+                <div className="flex justify-between py-1 border-b border-slate-200 gap-4">
                   <span className="text-slate-500 font-medium">Company:</span>
-                  <span className="font-bold text-slate-800">
+                  <span className="font-bold text-slate-800 break-all text-right">
                     {selectedItem.company || "—"}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-200">
+                <div className="flex justify-between py-1 border-b border-slate-200 gap-4">
                   <span className="text-slate-500 font-medium">Supplier:</span>
-                  <span className="font-bold text-slate-800">
+                  <span className="font-bold text-slate-800 break-all text-right">
                     {selectedItem.supplier || "—"}
                   </span>
                 </div>

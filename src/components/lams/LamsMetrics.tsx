@@ -22,14 +22,25 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import {
-  kpiMetrics,
-  pipelineStages,
-  mouzaDistribution,
-} from "@/data/lams/lams.mock";
+import type {
+  AcquisitionLead,
+  LandOwner,
+  NegotiationRecord,
+  LegalDocument,
+  FollowUpItem,
+  LamsKpiMetric,
+  PipelineStageStat,
+  MouzaDistributionStat,
+  LeadStage,
+} from "@/types/lams";
 
 interface LamsMetricsProps {
   showInsights: boolean;
+  leads?: AcquisitionLead[];
+  owners?: LandOwner[];
+  negotiations?: NegotiationRecord[];
+  documents?: LegalDocument[];
+  followUps?: FollowUpItem[];
 }
 
 const COLOR_MAP = {
@@ -66,12 +77,13 @@ const COLOR_MAP = {
 export function LamsMetrics({ showInsights, leads = [], owners = [], negotiations = [], documents = [], followUps = [] }: LamsMetricsProps) {
   // --- DYNAMIC CALCULATIONS ---
   const totalLeads = leads.length;
-  const totalArea = leads.reduce((sum, l) => sum + (parseFloat(l.landArea as any) || 0), 0);
-  const activeNegotiations = negotiations.filter(n => n.negotiationStatus === "In Progress" || n.negotiationStatus === "Pending").length;
-  const verifiedDocs = documents.filter(d => d.verificationStatus === "Verified").length;
+  const totalArea = leads.reduce((sum: number, l: AcquisitionLead) => sum + (parseFloat(l.landArea as any) || 0), 0);
+  const activeNegotiations = negotiations.filter((n: NegotiationRecord) => n.negotiationStatus === "In Progress" || n.negotiationStatus === "Agreed").length;
+  const verifiedDocs = documents.filter((d: LegalDocument) => d.verificationStatus === "Verified").length;
 
-  const kpiMetrics: LamsKpiMetric[] = [
+  const kpiMetrics: (LamsKpiMetric & { uuid?: string })[] = [
     {
+      id: "total-leads",
       uuid: "total-leads",
       title: "Total Acquisition Leads",
       value: `${totalLeads} Parcels`,
@@ -82,6 +94,7 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
       color: "cyan",
     },
     {
+      id: "total-land",
       uuid: "total-land",
       title: "Target Land Area",
       value: `${Number(totalArea || 0).toFixed(1)} Decimals`,
@@ -92,6 +105,7 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
       color: "emerald",
     },
     {
+      id: "active-negotiations",
       uuid: "active-negotiations",
       title: "Active Negotiations",
       value: `${activeNegotiations} Deals`,
@@ -102,6 +116,7 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
       color: "amber",
     },
     {
+      id: "verified-docs",
       uuid: "verified-docs",
       title: "Verified Documents",
       value: `${verifiedDocs} Clean`,
@@ -114,10 +129,10 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
   ];
 
   // Pipeline Stages Chart Data
-  const stages = ["New", "Contacted", "In Negotiation", "Legal Verification", "Agreement Ready", "Acquired"];
+  const stages: LeadStage[] = ["New", "Contacted", "In Negotiation", "Legal Verification", "Agreement Ready", "Acquired"];
   const pipelineStages: PipelineStageStat[] = stages.map(stage => {
     const stageLeads = leads.filter(l => l.leadStage === stage);
-    const area = stageLeads.reduce((sum, l) => sum + (parseFloat(l.landArea as any) || 0), 0);
+    const area = stageLeads.reduce((sum: number, l: AcquisitionLead) => sum + (parseFloat(l.landArea as any) || 0), 0);
     return {
       stage,
       count: stageLeads.length,
@@ -128,7 +143,7 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
 
   // Mouza Distribution Pie Chart
   const mouzaMap: Record<string, { area: number; count: number }> = {};
-  leads.forEach(l => {
+  leads.forEach((l: AcquisitionLead) => {
     const m = l.mouza || "Unknown";
     if (!mouzaMap[m]) mouzaMap[m] = { area: 0, count: 0 };
     mouzaMap[m].area += (parseFloat(l.landArea as any) || 0);
@@ -153,7 +168,7 @@ export function LamsMetrics({ showInsights, leads = [], owners = [], negotiation
       {/* 4-Card KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiMetrics.map((kpi) => {
-          const config = COLOR_MAP[kpi.color];
+          const config = COLOR_MAP[kpi.color as keyof typeof COLOR_MAP] || COLOR_MAP.cyan;
           const Icon = config.icon;
 
           return (

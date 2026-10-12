@@ -14,6 +14,8 @@ import {
   FiEye,
 } from "react-icons/fi";
 
+import { suppliersApi, fallbackSuppliers } from "@/lib/inventoryApi";
+
 interface SupplierListProps {
   apiEndpoint?: string;
   refreshTrigger?: number;
@@ -42,37 +44,39 @@ export default function SupplierList({
     async function fetchSuppliers() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint, {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        });
-        if (!response.ok) throw new Error("API response failed");
-        const json = await response.json();
-        let raw = json.data !== undefined ? json.data : json;
-        if (raw && Array.isArray(raw.data)) {
-          raw = raw.data;
+        let raw = await suppliersApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackSuppliers;
         }
-        const list = Array.isArray(raw)
-          ? raw.map((s: any) => ({
-              id: s.id,
-              code: s.code || "",
-              name: s.name || "",
-              company: s.company || "",
-              phone: s.mobile || s.phone || "",
-              email: s.email || "",
-              address: s.address || "",
-              under: "Sundry Creditors",
-              credit_limit: s.credit_limit || 0,
-              opening_balance: s.opening_balance || 0,
-            }))
-          : [];
+        const list = raw.map((s: any) => ({
+          id: s.id,
+          code: s.code || "",
+          name: s.name || "",
+          company: s.company || "",
+          phone: s.mobile || s.phone || "",
+          email: s.email || "",
+          address: s.address || "",
+          under: s.under || "Sundry Creditors",
+          credit_limit: s.credit_limit || 0,
+          opening_balance: s.opening_balance || 0,
+        }));
         setSuppliers(list);
       } catch (error) {
         console.error("Error fetching suppliers:", error);
-        setSuppliers([]);
+        setSuppliers(
+          fallbackSuppliers.map((s: any) => ({
+            id: s.id,
+            code: s.code || "",
+            name: s.name || "",
+            company: s.company || "",
+            phone: s.mobile || s.phone || "",
+            email: s.email || "",
+            address: s.address || "",
+            under: "Sundry Creditors",
+            credit_limit: s.credit_limit || 0,
+            opening_balance: s.opening_balance || 0,
+          }))
+        );
       } finally {
         setLoading(false);
       }

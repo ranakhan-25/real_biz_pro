@@ -517,7 +517,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-blue-100 dark:bg-blue-500/20",
     iconColor: "text-blue-600 dark:text-blue-400",
     sparklineColor: "#2563eb",
-    href: "/inventory/customers",
+    href: "/dashboard/accounts/contract/customer-account",
   },
 
   {
@@ -528,7 +528,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-cyan-100 dark:bg-cyan-500/20",
     iconColor: "text-cyan-600 dark:text-cyan-400",
     sparklineColor: "#0891b2",
-    href: "/inventory/suppliers",
+    href: "/dashboard/inventory/contracts/supplier-accounts",
   },
 
   {
@@ -539,7 +539,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-emerald-100 dark:bg-emerald-500/20",
     iconColor: "text-emerald-600 dark:text-emerald-400",
     sparklineColor: "#059669",
-    href: "/inventory/material-requisitions",
+    href: "/dashboard/inventory/material-requisition",
   },
 
   {
@@ -550,7 +550,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-fuchsia-100 dark:bg-fuchsia-500/20",
     iconColor: "text-fuchsia-600 dark:text-fuchsia-400",
     sparklineColor: "#c026d3",
-    href: "/inventory/service-requisitions",
+    href: "/dashboard/project/requisition/service-work-requisition",
   },
 
   {
@@ -561,7 +561,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-orange-100 dark:bg-orange-500/20",
     iconColor: "text-orange-600 dark:text-orange-400",
     sparklineColor: "#ea580c",
-    href: "/inventory/purchases",
+    href: "/dashboard/inventory/purchase/purchase-list",
   },
 
   {
@@ -572,7 +572,7 @@ const QUICK_CARDS_CONFIG: QuickCardConfig[] = [
     iconBg: "bg-sky-100 dark:bg-sky-500/20",
     iconColor: "text-sky-600 dark:text-sky-400",
     sparklineColor: "#0284c7",
-    href: "/inventory/sales",
+    href: "/dashboard/inventory/sales",
   },
 ];
 
@@ -1872,7 +1872,7 @@ export default function InventoryDashboard() {
     (row: OverflowMaterialRow) => {
       console.log("View overflow material:", row);
 
-      router.push(`/inventory/overflow-material/${row.sl}`);
+      router.push("/dashboard/inventory/adjustment/material-usage");
     },
     [router],
   );
@@ -1881,7 +1881,7 @@ export default function InventoryDashboard() {
     (row: OverflowMaterialRow) => {
       console.log("Update overflow material:", row);
 
-      router.push(`/inventory/overflow-material/${row.sl}/edit`);
+      router.push("/dashboard/inventory/adjustment/material-usage");
     },
     [router],
   );
@@ -1903,7 +1903,7 @@ export default function InventoryDashboard() {
   ========================================================== */
 
   const handleViewAllOverflow = useCallback(() => {
-    router.push("/inventory/overflow-material");
+    router.push("/dashboard/inventory/adjustment/material-usage");
   }, [router]);
 
   const handlePurchaseMenu = useCallback(() => {

@@ -4,20 +4,44 @@ import StockTransferTable from "@/components/inventory/StockTransferTable";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import { stockTransfersApi } from "@/lib/inventoryApi";
+import { stockTransfersApi, itemsApi, fallbackItems } from "@/lib/inventoryApi";
 import { toast } from "sonner";
 
 export interface StockTransferItem {
   id: string | number;
-  code: string;
-  date: string;
-  fromProject: string;
-  fromSite: string;
-  fromTask: string;
-  toProject: string;
-  toSite: string;
-  toTask: string;
-  contact: string;
+  code?: string;
+  transfer_no?: string;
+  date?: string;
+  note?: string;
+  status?: string;
+  fromProject?: string;
+  from_project?: string | any;
+  from_project_name?: string;
+  from_project_id?: number;
+  fromSite?: string;
+  from_site?: string | any;
+  from_site_name?: string;
+  from_site_id?: number;
+  fromTask?: string;
+  from_task?: string;
+  toProject?: string;
+  to_project?: string | any;
+  to_project_name?: string;
+  to_project_id?: number;
+  toSite?: string;
+  to_site?: string | any;
+  to_site_name?: string;
+  to_site_id?: number;
+  toTask?: string;
+  to_task?: string;
+  contact?: string;
+  item_id?: string;
+  quantity?: number;
+  createdBy?: string;
+  created_by?: string;
+  projectId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function StockTransferAccounts() {
@@ -55,12 +79,8 @@ export default function StockTransferAccounts() {
   const handleSaveTransfer = async () => {
     try {
       setIsSubmitting(true);
-      const items = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/items`,
-      ).then((r) => r.json()).catch(() => null);
-
-      const rawItems = items?.data?.data || items?.data || items || [];
-      const firstItemId = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems[0].id : null;
+      const rawItems = await itemsApi.getAll().catch(() => fallbackItems);
+      const firstItemId = Array.isArray(rawItems) && rawItems.length > 0 ? rawItems[0].id : "item-01";
 
       if (!firstItemId) {
         toast.info("Stock transfer recorded.");
@@ -75,8 +95,9 @@ export default function StockTransferAccounts() {
           : new Date().toISOString().split("T")[0],
         item_id: firstItemId,
         quantity: 1,
-        note: `Transfer from ${selectedTransfer.fromProject || "HQ"} to ${selectedTransfer.toProject || "Site"}`,
+        note: `Transfer from ${selectedTransfer.fromProject || "Hena Heights (PRJ-1001)"} to ${selectedTransfer.toProject || "Rifat Eyecon City (PRJ-1002)"}`,
         status: "Completed",
+        projectId: selectedTransfer.fromProject || "PRJ-1001",
       });
 
       toast.success(
@@ -155,9 +176,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setSupplier(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select an option</option>
-              <option value="Supplier A">Supplier A</option>
-              <option value="Supplier B">Supplier B</option>
+              <option value="">All Suppliers</option>
+              <option value="BSRM Steels Ltd">BSRM Steels Ltd</option>
+              <option value="Seven Rings Cement Corp">Seven Rings Cement Corp</option>
+              <option value="Bashundhara Multi Trading">Bashundhara Multi Trading</option>
+              <option value="BRB Cables Ltd">BRB Cables Ltd</option>
             </select>
           </div>
           <div>
@@ -167,9 +190,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setProject(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select value</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
-              <option value="Estern 19">Estern 19</option>
+              <option value="">All Projects</option>
+              <option value="Hena Heights (PRJ-1001)">Hena Heights (PRJ-1001)</option>
+              <option value="Rifat Eyecon City (PRJ-1002)">Rifat Eyecon City (PRJ-1002)</option>
+              <option value="Green Valley Residency (PRJ-1003)">Green Valley Residency (PRJ-1003)</option>
+              <option value="Metro Sky Tower (PRJ-1004)">Metro Sky Tower (PRJ-1004)</option>
             </select>
           </div>
         </div>
@@ -184,8 +209,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setTitleOfWork(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Title/Name of Work</option>
-              <option value="Work 1">Work 1</option>
+              <option value="">All Works</option>
+              <option value="Substructure & Foundation">Substructure & Foundation</option>
+              <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+              <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+              <option value="Sanitary & Electrical Fitting">Sanitary & Electrical Fitting</option>
             </select>
           </div>
         </div>
@@ -256,7 +284,9 @@ export default function StockTransferAccounts() {
                   </label>
                   <input
                     type="text"
+                    list="project-options"
                     disabled={modalMode === "view"}
+                    placeholder="e.g. Hena Heights (PRJ-1001)"
                     value={selectedTransfer.fromProject || ""}
                     onChange={(e) =>
                       setSelectedTransfer({ ...selectedTransfer, fromProject: e.target.value })
@@ -270,7 +300,9 @@ export default function StockTransferAccounts() {
                   </label>
                   <input
                     type="text"
+                    list="project-options"
                     disabled={modalMode === "view"}
+                    placeholder="e.g. Rifat Eyecon City (PRJ-1002)"
                     value={selectedTransfer.toProject || ""}
                     onChange={(e) =>
                       setSelectedTransfer({ ...selectedTransfer, toProject: e.target.value })
@@ -278,6 +310,12 @@ export default function StockTransferAccounts() {
                     className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
                   />
                 </div>
+                <datalist id="project-options">
+                  <option value="Hena Heights (PRJ-1001)" />
+                  <option value="Rifat Eyecon City (PRJ-1002)" />
+                  <option value="Green Valley Residency (PRJ-1003)" />
+                  <option value="Metro Sky Tower (PRJ-1004)" />
+                </datalist>
               </div>
             </div>
 

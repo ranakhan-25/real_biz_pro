@@ -48,19 +48,20 @@ export function AddLegalDocumentModal({
 
   useEffect(() => {
     if (isOpen && editData) {
-      setAcquisitionLeadId(editData.acquisitionLeadId || "");
-      setDocumentType(editData.documentType || "Deed");
-      setDocumentFileName(editData.documentFileName || "");
-      setVerificationStatus(editData.verificationStatus || "Pending");
-      setRemarks(editData.remarks || "");
-          } else if (isOpen && !editData) {
-      // reset 
+      setAcquisitionLeadId(editData.acquisitionLeadId || editData.lead_id || "");
+      setDocumentType(editData.documentType || editData.document_type || "Deed");
+      setDocumentFileName(editData.documentFileName || editData.document_number || "");
+      setVerificationStatus(editData.verificationStatus || editData.verification_status || "Pending");
+      setRemarks(editData.remarks || editData.vetting_remarks || "");
+    } else if (isOpen && !editData) {
+      const defaultId = acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+      if (!acquisitionLeadId || !acquisitionLeads.some((l) => (l.uuid || l.id) === acquisitionLeadId)) {
+        setAcquisitionLeadId(defaultId);
+      }
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, acquisitionLeads]);
 
   if (!isOpen) return null;
-
-  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -70,11 +71,13 @@ export function AddLegalDocumentModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
+    const effectiveLeadId = acquisitionLeadId || acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+    const lead = acquisitionLeads.find((l) => (l.uuid || l.id) === effectiveLeadId) || acquisitionLeads[0];
 
     const newDoc: LegalDocument = {
       id: `DOC-${Date.now()}`,
-      acquisitionLeadId,
+      uuid: `DOC-${Date.now()}`,
+      acquisitionLeadId: effectiveLeadId,
       leadTitle: lead ? lead.title : "Acquisition Parcel",
       documentType,
       verificationStatus,
@@ -127,11 +130,18 @@ export function AddLegalDocumentModal({
               onChange={(e) => setAcquisitionLeadId(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             >
-              {acquisitionLeads.map((l) => (
-                <option key={l.uuid} value={l.uuid}>
-                  {l.title} ({l.mouza})
-                </option>
-              ))}
+              {acquisitionLeads.length > 0 ? (
+                acquisitionLeads.map((l) => {
+                  const lId = l.uuid || l.id;
+                  return (
+                    <option key={lId} value={lId}>
+                      {l.title} {l.mouza ? `(${l.mouza})` : ""}
+                    </option>
+                  );
+                })
+              ) : (
+                <option value="">No acquisition leads available</option>
+              )}
             </select>
           </div>
 

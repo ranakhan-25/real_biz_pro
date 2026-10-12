@@ -3,7 +3,7 @@
 import type { Item } from "@/app/(admin-dashbord)/dashboard/inventory/products/item-entry/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, itemsApi, fallbackItems } from "@/lib/inventoryApi";
 
 interface ItemListProps {
   apiEndpoint?: string;
@@ -32,29 +32,41 @@ export default function ItemList({
     async function fetchItems() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((it: any) => ({
-              id: it.id,
-              code: it.item_code || it.code || "",
-              name: it.name || "",
-              category: it.category?.name || it.category_id || "General",
-              category_id: it.category_id,
-              unit: it.unit?.name || it.unit_id || "Pcs",
-              unit_id: it.unit_id,
-              brand: it.brand?.name || it.brand_id || "",
-              brand_id: it.brand_id,
-              purchasePrice: Number(it.purchase_price ?? 0),
-              salePrice: Number(it.sale_price ?? 0),
-            }))
-          : [];
+        let raw = await itemsApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackItems;
+        }
+        const list = raw.map((it: any) => ({
+          id: it.id,
+          code: it.item_code || it.code || "",
+          name: it.name || "",
+          category: it.category?.name || it.category_id || (typeof it.category === "string" ? it.category : "General"),
+          category_id: it.category_id,
+          unit: it.unit?.name || it.unit_id || (typeof it.unit === "string" ? it.unit : "Pcs"),
+          unit_id: it.unit_id,
+          brand: it.brand?.name || it.brand_id || (typeof it.brand === "string" ? it.brand : ""),
+          brand_id: it.brand_id,
+          purchasePrice: Number(it.purchase_price ?? it.purchasePrice ?? 0),
+          salePrice: Number(it.sale_price ?? it.salePrice ?? 0),
+        }));
         setItems(list);
       } catch (error) {
         console.error("Error fetching items:", error);
-        setItems([]);
+        setItems(
+          fallbackItems.map((it: any) => ({
+            id: it.id,
+            code: it.code || "",
+            name: it.name || "",
+            category: it.category?.name || "General",
+            category_id: it.category_id,
+            unit: it.unit?.name || "Pcs",
+            unit_id: it.unit_id,
+            brand: it.brand?.name || "",
+            brand_id: it.brand_id,
+            purchasePrice: Number(it.purchase_price ?? 0),
+            salePrice: Number(it.sale_price ?? 0),
+          }))
+        );
       } finally {
         setLoading(false);
       }

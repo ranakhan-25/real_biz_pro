@@ -144,7 +144,7 @@ export default function FlatLandPage() {
         const price = Number(item.pricePerUnit ?? item.price_per_unit ?? item.price ?? 0);
         const parkingCost = Number(item.parkingCost ?? item.parking_cost ?? 0);
         const utilityCharge = Number(item.utilityCharge ?? item.utility_charge ?? 0);
-        const numericSize = parseFloat(item.size) || 0;
+        const numericSize = parseFloat(String(item.size ?? 0)) || 0;
         const subtotal = Number(item.subtotal ?? price * numericSize);
         const grandTotal = Number(item.grandTotal ?? item.grand_total ?? subtotal + parkingCost + utilityCharge);
 
