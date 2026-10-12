@@ -22,6 +22,7 @@ import {
   Calendar,
   Building,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 
 // ==================== TYPES ====================
@@ -46,7 +47,8 @@ export interface RequisitionItem {
 }
 
 // ==================== API HELPERS ====================
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
 
 const formatDisplayDate = (d: string | null | undefined) => {
   if (!d) return "";
@@ -63,6 +65,21 @@ const formatDisplayDate = (d: string | null | undefined) => {
 
 const generateCode = () =>
   `REQ-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000)).padStart(4, "0")}`;
+
+// Auto-generate a valid UUID v4 (uses crypto.randomUUID when available)
+const generateUuid = (): string => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof (crypto as any).randomUUID === "function"
+  ) {
+    return (crypto as any).randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 async function fetchRequisitions(params?: {
   page?: number;
@@ -231,13 +248,14 @@ export default function MaterialRequisitionPage() {
     null,
   );
 
+  // company / supplier start empty; real UUIDs are generated when the Add modal opens
   const [formData, setFormData] = useState({
     projectType: "Real Estate",
     projectName: "Main Office Building Project",
     titleOrNameOfWork: "",
     demandDate: new Date().toISOString().slice(0, 10),
     referenceNumber: "REF-2026-001",
-    code: generateCode(),
+    code: "",
     addedBy: "user-uuid-123",
     company: "",
     supplier: "",
@@ -267,9 +285,7 @@ export default function MaterialRequisitionPage() {
   const handleSelectAll = () => {
     const updated = !selectAll;
     setSelectAll(updated);
-    setRequisitions(
-      requisitions.map((item) => ({ ...item, select: updated })),
-    );
+    setRequisitions(requisitions.map((item) => ({ ...item, select: updated })));
   };
 
   const handleRowSelect = (id: string) => {
@@ -298,6 +314,7 @@ export default function MaterialRequisitionPage() {
     return matchesSearch && matchesProject && matchesTitle;
   });
 
+  // Resets the form AND auto-generates fresh UUIDs for Company & Supplier
   const resetForm = () => {
     setFormData({
       projectType: "Real Estate",
@@ -307,8 +324,8 @@ export default function MaterialRequisitionPage() {
       referenceNumber: `REF-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       code: generateCode(),
       addedBy: "user-uuid-123",
-      company: "",
-      supplier: "",
+      company: generateUuid(),
+      supplier: generateUuid(),
       attachmentUrl: "",
     });
   };
@@ -365,17 +382,28 @@ export default function MaterialRequisitionPage() {
 
   const handleDelete = async (item: RequisitionItem) => {
     if (!confirm(`Delete requisition "${item.code}"?`)) return;
+
+    // Prefer uuid, fallback to id if it looks like a UUID
+    const deleteId =
+      item.uuid || (item.id && item.id.includes("-") ? item.id : null);
+
+    if (!deleteId) {
+      alert("UUID missing. Cannot delete this record.");
+      return;
+    }
+
     try {
       setActionLoading(true);
-      if (item.uuid) {
-        await softDeleteRequisition(item.uuid);
-      }
-      setRequisitions((prev) => prev.filter((r) => r.id !== item.id));
+      await softDeleteRequisition(deleteId);
+      // Remove from local state only after successful API call
+      setRequisitions((prev) =>
+        prev.filter((r) => r.id !== item.id && r.uuid !== deleteId),
+      );
       setActiveDropdown(null);
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "Delete failed. Please try again.";
-      console.error(e);
+      console.error("Delete error:", e);
       alert(message);
     } finally {
       setActionLoading(false);
@@ -902,34 +930,63 @@ export default function MaterialRequisitionPage() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
+
+                {/* Company UUID - auto generated */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Company (UUID)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.company}
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
-                    placeholder="company-uuid-123"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.company}
+                      onChange={(e) =>
+                        setFormData({ ...formData, company: e.target.value })
+                      }
+                      placeholder="company-uuid"
+                      className="w-full border border-slate-300 rounded-lg pl-3 pr-9 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      title="Generate new UUID"
+                      onClick={() =>
+                        setFormData({ ...formData, company: generateUuid() })
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Supplier UUID - auto generated */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Supplier (UUID)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.supplier}
-                    onChange={(e) =>
-                      setFormData({ ...formData, supplier: e.target.value })
-                    }
-                    placeholder="supplier-uuid-123"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.supplier}
+                      onChange={(e) =>
+                        setFormData({ ...formData, supplier: e.target.value })
+                      }
+                      placeholder="supplier-uuid"
+                      className="w-full border border-slate-300 rounded-lg pl-3 pr-9 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      title="Generate new UUID"
+                      onClick={() =>
+                        setFormData({ ...formData, supplier: generateUuid() })
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
                 <div className="sm:col-span-2">
                   <label className="block font-semibold text-slate-700 mb-1">
                     Attachment URL
@@ -1098,7 +1155,7 @@ export default function MaterialRequisitionPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, company: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
                   />
                 </div>
                 <div>
@@ -1111,7 +1168,7 @@ export default function MaterialRequisitionPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, supplier: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono text-[11px]"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -1231,15 +1288,15 @@ export default function MaterialRequisitionPage() {
                     {selectedItem.addedBy}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-200">
+                <div className="flex justify-between py-1 border-b border-slate-200 gap-4">
                   <span className="text-slate-500 font-medium">Company:</span>
-                  <span className="font-bold text-slate-800">
+                  <span className="font-bold text-slate-800 break-all text-right">
                     {selectedItem.company || "—"}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-slate-200">
+                <div className="flex justify-between py-1 border-b border-slate-200 gap-4">
                   <span className="text-slate-500 font-medium">Supplier:</span>
-                  <span className="font-bold text-slate-800">
+                  <span className="font-bold text-slate-800 break-all text-right">
                     {selectedItem.supplier || "—"}
                   </span>
                 </div>
