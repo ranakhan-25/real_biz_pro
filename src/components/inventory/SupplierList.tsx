@@ -14,117 +14,20 @@ import {
   FiEye,
 } from "react-icons/fi";
 
-// Default fallback data in case API request fails or returns nothing
-const DEFAULT_SUPPLIERS: Supplier[] = [
-  { id: 1, code: "SUP2733131", name: "Riva Steel Mils", under: "Sundry Creditors" },
-  {
-    id: 2,
-    code: "SUP8286898",
-    name: "Rifat Thai House",
-    company: "Rifat Thai House",
-    under: "Sundry Creditors",
-  },
-  { id: 3, code: "SUP8103073", name: "Mohin Business solution", under: "Sundry Creditors" },
-  {
-    id: 4,
-    code: "SUP8191957",
-    name: "Safety First Suppliers",
-    phone: "01312345695",
-    address: "Motijheel",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 5,
-    code: "SUP6544555",
-    name: "Delta Glass & Aluminium",
-    phone: "01312345694",
-    address: "Mirpur",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 6,
-    code: "SUP8156944",
-    name: "Prime Tiles",
-    phone: "01312345693",
-    address: "Mohakhali",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 7,
-    code: "SUP7215205",
-    name: "Modern Sanitary",
-    phone: "01312345692",
-    address: "Paltan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 8,
-    code: "SUP2351579",
-    name: "Techno Cables Ltd",
-    phone: "01312345691",
-    address: "Mirpur",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 9,
-    code: "SUP2504049",
-    name: "Fresh Paint House",
-    phone: "01312345690",
-    address: "Paltan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 10,
-    code: "SUP2252190",
-    name: "BuildMart Bangladesh",
-    phone: "01312345689",
-    address: "Gulshan",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 11,
-    code: "SUP1122334",
-    name: "Alpha Traders",
-    phone: "01312345688",
-    address: "Banani",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 12,
-    code: "SUP5566778",
-    name: "Beta Enterprise",
-    phone: "01312345687",
-    address: "Uttara",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 13,
-    code: "SUP9988776",
-    name: "Gamma Steel",
-    phone: "01312345686",
-    address: "Tejgaon",
-    under: "Sundry Creditors",
-  },
-  {
-    id: 14,
-    code: "SUP4433221",
-    name: "Delta Builders",
-    phone: "01312345685",
-    address: "Dhanmondi",
-    under: "Sundry Creditors",
-  },
-];
-
 interface SupplierListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (supplier: Supplier) => void;
   onView?: (supplier: Supplier) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function SupplierList({
-  apiEndpoint = "/api/suppliers",
+  apiEndpoint = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1"}/inventory/suppliers`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: SupplierListProps) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -134,25 +37,49 @@ export default function SupplierList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data from API with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchSuppliers() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
+        const response = await fetch(apiEndpoint, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         if (!response.ok) throw new Error("API response failed");
-        const data = await response.json();
-        setSuppliers(Array.isArray(data) ? data : DEFAULT_SUPPLIERS);
+        const json = await response.json();
+        let raw = json.data !== undefined ? json.data : json;
+        if (raw && Array.isArray(raw.data)) {
+          raw = raw.data;
+        }
+        const list = Array.isArray(raw)
+          ? raw.map((s: any) => ({
+              id: s.id,
+              code: s.code || "",
+              name: s.name || "",
+              company: s.company || "",
+              phone: s.mobile || s.phone || "",
+              email: s.email || "",
+              address: s.address || "",
+              under: "Sundry Creditors",
+              credit_limit: s.credit_limit || 0,
+              opening_balance: s.opening_balance || 0,
+            }))
+          : [];
+        setSuppliers(list);
       } catch (error) {
-        console.warn("API fetch failed, falling back to default data:", error);
-        setSuppliers(DEFAULT_SUPPLIERS);
+        console.error("Error fetching suppliers:", error);
+        setSuppliers([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchSuppliers();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
   // Filtering suppliers based on search query and selected group
   const filteredSuppliers = useMemo(() => {
@@ -315,7 +242,11 @@ export default function SupplierList({
                             <FiEye size={13} />
                           </button>
                           {/* Delete Button */}
-                          <button title="Delete" className=" p-1.5 rounded transition-colors">
+                          <button
+                            onClick={() => onDelete && onDelete(supplier.id, supplier.name)}
+                            title="Delete"
+                            className="p-1.5 rounded transition-colors text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                          >
                             <FiTrash2 size={13} />
                           </button>
                         </div>

@@ -22,9 +22,10 @@ import { AddFollowUpModal } from "./modals/AddFollowUpModal";
 
 interface FollowUpViewProps {
   followUps: FollowUpItem[];
+  onEditFollowUp?: (uuid: string, data: any) => void;
   onAddFollowUp: (item: FollowUpItem) => void;
-  onDeleteFollowUp: (id: string) => void;
-  onToggleComplete: (id: string) => void;
+  onDeleteFollowUp: (uuid: string) => void;
+  onToggleComplete: (uuid: string) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -57,6 +58,7 @@ const STATUS_BADGES: Record<
 export function FollowUpView({
   followUps,
   onAddFollowUp,
+    onEditFollowUp,
   onDeleteFollowUp,
   onToggleComplete,
   acquisitionLeads,
@@ -67,18 +69,20 @@ export function FollowUpView({
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingFollowUp, setEditingFollowUp] = useState<any>(null);
   const [exportFeedback, setExportFeedback] = useState<string | null>(null);
 
   const filteredFollowUps = useMemo(() => {
-    return followUps.filter((item) => {
+    const safeFollowUps = Array.isArray(followUps) ? followUps : [];
+    return safeFollowUps.filter((item) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch =
         !term ||
-        item.landDetails.toLowerCase().includes(term) ||
-        item.ownerDetails.toLowerCase().includes(term) ||
-        item.contact.toLowerCase().includes(term) ||
-        item.note.toLowerCase().includes(term) ||
-        item.assignedTo.toLowerCase().includes(term);
+        (item.landDetails || "").toLowerCase().includes(term) ||
+        (item.ownerDetails || "").toLowerCase().includes(term) ||
+        (item.contact || "").toLowerCase().includes(term) ||
+        (item.note || "").toLowerCase().includes(term) ||
+        (item.assignedTo || "").toLowerCase().includes(term);
 
       const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
 
@@ -88,8 +92,8 @@ export function FollowUpView({
 
   const displayedFollowUps = filteredFollowUps.slice(0, entriesPerPage);
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggleExpand = (uuid: string) => {
+    setExpandedId((prev) => (prev === uuid ? null : uuid));
   };
 
   const handleExport = (type: "Excel" | "PDF") => {
@@ -233,12 +237,12 @@ export function FollowUpView({
                 </tr>
               ) : (
                 displayedFollowUps.map((item, idx) => {
-                  const isExpanded = expandedId === item.id;
-                  const statusInfo = STATUS_BADGES[item.status];
+                  const isExpanded = expandedId === item.uuid;
+                  const statusInfo = STATUS_BADGES[item.status as FollowUpStatus] || { bg: "bg-slate-100 text-slate-800", text: "text-slate-700", icon: Clock };
                   const StatusIcon = statusInfo.icon;
 
                   return (
-                    <React.Fragment key={item.id}>
+                    <React.Fragment key={item.uuid}>
                       <tr
                         className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
                           isExpanded ? "bg-cyan-50/40 dark:bg-cyan-950/20" : ""
@@ -246,7 +250,7 @@ export function FollowUpView({
                       >
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => toggleExpand(item.id)}
+                            onClick={() => toggleExpand(item.uuid)}
                             className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 transition-all font-bold"
                             title={isExpanded ? "Collapse" : "Expand"}
                           >
@@ -298,7 +302,7 @@ export function FollowUpView({
                         <td className="py-3 px-3 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <button
-                              onClick={() => onToggleComplete(item.id)}
+                              onClick={() => onToggleComplete(item.uuid)}
                               className={`p-1.5 rounded-lg transition-all ${
                                 item.status === "Completed"
                                   ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40"
@@ -309,7 +313,14 @@ export function FollowUpView({
                               <CheckCircle2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => onDeleteFollowUp(item.id)}
+                              onClick={() => setEditingFollowUp(item)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all"
+                              title="Edit"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button
+                              onClick={() => onDeleteFollowUp(item.uuid)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all"
                               title="Delete Item"
                             >
@@ -375,9 +386,18 @@ export function FollowUpView({
 
       {/* Add Modal */}
       <AddFollowUpModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddFollowUp={onAddFollowUp}
+        isOpen={isAddModalOpen || !!editingFollowUp}
+        onClose={() => { setIsAddModalOpen(false); setEditingFollowUp(null); }}
+        onAddFollowUp={(data) => {
+          if (editingFollowUp && onEditFollowUp) {
+            onEditFollowUp(editingFollowUp.uuid, data);
+          } else {
+            onAddFollowUp(data);
+          }
+          setIsAddModalOpen(false);
+          setEditingFollowUp(null);
+        }}
+        editData={editingFollowUp}
         acquisitionLeads={acquisitionLeads}
       />
     </div>

@@ -4,6 +4,7 @@ import CategoryList from "@/components/inventory/CategoryList";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX, FiArrowLeft } from "react-icons/fi";
+import { categoriesApi } from "@/lib/inventoryApi";
 
 // Category type definition
 export interface Category {
@@ -20,6 +21,8 @@ const CategoryAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedCategory, setSelectedCategory] = useState<Partial<Category>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Open modal for adding a new category
   const handleAddClick = () => {
@@ -27,6 +30,7 @@ const CategoryAccounts = () => {
     setSelectedCategory({
       code: `C${Math.floor(1000000 + Math.random() * 9000000)}`,
       type: "Material",
+      name: "",
     });
     setIsModalOpen(true);
   };
@@ -39,11 +43,43 @@ const CategoryAccounts = () => {
   };
 
   // Form submit handler
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Category Data:`, selectedCategory);
-    // Here you can add your API submission logic
-    setIsModalOpen(false);
+    if (!selectedCategory.name) return;
+
+    try {
+      setIsSubmitting(true);
+      if (modalMode === "add") {
+        await categoriesApi.create({
+          category_code: selectedCategory.code || `C${Date.now().toString().slice(-6)}`,
+          name: selectedCategory.name,
+        });
+      } else if (modalMode === "update" && selectedCategory.id) {
+        await categoriesApi.update(selectedCategory.id, {
+          category_code: selectedCategory.code || "",
+          name: selectedCategory.name,
+        });
+      }
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save category:", err);
+      alert(err.message || "Failed to save category");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete category "${name}"?`)) return;
+    try {
+      await categoriesApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete category:", err);
+      alert(err.message || "Failed to delete category");
+    }
   };
 
   return (
@@ -59,7 +95,7 @@ const CategoryAccounts = () => {
           {/* Add Category Button */}
           <button
             onClick={handleAddClick}
-            className="flex items-center gap-2 bg-[var(--lime)] text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-all"
+            className="flex items-center gap-2 bg-[var(--lime)] text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-all hover:opacity-90"
           >
             <FiPlus className="text-base" /> +Add Category
           </button>
@@ -76,8 +112,10 @@ const CategoryAccounts = () => {
 
       {/* Child Component for Listing & Filtering */}
       <CategoryList
+        refreshTrigger={refreshTrigger}
         onEdit={(category) => handleOpenModal(category, "update")}
         onView={(category) => handleOpenModal(category, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}
@@ -197,9 +235,14 @@ const CategoryAccounts = () => {
                 {modalMode !== "view" && (
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-all shadow-sm"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-all shadow-sm disabled:opacity-50"
                   >
-                    {modalMode === "add" ? "Save Category" : "Update Changes"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : modalMode === "add"
+                      ? "Save Category"
+                      : "Update Changes"}
                   </button>
                 )}
               </div>

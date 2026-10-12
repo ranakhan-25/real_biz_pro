@@ -4,84 +4,46 @@ import type { SaleListItem } from "@/app/(admin-dashbord)/dashboard/inventory/sa
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
-// Fallback Default Data if API returns nothing or fails
-const DEFAULT_SALES: SaleListItem[] = [
-  {
-    id: 1,
-    projectType: "Real Estate",
-    project: "Sheba Eyecon Tower",
-    titleOfWork: "Apartment Booking",
-    customerName: "Md. Rahim Uddin",
-    code: "SALE798720",
-    ref: "REF-001",
-    date: "08 Sept 2026",
-    grandTotal: 150000,
-    addedBy: "Admin",
-    attachment: "-",
-    approve: "Approved",
-  },
-  {
-    id: 2,
-    projectType: "Office",
-    project: "Rifat Eyecon City",
-    titleOfWork: "Commercial Space",
-    customerName: "Somikoron IT Ltd",
-    code: "SALE798721",
-    ref: "REF-002",
-    date: "07 Sept 2026",
-    grandTotal: 350000,
-    addedBy: "Admin",
-    attachment: "invoice.pdf",
-    approve: "Approved",
-  },
-];
-
 interface SaleListTableProps {
+  refreshTrigger?: number;
   onEdit?: (item: SaleListItem) => void;
   onView?: (item: SaleListItem) => void;
 }
 
-export default function SaleListTable({ onEdit, onView }: SaleListTableProps) {
+export default function SaleListTable({ refreshTrigger, onEdit, onView }: SaleListTableProps) {
   const [sales, setSales] = useState<SaleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetching Data from API with Default Data Fallback
+  // Fetching Data from backend / API route
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint e.g., '/api/sales'
-        const response = await fetch("/api/sales");
+        const response = await fetch(`/api/sales?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch from API");
         }
 
-        const data = await response.json();
-
-        // If API returns empty array or null, use default data
-        if (!data || data.length === 0) {
-          setSales(DEFAULT_SALES);
-        } else {
-          setSales(data);
-        }
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw) ? raw : [];
+        setSales(list);
       } catch (error) {
-        console.warn(
-          "API error or endpoint not found. Loading default data...",
-          error,
-        );
-        // Fallback to default data if API fails
-        setSales(DEFAULT_SALES);
+        setSales([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSalesData();
-  }, []);
+  }, [refreshTrigger]);
 
   // Delete handler
   const handleDelete = (id: number) => {

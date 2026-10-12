@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Handshake } from "lucide-react";
 import { NegotiationRecord, AcquisitionLead, NegotiationStatus } from "@/types/lams";
 
 interface AddNegotiationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddNegotiation: (record: NegotiationRecord) => void;
+  editData?: any;
+    onAddNegotiation: (record: NegotiationRecord) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -22,9 +23,10 @@ export function AddNegotiationModal({
   isOpen,
   onClose,
   onAddNegotiation,
+    editData,
   acquisitionLeads,
 }: AddNegotiationModalProps) {
-  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.id || "");
+  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.uuid || "");
   const [offeredTotalPrice, setOfferedTotalPrice] = useState<number>(38500000);
   const [offeredPricePerDecimal, setOfferedPricePerDecimal] = useState<number>(1100000);
   const [counterOfferByOwner, setCounterOfferByOwner] = useState<number>(42000000);
@@ -34,11 +36,27 @@ export function AddNegotiationModal({
   const [attendedBy, setAttendedBy] = useState("Sakib Al Hasan & Legal Valuer");
   const [remarks, setRemarks] = useState("");
 
+  useEffect(() => {
+    if (isOpen && editData) {
+      setAcquisitionLeadId(editData.acquisitionLeadId || "");
+      setOfferedTotalPrice(editData.offeredTotalPrice || 0);
+      setCounterOfferByOwner(editData.counterOfferByOwner || 0);
+      setNegotiationStatus(editData.negotiationStatus || "In Progress");
+      setMeetingDate(editData.meetingDate || new Date().toISOString().split("T")[0]);
+      setAttendedBy(editData.attendedBy || "");
+      setRemarks(editData.remarks || "");
+    } else if (isOpen && !editData) {
+      // reset 
+    }
+  }, [isOpen, editData]);
+
   if (!isOpen) return null;
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.id === acquisitionLeadId) || acquisitionLeads[0];
+    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
 
     const newRecord: NegotiationRecord = {
       id: `NEG-${Date.now()}`,
@@ -100,7 +118,7 @@ export function AddNegotiationModal({
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
               >
                 {acquisitionLeads.map((l) => (
-                  <option key={l.id} value={l.id}>
+                  <option key={l.uuid} value={l.uuid}>
                     {l.title} (Dag {l.dagNo})
                   </option>
                 ))}

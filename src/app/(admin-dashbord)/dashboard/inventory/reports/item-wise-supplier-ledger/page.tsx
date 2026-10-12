@@ -4,59 +4,9 @@ import type { ItemHistoryItem } from "@/components/inventory/ItemWiseSupplierLed
 import ItemHistoryReportTable from "@/components/inventory/ItemWiseSupplierLedgerTable";
 import React, { useState, useMemo } from "react";
 
-const INITIAL_DATA: ItemHistoryItem[] = [
-  {
-    id: 1,
-    date: "2026-08-16",
-    invoiceNo: "INV-5001",
-    project: "Hena Heights",
-    task: "Task 1",
-    in: 120,
-    out: 0,
-    balance: 120,
-    unitCost: 85.5,
-    subTotal: 10260,
-  },
-  {
-    id: 2,
-    date: "2026-08-20",
-    invoiceNo: "INV-5002",
-    project: "Hena Heights",
-    task: "Task 1",
-    in: 0,
-    out: 40,
-    balance: 80,
-    unitCost: 85.5,
-    subTotal: 3420,
-  },
-  {
-    id: 3,
-    date: "2026-08-25",
-    invoiceNo: "INV-5003",
-    project: "Rifat Eyecon City",
-    task: "Task 2",
-    in: 200,
-    out: 0,
-    balance: 200,
-    unitCost: 550,
-    subTotal: 110000,
-  },
-  {
-    id: 4,
-    date: "2026-09-02",
-    invoiceNo: "INV-5004",
-    project: "Rifat Eyecon City",
-    task: "Task 2",
-    in: 0,
-    out: 75,
-    balance: 125,
-    unitCost: 550,
-    subTotal: 41250,
-  },
-];
 
 export default function ItemHistoryReportContainer() {
-  const [data] = useState<ItemHistoryItem[]>(INITIAL_DATA);
+  const [data, setData] = useState<ItemHistoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage] = useState(500);
   const [currentPage, setCurrentPage] = useState(1);

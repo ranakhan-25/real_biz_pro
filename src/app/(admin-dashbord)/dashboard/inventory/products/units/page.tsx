@@ -4,14 +4,15 @@ import UnitList from "@/components/inventory/UnitList";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX, FiArrowLeft } from "react-icons/fi";
+import { unitsApi } from "@/lib/inventoryApi";
 
 // Unit type definition
 export interface Unit {
-  id: number;
+  id: string | number;
   code: string;
   name: string;
-  conversionUnit: string;
-  rate: string;
+  conversionUnit?: string;
+  rate?: string;
 }
 
 const UnitAccounts = () => {
@@ -19,12 +20,13 @@ const UnitAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedUnit, setSelectedUnit] = useState<Partial<Unit>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Open modal for adding a new unit
   const handleAddClick = () => {
     setModalMode("add");
     setSelectedUnit({
-      id: 82,
       code: `UN${Math.floor(1000 + Math.random() * 9000)}`,
       name: "",
       conversionUnit: "",
@@ -41,11 +43,44 @@ const UnitAccounts = () => {
   };
 
   // Form submit handler for Add/Update
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Unit Data:`, selectedUnit);
-    // Here you can add your API submission logic (POST/PUT request)
-    setIsModalOpen(false);
+    if (!selectedUnit.name) return;
+
+    try {
+      setIsSubmitting(true);
+      if (modalMode === "add") {
+        await unitsApi.create({
+          code: selectedUnit.code || `UN${Date.now().toString().slice(-4)}`,
+          name: selectedUnit.name,
+        });
+      } else if (modalMode === "update" && selectedUnit.id) {
+        await unitsApi.update(selectedUnit.id, {
+          code: selectedUnit.code || "",
+          name: selectedUnit.name,
+        });
+      }
+
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save unit:", err);
+      alert(err.message || "Failed to save unit");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete unit "${name}"?`)) return;
+    try {
+      await unitsApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete unit:", err);
+      alert(err.message || "Failed to delete unit");
+    }
   };
 
   return (
@@ -58,7 +93,7 @@ const UnitAccounts = () => {
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-auto">
-          {/* Add Unit Button with bg-[var(--lime)] and text-white */}
+          {/* Add Unit Button */}
           <button
             onClick={handleAddClick}
             className="flex items-center gap-2 bg-[var(--lime)] hover:opacity-90 text-white px-4 py-2 rounded text-sm font-medium shadow-sm transition-all"
@@ -78,8 +113,10 @@ const UnitAccounts = () => {
 
       {/* Child Component for Listing & Filtering */}
       <UnitList
+        refreshTrigger={refreshTrigger}
         onEdit={(unit) => handleOpenModal(unit, "update")}
         onView={(unit) => handleOpenModal(unit, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}
@@ -176,9 +213,14 @@ const UnitAccounts = () => {
                 {modalMode !== "view" && (
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm disabled:opacity-50"
                   >
-                    {modalMode === "add" ? "Save Unit" : "Update Changes"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : modalMode === "add"
+                      ? "Save Unit"
+                      : "Update Changes"}
                   </button>
                 )}
               </div>

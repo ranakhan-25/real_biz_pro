@@ -8,7 +8,7 @@ import CrDashboard from "./CrDashboard";
 import CrmDashboard from "./CrmDashboard";
 import HrmDashboard from "./HrmDashboard";
 import InventoryDashboard from "./InventoryDashboard";
-import LamsDashboard from "./LamsDashboard";
+import LamsDashboardWrapper from "./LamsDashboardWrapper";
 import ProcurementDashboard from "./ProcurementDashboard";
 import ProjectsDashboard from "./ProjectsDashboard";
 
@@ -85,7 +85,7 @@ export function ModulePage({
   if (module === "lams") {
     return (
       <div className="mx-auto max-w-[1600px] px-5 py-6 sm:px-8">
-        <LamsDashboard path={path} />
+        <LamsDashboardWrapper path={path} />
       </div>
     );
   }
@@ -105,6 +105,10 @@ export function ModulePage({
    */
 
   const renderModuleDashboard = () => {
+    if (module === "lams") {
+      return <LamsDashboardWrapper path={path} />;
+    }
+
     // Only overview/dashboard route
     if (!isOverview) {
       return null;

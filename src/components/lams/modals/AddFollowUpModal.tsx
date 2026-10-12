@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CalendarPlus } from "lucide-react";
 import { FollowUpItem, AcquisitionLead, FollowUpStatus } from "@/types/lams";
 
 interface AddFollowUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddFollowUp: (item: FollowUpItem) => void;
+  editData?: any;
+    onAddFollowUp: (item: FollowUpItem) => void;
   acquisitionLeads: AcquisitionLead[];
 }
 
@@ -15,20 +16,35 @@ export function AddFollowUpModal({
   isOpen,
   onClose,
   onAddFollowUp,
+    editData,
   acquisitionLeads,
 }: AddFollowUpModalProps) {
-  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.id || "");
+  const [acquisitionLeadId, setAcquisitionLeadId] = useState(acquisitionLeads[0]?.uuid || "");
   const [date, setDate] = useState("2026-09-18");
   const [followUpType, setFollowUpType] = useState<FollowUpItem["followUpType"]>("Office Meeting");
   const [status, setStatus] = useState<FollowUpStatus>("Pending");
   const [note, setNote] = useState("");
   const [assignedTo, setAssignedTo] = useState("Sakib Al Hasan");
 
+  useEffect(() => {
+    if (isOpen && editData) {
+      setAcquisitionLeadId(editData.acquisitionLeadId || "");
+      setDate(editData.date || new Date().toISOString().split("T")[0]);
+      setFollowUpType(editData.followUpType || "Call");
+      setStatus(editData.status || "Pending");
+      setNote(editData.note || "");
+    } else if (isOpen && !editData) {
+      // reset 
+    }
+  }, [isOpen, editData]);
+
   if (!isOpen) return null;
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const lead = acquisitionLeads.find((l) => l.id === acquisitionLeadId) || acquisitionLeads[0];
+    const lead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId) || acquisitionLeads[0];
 
     const newItem: FollowUpItem = {
       id: `FLW-${Date.now()}`,
@@ -87,7 +103,7 @@ export function AddFollowUpModal({
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             >
               {acquisitionLeads.map((l) => (
-                <option key={l.id} value={l.id}>
+                <option key={l.uuid} value={l.uuid}>
                   {l.title} — {l.ownerName} ({l.ownerPhone})
                 </option>
               ))}

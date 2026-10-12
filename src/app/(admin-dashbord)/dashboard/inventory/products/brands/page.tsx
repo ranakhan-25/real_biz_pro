@@ -4,10 +4,11 @@ import BrandList from "@/components/inventory/BrandList";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
 import React, { useState } from "react";
 import { FiPlus, FiX, FiArrowLeft } from "react-icons/fi";
+import { brandsApi } from "@/lib/inventoryApi";
 
 // Brand type definition
 export interface Brand {
-  id: number;
+  id: string | number;
   code: string;
   name: string;
 }
@@ -17,6 +18,8 @@ const BrandAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedBrand, setSelectedBrand] = useState<Partial<Brand>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Open modal for adding a new brand
   const handleAddClick = () => {
@@ -36,11 +39,44 @@ const BrandAccounts = () => {
   };
 
   // Form submit handler for Add/Update
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Brand Data:`, selectedBrand);
-    // Here you can add your API submission logic (POST/PUT request)
-    setIsModalOpen(false);
+    if (!selectedBrand.name) return;
+
+    try {
+      setIsSubmitting(true);
+      if (modalMode === "add") {
+        await brandsApi.create({
+          code: selectedBrand.code || `BR${Date.now().toString().slice(-6)}`,
+          name: selectedBrand.name,
+        });
+      } else if (modalMode === "update" && selectedBrand.id) {
+        await brandsApi.update(selectedBrand.id, {
+          code: selectedBrand.code || "",
+          name: selectedBrand.name,
+        });
+      }
+
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save brand:", err);
+      alert(err.message || "Failed to save brand");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete brand "${name}"?`)) return;
+    try {
+      await brandsApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete brand:", err);
+      alert(err.message || "Failed to delete brand");
+    }
   };
 
   return (
@@ -53,7 +89,7 @@ const BrandAccounts = () => {
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-auto">
-          {/* Add Brand Button with bg-[var(--lime)] and text-white */}
+          {/* Add Brand Button */}
           <button
             onClick={handleAddClick}
             className="flex items-center gap-2 bg-[var(--lime)] hover:opacity-90 text-white px-4 py-2 rounded text-sm font-medium shadow-sm transition-all"
@@ -73,8 +109,10 @@ const BrandAccounts = () => {
 
       {/* Child Component for Listing & Filtering */}
       <BrandList
+        refreshTrigger={refreshTrigger}
         onEdit={(brand) => handleOpenModal(brand, "update")}
         onView={(brand) => handleOpenModal(brand, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}
@@ -100,13 +138,15 @@ const BrandAccounts = () => {
             <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Code <span className="text-red-500">*</span>
+                  Code
                 </label>
                 <input
                   type="text"
                   disabled={modalMode === "view"}
                   value={selectedBrand.code || ""}
-                  onChange={(e) => setSelectedBrand({ ...selectedBrand, code: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedBrand({ ...selectedBrand, code: e.target.value })
+                  }
                   className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
                   required
                 />
@@ -120,7 +160,9 @@ const BrandAccounts = () => {
                   type="text"
                   disabled={modalMode === "view"}
                   value={selectedBrand.name || ""}
-                  onChange={(e) => setSelectedBrand({ ...selectedBrand, name: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedBrand({ ...selectedBrand, name: e.target.value })
+                  }
                   placeholder="Enter brand name"
                   className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
                   required
@@ -139,9 +181,14 @@ const BrandAccounts = () => {
                 {modalMode !== "view" && (
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm disabled:opacity-50"
                   >
-                    {modalMode === "add" ? "Save Brand" : "Update Changes"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : modalMode === "add"
+                      ? "Save Brand"
+                      : "Update Changes"}
                   </button>
                 )}
               </div>

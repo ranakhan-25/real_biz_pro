@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { purchasesApi, suppliersApi, itemsApi } from "@/lib/inventoryApi";
 
 // Purchase item type definition
 interface PurchaseItem {
   id: number;
+  itemId?: string;
   itemCode: string;
   itemName: string;
   details: string;
@@ -28,6 +32,8 @@ interface PaymentTransaction {
 }
 
 export default function PurchaseForm() {
+  const router = useRouter();
+
   // Form states
   const [isMaterialUsages, setIsMaterialUsages] = useState(false);
   const [date, setDate] = useState("10/09/2026");
@@ -40,6 +46,30 @@ export default function PurchaseForm() {
   const [site, setSite] = useState("");
   const [category, setCategory] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
+
+  // Dynamic dropdown lists
+  const [suppliersList, setSuppliersList] = useState<any[]>([]);
+  const [itemsList, setItemsList] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [sups, itms] = await Promise.all([
+          suppliersApi.getAll().catch(() => []),
+          itemsApi.getAll().catch(() => []),
+        ]);
+        if (Array.isArray(sups)) {
+          setSuppliersList(sups);
+          if (sups.length > 0 && !supplier) setSupplier(sups[0].id);
+        }
+        if (Array.isArray(itms)) setItemsList(itms);
+      } catch (err) {
+        console.warn("Failed to load options for PurchaseForm:", err);
+      }
+    }
+    loadData();
+  }, []);
 
   // Items table state
   const [items, setItems] = useState<PurchaseItem[]>([]);
@@ -67,17 +97,19 @@ export default function PurchaseForm() {
   // Add Item to Table handler (triggered by '+' button)
   const handleAddItem = () => {
     if (!selectedItem) {
-      alert("Please select an item first!");
+      toast.error("Please select an item first!");
       return;
     }
+    const found = itemsList.find((i) => i.id === selectedItem || i.name === selectedItem);
     const newItem: PurchaseItem = {
       id: Date.now(),
-      itemCode: `ITM${Math.floor(100 + Math.random() * 900)}`,
-      itemName: selectedItem,
-      details: "Sample Details",
-      unit: "Pcs",
+      itemId: found ? found.id : undefined,
+      itemCode: found ? (found.item_code || found.code || "ITM") : `ITM${Math.floor(100 + Math.random() * 900)}`,
+      itemName: found ? found.name : selectedItem,
+      details: "Item Details",
+      unit: found?.unit?.name || "Pcs",
       quantity: 1,
-      rate: 100,
+      rate: found?.purchase_price ? Number(found.purchase_price) : 100,
       budgetQty: 10,
       purchaseQty: 1,
       stockQty: 5,
@@ -94,7 +126,7 @@ export default function PurchaseForm() {
   // Add Payment handler
   const handleAddPayment = () => {
     if (paymentAmount <= 0) {
-      alert("Please enter a valid payment amount!");
+      toast.error("Please enter a valid payment amount!");
       return;
     }
     const newPayment: PaymentTransaction = {
@@ -118,31 +150,46 @@ export default function PurchaseForm() {
   };
 
   // Form Submit handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const purchaseData = {
-      isMaterialUsages,
-      date,
-      supplier,
-      code,
-      projectType,
-      project,
-      titleOfWork,
-      itTask,
-      site,
-      category,
-      items,
-      subtotal,
-      discount,
-      deliveryLabour,
-      grandTotal,
-      paid,
-      due,
-      noteComments,
-      payments,
-    };
-    console.log("Submitted Purchase Data:", purchaseData);
-    alert("Purchase saved successfully!");
+    if (!supplier) {
+      toast.error("Please select a supplier!");
+      return;
+    }
+    if (items.length === 0) {
+      toast.error("Please add at least one item to the purchase table!");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        date: new Date().toISOString().split("T")[0],
+        supplier_id: supplier,
+        payment_method: isCheque ? "Cheque" : paymentMethod,
+        subtotal: Number(subtotal || 0),
+        discount: Number(discount || 0),
+        delivery_charge: Number(deliveryLabour || 0),
+        grand_total: Number(grandTotal || 0),
+        paid_amount: Number(paid || 0),
+        due_amount: Number(due || 0),
+        items: items.map((it) => ({
+          item_id: it.itemId || it.id.toString(),
+          quantity: Number(it.quantity || 1),
+          rate: Number(it.rate || 0),
+          amount: Number((it.quantity || 1) * (it.rate || 0)),
+        })),
+      };
+
+      await purchasesApi.create(payload);
+      toast.success("Purchase saved successfully!");
+      router.push("/dashboard/inventory/purchase/purchase-list");
+    } catch (err: any) {
+      console.error("Failed to save purchase:", err);
+      toast.error(err.message || "Failed to save purchase");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -186,15 +233,20 @@ export default function PurchaseForm() {
                 value={supplier}
                 onChange={(e) => setSupplier(e.target.value)}
                 className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
+                required
               >
-                <option value="">Select an option</option>
-                <option value="Supplier A">Supplier A</option>
-                <option value="Supplier B">Supplier B</option>
+                <option value="">Select Supplier</option>
+                {suppliersList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.code || "SUP"})
+                  </option>
+                ))}
               </select>
               <button
                 type="button"
-                onClick={() => alert("Add Supplier modal")}
+                onClick={() => router.push("/dashboard/inventory/contracts/supplier-accounts")}
                 className="bg-[var(--lime)] text-white px-2.5 py-1.5 rounded text-xs"
+                title="Add New Supplier"
               >
                 <FiPlus />
               </button>
@@ -303,9 +355,11 @@ export default function PurchaseForm() {
                 className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
               >
                 <option value="">Select Item</option>
-                <option value="Rod 16mm">Rod 16mm</option>
-                <option value="Seven Rings Cement">Seven Rings Cement</option>
-                <option value="Brick 1st Class">Brick 1st Class</option>
+                {itemsList.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name} ({i.code || i.item_code || "ITM"})
+                  </option>
+                ))}
               </select>
               <button
                 type="button"

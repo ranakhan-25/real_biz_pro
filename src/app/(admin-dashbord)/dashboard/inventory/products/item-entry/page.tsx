@@ -2,17 +2,21 @@
 
 import ItemList from "@/components/inventory/ItemList";
 import { RouteBreadcrumb } from "@/components/ui/RouteBreadcrumb";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiX, FiFileText, FiDownload, FiPrinter } from "react-icons/fi";
+import { itemsApi, categoriesApi, unitsApi, brandsApi } from "@/lib/inventoryApi";
 
 // Item type definition
 export interface Item {
-  id: number;
+  id: string | number;
   code: string;
   name: string;
   category: string;
+  category_id?: string;
   unit: string;
+  unit_id?: string;
   brand: string;
+  brand_id?: string;
   purchasePrice: number;
   salePrice: number;
 }
@@ -22,16 +26,41 @@ const ItemAccounts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "update" | "view">("add");
   const [selectedItem, setSelectedItem] = useState<Partial<Item>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dropdown options loaded from API
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
+  const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      try {
+        const [catsRes, unitsRes, brandsRes] = await Promise.all([
+          categoriesApi.getAll().catch(() => []),
+          unitsApi.getAll().catch(() => []),
+          brandsApi.getAll().catch(() => []),
+        ]);
+        if (Array.isArray(catsRes)) setCategories(catsRes.map((c: any) => ({ id: c.id, name: c.name })));
+        if (Array.isArray(unitsRes)) setUnits(unitsRes.map((u: any) => ({ id: u.id, name: u.name })));
+        if (Array.isArray(brandsRes)) setBrands(brandsRes.map((b: any) => ({ id: b.id, name: b.name })));
+      } catch (err) {
+        console.warn("Failed to load item dropdown data:", err);
+      }
+    }
+    loadDropdowns();
+  }, []);
 
   // Open modal for adding a new item
   const handleAddClick = () => {
     setModalMode("add");
     setSelectedItem({
-      code: `M00${Math.floor(80 + Math.random() * 20)}`,
+      code: `ITEM-${Math.floor(1000 + Math.random() * 9000)}`,
       name: "",
-      category: "Rod",
-      unit: "Set",
-      brand: "brand",
+      category_id: categories[0]?.id || "",
+      unit_id: units[0]?.id || "",
+      brand_id: brands[0]?.id || undefined,
       purchasePrice: 0,
       salePrice: 0,
     });
@@ -46,11 +75,57 @@ const ItemAccounts = () => {
   };
 
   // Form submit handler for Add/Update
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(`${modalMode.toUpperCase()} Item Data:`, selectedItem);
-    // Here you can add your API submission logic (POST/PUT request)
-    setIsModalOpen(false);
+    if (!selectedItem.name) return;
+
+    const catId = selectedItem.category_id || categories[0]?.id;
+    const unitId = selectedItem.unit_id || units[0]?.id;
+
+    if (!catId || !unitId) {
+      alert("Category and Unit are required. Please ensure at least one Category and Unit are created.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        item_code: selectedItem.code || `ITEM-${Date.now().toString().slice(-4)}`,
+        name: selectedItem.name,
+        type: "Material",
+        purchase_price: Number(selectedItem.purchasePrice || 0),
+        sale_price: Number(selectedItem.salePrice || 0),
+        category_id: catId,
+        unit_id: unitId,
+        brand_id: selectedItem.brand_id || undefined,
+      };
+
+      if (modalMode === "add") {
+        await itemsApi.create(payload);
+      } else if (modalMode === "update" && selectedItem.id) {
+        await itemsApi.update(selectedItem.id, payload);
+      }
+
+      setRefreshTrigger((prev) => prev + 1);
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to save item:", err);
+      alert(err.message || "Failed to save item");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async (id: string | number, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete item "${name}"?`)) return;
+    try {
+      await itemsApi.delete(id);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err: any) {
+      console.error("Failed to delete item:", err);
+      alert(err.message || "Failed to delete item");
+    }
   };
 
   return (
@@ -63,7 +138,7 @@ const ItemAccounts = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
-          {/* +Item Add Button with bg-[var(--lime)] and text-white */}
+          {/* +Item Add Button */}
           <button
             onClick={handleAddClick}
             className="flex items-center gap-1.5 bg-[var(--lime)] hover:opacity-90 text-white px-3.5 py-2 rounded text-xs font-medium shadow-sm transition-all"
@@ -73,7 +148,7 @@ const ItemAccounts = () => {
 
           {/* PDF Button */}
           <button
-            onClick={() => alert("Exporting to PDF...")}
+            onClick={() => window.print()}
             className="flex items-center gap-1.5 bg-[#ef4444] hover:bg-[#dc2626] text-white px-3.5 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiFileText className="text-sm" /> PDF
@@ -81,7 +156,7 @@ const ItemAccounts = () => {
 
           {/* Excel Button */}
           <button
-            onClick={() => alert("Exporting to Excel...")}
+            onClick={() => alert("Exporting list...")}
             className="flex items-center gap-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-3.5 py-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiDownload className="text-sm" /> Excel
@@ -89,7 +164,7 @@ const ItemAccounts = () => {
 
           {/* Extra Icon Button */}
           <button
-            onClick={() => alert("Additional action triggered")}
+            onClick={() => window.print()}
             className="flex items-center justify-center bg-[#0d9488] hover:bg-[#0f766e] text-white p-2 rounded text-xs font-medium shadow-sm transition-all"
           >
             <FiPrinter className="text-sm" />
@@ -99,8 +174,10 @@ const ItemAccounts = () => {
 
       {/* Child Component for Listing & Filtering */}
       <ItemList
+        refreshTrigger={refreshTrigger}
         onEdit={(item) => handleOpenModal(item, "update")}
         onView={(item) => handleOpenModal(item, "view")}
+        onDelete={handleDelete}
       />
 
       {/* Shared Modal Form for Add / Update / View */}
@@ -156,52 +233,65 @@ const ItemAccounts = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
-                    Category
+                    Category <span className="text-red-500">*</span>
                   </label>
                   <select
                     disabled={modalMode === "view"}
-                    value={selectedItem.category || "Rod"}
-                    onChange={(e) => setSelectedItem({ ...selectedItem, category: e.target.value })}
+                    value={selectedItem.category_id || (categories[0]?.id || "")}
+                    onChange={(e) => setSelectedItem({ ...selectedItem, category_id: e.target.value })}
                     className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
+                    required
                   >
-                    <option value="Rod">Rod</option>
-                    <option value="Sand">Sand</option>
-                    <option value="Bricks">Bricks</option>
-                    <option value="Others">Others</option>
+                    {categories.length > 0 ? (
+                      categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No categories available</option>
+                    )}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
-                    Unit
+                    Unit <span className="text-red-500">*</span>
                   </label>
                   <select
                     disabled={modalMode === "view"}
-                    value={selectedItem.unit || "Set"}
-                    onChange={(e) => setSelectedItem({ ...selectedItem, unit: e.target.value })}
+                    value={selectedItem.unit_id || (units[0]?.id || "")}
+                    onChange={(e) => setSelectedItem({ ...selectedItem, unit_id: e.target.value })}
                     className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
+                    required
                   >
-                    <option value="Set">Set</option>
-                    <option value="Bag">Bag</option>
-                    <option value="Rft">Rft</option>
-                    <option value="Sft">Sft</option>
-                    <option value="Pcs">Pcs</option>
-                    <option value="Kg">Kg</option>
-                    <option value="Nos">Nos</option>
-                    <option value="Job">Job</option>
+                    {units.length > 0 ? (
+                      units.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No units available</option>
+                    )}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Brand
                   </label>
-                  <input
-                    type="text"
+                  <select
                     disabled={modalMode === "view"}
-                    value={selectedItem.brand || ""}
-                    onChange={(e) => setSelectedItem({ ...selectedItem, brand: e.target.value })}
-                    placeholder="Brand name"
+                    value={selectedItem.brand_id || ""}
+                    onChange={(e) => setSelectedItem({ ...selectedItem, brand_id: e.target.value || undefined })}
                     className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
-                  />
+                  >
+                    <option value="">Select Brand (Optional)</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -248,9 +338,14 @@ const ItemAccounts = () => {
                 {modalMode !== "view" && (
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded bg-[var(--lime)] text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm disabled:opacity-50"
                   >
-                    {modalMode === "add" ? "Save Item" : "Update Changes"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : modalMode === "add"
+                      ? "Save Item"
+                      : "Update Changes"}
                   </button>
                 )}
               </div>

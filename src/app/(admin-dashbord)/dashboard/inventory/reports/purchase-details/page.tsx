@@ -2,110 +2,42 @@
 
 import type { PurchaseItem } from "@/components/inventory/PurchaseDetailsTable";
 import PurchaseDetailsTable from "@/components/inventory/PurchaseDetailsTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
 
-const DEFAULT_PURCHASES: PurchaseItem[] = [
-  {
-    id: 1,
-    date: "2026-09-03",
-    invoiceNo: "PURCHASE00004",
-    supplierName: "Mohin Business solution",
-    category: "Rod",
-    itemName: "req",
-    quantity: 1,
-    price: 100,
-    subTotal: 100,
-    project: "Hena Heights",
-  },
-  {
-    id: 2,
-    date: "2026-09-07",
-    invoiceNo: "PURCHASE00005",
-    supplierName: "BSRM",
-    category: "Rod",
-    itemName: "20mm Rod",
-    quantity: 100,
-    price: 88,
-    subTotal: 8800,
-    project: "Rifat Eyecon City",
-  },
-  {
-    id: 3,
-    date: "2026-09-07",
-    invoiceNo: "PURCHASE00005",
-    supplierName: "BSRM",
-    category: "Rod",
-    itemName: "16mm Rod",
-    quantity: 130,
-    price: 82,
-    subTotal: 10660,
-    project: "Rifat Eyecon City",
-  },
-  {
-    id: 4,
-    date: "2026-09-07",
-    invoiceNo: "PURCHASE00007",
-    supplierName: "Prime Tiles",
-    category: "Bricks",
-    itemName: "1st Class Brick",
-    quantity: 4000,
-    price: 13,
-    subTotal: 52000,
-    project: "Sheba Eyecon Tower",
-  },
-  {
-    id: 5,
-    date: "2026-09-07",
-    invoiceNo: "PURCHASE00008",
-    supplierName: "Safety First Suppliers",
-    category: "Bricks",
-    itemName: "1st Class Brick",
-    quantity: 500,
-    price: 12,
-    subTotal: 6000,
-    project: "Sheba Eyecon Tower",
-  },
-  {
-    id: 6,
-    date: "2026-09-07",
-    invoiceNo: "PUR7987198",
-    supplierName: "Mohin Business solution",
-    category: "Sand",
-    itemName: "Sand (FM 2.50)",
-    quantity: 30,
-    price: 50,
-    subTotal: 1500,
-    project: "Estern 19",
-  },
-  {
-    id: 7,
-    date: "2026-09-08",
-    invoiceNo: "PUR7987199",
-    supplierName: "Mohin Business solution",
-    category: "Rod",
-    itemName: "name",
-    quantity: 1,
-    price: 0,
-    subTotal: 0,
-    project: "Hena Heights",
-  },
-  {
-    id: 8,
-    date: "2026-09-08",
-    invoiceNo: "PUR7987200",
-    supplierName: "Safety First Suppliers",
-    category: "Sand",
-    itemName: "cbv",
-    quantity: 1,
-    price: 0,
-    subTotal: 0,
-    project: "Estern 19",
-  },
-];
 
 export default function PurchaseDetailsContainer() {
-  const [purchases] = useState<PurchaseItem[]>(DEFAULT_PURCHASES);
+  const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
+
+  useEffect(() => {
+    async function loadPurchases() {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+        const res = await fetch(`${apiBase}/inventory/purchases`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const raw = json.data !== undefined ? json.data : json;
+        if (Array.isArray(raw)) {
+          const list = raw.map((item, idx) => ({
+            id: item.id || idx + 1,
+            date: item.date ? new Date(item.date).toLocaleDateString() : "-",
+            invoiceNo: item.purchase_no || item.code || `PUR-${idx + 1}`,
+            supplierName: item.supplier?.name || item.supplier_name || "Supplier",
+            category: "General",
+            itemName: item.item_name || "Purchased Goods",
+            quantity: Number(item.total_quantity || 1),
+            price: Number(item.rate || item.grand_total || 0),
+            subTotal: Number(item.grand_total || 0),
+            project: item.project?.name || item.project_name || "Head Office",
+          }));
+          setPurchases(list);
+        }
+      } catch (err) {
+        setPurchases([]);
+      }
+    }
+    loadPurchases();
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

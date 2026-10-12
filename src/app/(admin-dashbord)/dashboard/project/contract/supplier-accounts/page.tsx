@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -12,6 +13,7 @@ import {
   X,
   Calendar,
   Printer,
+  Check,
   Loader2,
 } from "lucide-react";
 
@@ -48,6 +50,17 @@ interface Supplier {
 // ==================== API HELPERS ====================
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
+// shared error reader: backend er asol message ber kore ane
+async function handleRes(res: Response, action: string) {
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg =
+      json?.message || json?.error || `Failed to ${action} (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return json;
+}
+
 async function fetchSuppliers(params?: {
   page?: number;
   limit?: number;
@@ -55,7 +68,8 @@ async function fetchSuppliers(params?: {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 100;
 
-  const url = `${API_BASE}/realbizpro/api/v1/supplier-accounts?page=${page}&limit=${limit}&skip=0&sortBy=createdAt&sortOrder=DESC&withDeleted=false`;
+  // status=active — tai soft-deleted (inactive) record ar list e asbe na
+  const url = `${API_BASE}/realbizpro/api/v1/supplier-accounts?page=${page}&limit=${limit}&skip=0&status=active&sortBy=createdAt&sortOrder=DESC&withDeleted=false`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -66,46 +80,44 @@ async function fetchSuppliers(params?: {
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch suppliers: ${res.status}`);
-  }
+  const json = await handleRes(res, "fetch suppliers");
 
-  const json = await res.json();
-
-  const mapped: Supplier[] = (json?.data?.data || []).map((item: any) => ({
-    id: item.id ?? item.uuid,
-    uuid: item.uuid,
-    code: item.supplierCode || "",
-    name: item.supplierName || "",
-    company: item.businessName || "",
-    phone: item.phone || "",
-    email: item.email || "",
-    address: item.address || "",
-    under: item.underGroup || "Local Supplier",
-    creditLimit: item.creditLimit ?? 0,
-    dueDate: item.dueDate
-      ? new Date(item.dueDate).toLocaleDateString("en-US")
-      : "",
-    status: item.status || "active",
-    ledger: item.ledger || [],
-  }));
+  const mapped: Supplier[] = (json?.data?.data || [])
+    .map((item: any) => ({
+      id: item.id ?? item.uuid,
+      uuid: item.uuid,
+      code: item.supplierCode || "",
+      name: item.supplierName || "",
+      company: item.businessName || "",
+      phone: item.phone || "",
+      email: item.email || "",
+      address: item.address || "",
+      under: item.underGroup || "Local Supplier",
+      creditLimit: item.creditLimit ?? 0,
+      // YYYY-MM-DD রাখা হলো, date input e tikm bose
+      dueDate: item.dueDate ? String(item.dueDate).slice(0, 10) : "",
+      status: item.status || "active",
+      ledger: item.ledger || [],
+    }))
+    // safety net: backend status param ignore korleo inactive record aasbe na
+    .filter(
+      (s: Supplier) => s.status !== "inactive" && s.status !== "deleted",
+    );
 
   return { data: mapped, meta: json?.data?.meta };
 }
 
+// POST /realbizpro/api/v1/supplier-accounts
 async function createSupplier(payload: Record<string, any>) {
   const res = await fetch(`${API_BASE}/realbizpro/api/v1/supplier-accounts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Create failed");
-  }
-  return res.json();
+  return handleRes(res, "create supplier");
 }
 
+// PATCH /realbizpro/api/v1/supplier-accounts/{uuid}
 async function updateSupplier(uuid: string, payload: Record<string, any>) {
   const res = await fetch(
     `${API_BASE}/realbizpro/api/v1/supplier-accounts/${uuid}`,
@@ -115,13 +127,10 @@ async function updateSupplier(uuid: string, payload: Record<string, any>) {
       body: JSON.stringify(payload),
     },
   );
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.message || "Update failed");
-  }
-  return res.json();
+  return handleRes(res, "update supplier");
 }
 
+// DELETE /realbizpro/api/v1/supplier-accounts/{uuid}
 async function softDeleteSupplier(uuid: string) {
   const res = await fetch(
     `${API_BASE}/realbizpro/api/v1/supplier-accounts/${uuid}`,
@@ -130,8 +139,7 @@ async function softDeleteSupplier(uuid: string) {
       headers: { "Content-Type": "application/json" },
     },
   );
-  if (!res.ok) throw new Error("Delete failed");
-  return res.json();
+  return handleRes(res, "delete supplier");
 }
 
 // Form data → exact API payload
@@ -166,13 +174,11 @@ function SupplierFormModal({
   initialData,
   onClose,
   onSubmit,
-  loading,
 }: {
   title: string;
   initialData?: Supplier;
   onClose: () => void;
-  onSubmit: (data: Partial<Supplier>) => void;
-  loading?: boolean;
+  onSubmit: (data: Partial<Supplier>) => Promise<void>;
 }) {
   const [formData, setFormData] = useState({
     code:
@@ -189,10 +195,20 @@ function SupplierFormModal({
     dueDate: initialData?.dueDate || "",
     under: initialData?.under || "Local Supplier",
   });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setSaving(true);
+    setFormError(null);
+    try {
+      await onSubmit(formData);
+    } catch (err: any) {
+      setFormError(err?.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -208,10 +224,7 @@ function SupplierFormModal({
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 space-y-4 text-sm bg-white"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-sm bg-white">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -328,13 +341,7 @@ function SupplierFormModal({
               <div className="relative">
                 <input
                   type="date"
-                  value={
-                    formData.dueDate
-                      ? formData.dueDate.includes("-")
-                        ? formData.dueDate.slice(0, 10)
-                        : ""
-                      : ""
-                  }
+                  value={formData.dueDate ? formData.dueDate.slice(0, 10) : ""}
                   onChange={(e) =>
                     setFormData({ ...formData, dueDate: e.target.value })
                   }
@@ -363,24 +370,37 @@ function SupplierFormModal({
             </div>
           </div>
 
+          {formError && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-xs">
+              {formError}
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 mt-6">
             <button
               type="button"
               onClick={onClose}
-              disabled={loading}
+              disabled={saving}
               className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-md font-medium text-xs transition cursor-pointer shadow-xs disabled:opacity-50"
             >
               Close
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={saving}
               className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium text-xs transition cursor-pointer shadow-xs disabled:opacity-50 flex items-center"
             >
-              {loading && (
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              {saving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5 mr-1.5" />
+                  Submit
+                </>
               )}
-              Submit
             </button>
           </div>
         </form>
@@ -446,16 +466,15 @@ export default function SupplierListPage() {
 
     try {
       setActionLoading(true);
-      if (supplier.uuid) {
-        await softDeleteSupplier(supplier.uuid);
-      }
-      setSuppliers((prev) => prev.filter((s) => s.id !== supplier.id));
+      if (!supplier.uuid) throw new Error("Supplier UUID is missing");
+      await softDeleteSupplier(supplier.uuid); // DELETE
+      await loadSuppliers(); // database theke abar load
       if (currentPage > 1 && currentTableData.length === 1) {
         setCurrentPage(currentPage - 1);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Delete failed. Please try again.");
+      alert(err?.message || "Delete failed. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -787,11 +806,12 @@ export default function SupplierListPage() {
                         {selectedProfile.address || "-"}
                       </span>
                     </div>
-                    {selectedProfile.creditLimit !== undefined && (
+                    {selectedProfile.creditLimit != null && (
                       <div className="py-2 flex justify-between">
                         <span className="text-slate-400">Credit Limit</span>
                         <span className="font-semibold text-emerald-600">
-                          ৳{selectedProfile.creditLimit.toLocaleString()}
+                          ৳
+                          {Number(selectedProfile.creditLimit).toLocaleString()}
                         </span>
                       </div>
                     )}
@@ -853,17 +873,18 @@ export default function SupplierListPage() {
                               {item.voucherNo}
                             </td>
                             <td className="py-2.5 px-3">
-                              {item.debit.toFixed(2)}
+                              {Number(item.debit || 0).toFixed(2)}
                             </td>
                             <td className="py-2.5 px-3">
-                              {item.credit.toLocaleString("en-US", {
+                              {Number(item.credit || 0).toLocaleString("en-US", {
                                 minimumFractionDigits: 2,
                               })}
                             </td>
                             <td className="py-2.5 px-3 font-semibold">
-                              {item.balance.toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                              })}
+                              {Number(item.balance || 0).toLocaleString(
+                                "en-US",
+                                { minimumFractionDigits: 2 },
+                              )}
                             </td>
                             <td className="py-2.5 px-3">{item.note || ""}</td>
                           </tr>
@@ -891,20 +912,11 @@ export default function SupplierListPage() {
       {isAddModalOpen && (
         <SupplierFormModal
           title="Add Supplier"
-          loading={actionLoading}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={async (newData) => {
-            try {
-              setActionLoading(true);
-              await createSupplier(toApiPayload(newData));
-              await loadSuppliers();
-              setIsAddModalOpen(false);
-            } catch (err: any) {
-              console.error(err);
-              alert(err.message || "Create failed. Please try again.");
-            } finally {
-              setActionLoading(false);
-            }
+            await createSupplier(toApiPayload(newData)); // POST
+            setIsAddModalOpen(false);
+            await loadSuppliers(); // database theke abar load
           }}
         />
       )}
@@ -914,25 +926,17 @@ export default function SupplierListPage() {
         <SupplierFormModal
           title="Edit Supplier Details"
           initialData={editingSupplier}
-          loading={actionLoading}
           onClose={() => setEditingSupplier(null)}
           onSubmit={async (updatedData) => {
-            try {
-              setActionLoading(true);
-              if (editingSupplier.uuid) {
-                await updateSupplier(
-                  editingSupplier.uuid,
-                  toApiPayload(updatedData),
-                );
-              }
-              await loadSuppliers();
-              setEditingSupplier(null);
-            } catch (err: any) {
-              console.error(err);
-              alert(err.message || "Update failed. Please try again.");
-            } finally {
-              setActionLoading(false);
-            }
+            if (!editingSupplier.uuid)
+              throw new Error("Supplier UUID is missing");
+            // PATCH /realbizpro/api/v1/supplier-accounts/{uuid}
+            await updateSupplier(
+              editingSupplier.uuid,
+              toApiPayload(updatedData),
+            );
+            setEditingSupplier(null);
+            await loadSuppliers(); // database theke abar load
           }}
         />
       )}

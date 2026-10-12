@@ -2,173 +2,43 @@
 
 import type { StockItem } from "@/components/inventory/StockReportTable";
 import StockReportTable from "@/components/inventory/StockReportTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
+import { reportsApi } from "@/lib/inventoryApi";
 
-const DEFAULT_STOCKS: StockItem[] = [
-  {
-    id: 1,
-    name: "name",
-    opening: 0,
-    in: 1.0,
-    out: 0,
-    unit: "Set",
-    closing: 1.0,
-    closingAmount: 0.0,
-    category: "Rod",
-    brand: "BSRM",
-  },
-  {
-    id: 2,
-    name: "cbv",
-    opening: 0,
-    in: 1.0,
-    out: 0,
-    unit: "Set",
-    closing: 1.0,
-    closingAmount: 0.0,
-    category: "Cement",
-    brand: "Holcim",
-  },
-  {
-    id: 3,
-    name: "req",
-    opening: 0,
-    in: 1.0,
-    out: 0,
-    unit: "Rft",
-    closing: 1.0,
-    closingAmount: 170.0,
-    category: "Rod",
-    brand: "BSRM",
-  },
-  {
-    id: 4,
-    name: "1st Class Brick",
-    opening: 28.0,
-    in: 4500.0,
-    out: 3500.0,
-    unit: "Pcs",
-    closing: 1028.0,
-    closingAmount: 17300.0,
-    category: "Bricks",
-    brand: "Local",
-  },
-  {
-    id: 5,
-    name: "Plastic Paint (Inside Floor)(Service)",
-    opening: 0,
-    in: 0,
-    out: 0,
-    unit: "Job",
-    closing: 0.0,
-    closingAmount: 0.0,
-    category: "Paint",
-    brand: "Berger",
-  },
-  {
-    id: 6,
-    name: "Bamboo",
-    opening: 0,
-    in: 1000.0,
-    out: 0,
-    unit: "Nos",
-    closing: 1000.0,
-    closingAmount: 450000.0,
-    category: "Wood",
-    brand: "Local",
-  },
-  {
-    id: 7,
-    name: "Main Door Frame",
-    opening: 0,
-    in: 20.0,
-    out: 0,
-    unit: "Pcs",
-    closing: 20.0,
-    closingAmount: 70000.0,
-    category: "Door",
-    brand: "Hatil",
-  },
-  {
-    id: 8,
-    name: "Cement (PCC/ CEM-II)",
-    opening: 109.0,
-    in: 1500.0,
-    out: 0,
-    unit: "Bag",
-    closing: 1609.0,
-    closingAmount: 782320.0,
-    category: "Cement",
-    brand: "Seven Circle",
-  },
-  {
-    id: 9,
-    name: "20mm Rod",
-    opening: 0,
-    in: 100.0,
-    out: 90.0,
-    unit: "Kg",
-    closing: 10.0,
-    closingAmount: 880.0,
-    category: "Rod",
-    brand: "BSRM",
-  },
-  {
-    id: 10,
-    name: "Sand (FM 2.50)",
-    opening: 100.0,
-    in: 535.0,
-    out: 32.0,
-    unit: "Cft",
-    closing: 603.0,
-    closingAmount: 55653.0,
-    category: "Sand",
-    brand: "Local",
-  },
-  {
-    id: 11,
-    name: "16mm Rod",
-    opening: 50.0,
-    in: 200.0,
-    out: 100.0,
-    unit: "Kg",
-    closing: 150.0,
-    closingAmount: 12500.0,
-    category: "Rod",
-    brand: "Abul Khair",
-  },
-  {
-    id: 12,
-    name: "Tiles 2x2",
-    opening: 200.0,
-    in: 500.0,
-    out: 300.0,
-    unit: "Pcs",
-    closing: 400.0,
-    closingAmount: 65000.0,
-    category: "Tiles",
-    brand: "RAK",
-  },
-  {
-    id: 13,
-    name: "IC Conductor",
-    opening: 10.0,
-    in: 50.0,
-    out: 20.0,
-    unit: "Pcs",
-    closing: 40.0,
-    closingAmount: 12000.0,
-    category: "Electrical",
-    brand: "BRB",
-  },
-];
 
 export default function StockReportContainer() {
-  const [stocks] = useState<StockItem[]>(DEFAULT_STOCKS);
+  const [stocks, setStocks] = useState<StockItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    async function loadStockReport() {
+      try {
+        const res = await reportsApi.getStockReport();
+        const raw = res?.data || res;
+        if (Array.isArray(raw) && raw.length > 0) {
+          const list = raw.map((r: any, idx: number) => ({
+            id: r.item_id || idx + 1,
+            name: r.item_name || r.name || "Item",
+            opening: Number(r.opening || 0),
+            in: Number(r.total_purchased || r.in || 0),
+            out: Number(r.total_issued || r.out || 0),
+            unit: r.unit || "Pcs",
+            closing: Number(r.current_stock || r.closing || 0),
+            closingAmount: Number(r.closingAmount || 0),
+            category: r.category || "General",
+            brand: r.brand || "Standard",
+          }));
+          setStocks(list);
+        }
+      } catch (err) {
+        console.warn("Could not load stock report from API, using default:", err);
+      }
+    }
+    loadStockReport();
+  }, []);
 
   // Filter states
   const [selectedDateRange, setSelectedDateRange] = useState(

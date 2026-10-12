@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, PlusCircle } from "lucide-react";
 import { AcquisitionLead, LeadStage, LeadSource } from "@/types/lams";
 
 interface AddAcquisitionLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddLead: (lead: AcquisitionLead) => void;
+  editData?: any;
+    onAddLead: (lead: AcquisitionLead) => void;
 }
 
 const DISTRICTS = ["Dhaka", "Narayanganj", "Gazipur", "Munshiganj"];
@@ -33,6 +34,7 @@ export function AddAcquisitionLeadModal({
   isOpen,
   onClose,
   onAddLead,
+    editData,
 }: AddAcquisitionLeadModalProps) {
   const [title, setTitle] = useState("");
   const [district, setDistrict] = useState(DISTRICTS[0]);
@@ -53,7 +55,34 @@ export function AddAcquisitionLeadModal({
   const [address, setAddress] = useState("");
   const [remarks, setRemarks] = useState("");
 
+  useEffect(() => {
+    if (isOpen && editData) {
+      setTitle(editData.title || "");
+      setDistrict(editData.district || DISTRICTS[0]);
+      setUpazila(editData.upazila || UPAZILAS[0]);
+      setMouza(editData.mouza || "");
+      setDagNo(editData.dagNo || "");
+      setKhatianNo(editData.khatianNo || "");
+      setLandArea(editData.landArea || 25.0);
+      setLandType(editData.landType || "Residential");
+      setLeadStage(editData.leadStage || "New");
+      setLeadSource(editData.leadSource || "Direct Owner");
+      setAssignedUser(editData.assignedUser || USERS[0]);
+      setExpectedPrice(editData.expectedPrice || 35000000);
+      setOfferedPrice(editData.offeredPrice || 30000000);
+      setOwnerName(editData.ownerName || "");
+      setOwnerPhone(editData.ownerPhone || "");
+      setOwnerAddress(editData.ownerAddress || "");
+      setAddress(editData.address || "");
+      setRemarks(editData.remarks || "");
+    } else if (isOpen && !editData) {
+      // reset 
+    }
+  }, [isOpen, editData]);
+
   if (!isOpen) return null;
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

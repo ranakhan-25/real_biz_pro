@@ -2,124 +2,40 @@
 
 import type { OrderReceiveItem } from "@/components/inventory/PurchaseOrderReceiveTable";
 import PurchaseOrderReceiveTable from "@/components/inventory/PurchaseOrderReceiveTable";
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
 
-const DEFAULT_ORDERS: OrderReceiveItem[] = [
-  {
-    id: 1,
-    date: "06 Sept 2026",
-    invoiceNo: "PUR6768789",
-    supplierName: "Mohin Business solution",
-    category: "Rod",
-    itemName: "10mm Rod",
-    quantity: 1,
-    receive: 0,
-  },
-  {
-    id: 2,
-    date: "06 Sept 2026",
-    invoiceNo: "PUR6768789",
-    supplierName: "Mohin Business solution",
-    category: "Cement",
-    itemName: "Cement (PCC/ CEM-II)",
-    quantity: 1,
-    receive: 0,
-  },
-  {
-    id: 3,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR7987198",
-    supplierName: "Mohin Business solution",
-    category: "Sand",
-    itemName: "Sand (FM 2.50)",
-    quantity: 30,
-    receive: 30,
-  },
-  {
-    id: 4,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR1782229",
-    supplierName: "Mohin Business solution",
-    category: "Sand",
-    itemName: "Sand (FM 2.50)",
-    quantity: 5,
-    receive: 0,
-  },
-  {
-    id: 5,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR7987199",
-    supplierName: "Safety First Suppliers",
-    category: "Cement",
-    itemName: "Cement (PCC/ CEM-II)",
-    quantity: 1000,
-    receive: 0,
-  },
-  {
-    id: 6,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR7987200",
-    supplierName: "Delta Glass & Aluminium",
-    category: "Cement",
-    itemName: "Cement (PCC/ CEM-II)",
-    quantity: 500,
-    receive: 0,
-  },
-  {
-    id: 7,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR8777873",
-    supplierName: "Mohin Business solution",
-    category: "Rod",
-    itemName: "10mm Rod",
-    quantity: 50,
-    receive: 0,
-  },
-  {
-    id: 8,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR8777873",
-    supplierName: "Mohin Business solution",
-    category: "Cement",
-    itemName: "Cement (OPC/ CEM-I)",
-    quantity: 50,
-    receive: 0,
-  },
-  {
-    id: 9,
-    date: "07 Sept 2026",
-    invoiceNo: "PUR8777873",
-    supplierName: "Mohin Business solution",
-    category: "Door",
-    itemName: "Main Door Frame",
-    quantity: 20,
-    receive: 0,
-  },
-  {
-    id: 10,
-    date: "08 Sept 2026",
-    invoiceNo: "PUR4141481",
-    supplierName: "Safety First Suppliers",
-    category: "Rod",
-    itemName: "10mm Rod",
-    quantity: 100,
-    receive: 0,
-  },
-  {
-    id: 11,
-    date: "09 Sept 2026",
-    invoiceNo: "PUR5555555",
-    supplierName: "BSRM",
-    category: "Rod",
-    itemName: "20mm Rod",
-    quantity: 100,
-    receive: 100,
-  },
-];
 
 export default function PurchaseOrderReceiveContainer() {
-  const [orders] = useState<OrderReceiveItem[]>(DEFAULT_ORDERS);
+  const [orders, setOrders] = useState<OrderReceiveItem[]>([]);
+
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
+        const res = await fetch(`${apiBase}/inventory/purchases`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const raw = json.data !== undefined ? json.data : json;
+        if (Array.isArray(raw)) {
+          const list = raw.map((item, idx) => ({
+            id: item.id || idx + 1,
+            date: item.date ? new Date(item.date).toLocaleDateString() : "-",
+            invoiceNo: item.purchase_no || item.code || `PUR-${idx + 1}`,
+            supplierName: item.supplier?.name || item.supplier_name || "Supplier",
+            category: "General",
+            itemName: item.item_name || "Item",
+            quantity: Number(item.total_quantity || 1),
+            receive: Number(item.total_quantity || 0),
+          }));
+          setOrders(list);
+        }
+      } catch (err) {
+        setOrders([]);
+      }
+    }
+    loadOrders();
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

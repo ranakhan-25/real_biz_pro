@@ -3,33 +3,22 @@
 import type { Brand } from "@/app/(admin-dashbord)/dashboard/inventory/products/brands/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-
-// Default brand items based on the reference image
-const DEFAULT_BRANDS: Brand[] = [
-  { id: 1, code: "BR755338387", name: "Seven Rings" },
-  { id: 2, code: "BR755338400", name: "BSRM" },
-  { id: 3, code: "BR755338418", name: "BBH" },
-  { id: 4, code: "B9221202", name: "ABC" },
-  { id: 5, code: "B9221202", name: "Stone Brick" },
-  { id: 6, code: "", name: "" },
-  { id: 7, code: "", name: "GPH" },
-  { id: 8, code: "", name: "Fresh" },
-  { id: 9, code: "", name: "APCS" },
-  { id: 10, code: "", name: "Baral" },
-  { id: 11, code: "BR11223344", name: "Akij" },
-  { id: 12, code: "BR55667788", name: "Shah Cement" },
-];
+import { API_BASE } from "@/lib/inventoryApi";
 
 interface BrandListProps {
   apiEndpoint?: string;
+  refreshTrigger?: number;
   onEdit?: (brand: Brand) => void;
   onView?: (brand: Brand) => void;
+  onDelete?: (id: string | number, name: string) => void;
 }
 
 export default function BrandList({
-  apiEndpoint = "/api/brands",
+  apiEndpoint = `${API_BASE}/inventory/brands`,
+  refreshTrigger,
   onEdit,
   onView,
+  onDelete,
 }: BrandListProps) {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -38,28 +27,36 @@ export default function BrandList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Fetching data with fallback mechanism
+  // Fetching data from backend API
   useEffect(() => {
     async function fetchBrands() {
       try {
         setLoading(true);
         const response = await fetch(apiEndpoint);
         if (!response.ok) throw new Error("API failed");
-        const data = await response.json();
-        setBrands(Array.isArray(data) ? data : DEFAULT_BRANDS);
+        const json = await response.json();
+        const raw = json.data !== undefined ? json.data : json;
+        const list = Array.isArray(raw)
+          ? raw.map((item: any) => ({
+              id: item.id,
+              code: item.code || "",
+              name: item.name || "",
+            }))
+          : [];
+        setBrands(list);
       } catch (error) {
-        console.warn("Using default brand data due to fetch error:", error);
-        setBrands(DEFAULT_BRANDS);
+        console.error("Error fetching brands:", error);
+        setBrands([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchBrands();
-  }, [apiEndpoint]);
+  }, [apiEndpoint, refreshTrigger]);
 
-  // Delete handler
-  const handleDelete = (id: number) => {
+  // Fallback local delete handler
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this brand?")) {
       setBrands((prev) => prev.filter((item) => item.id !== id));
     }
@@ -105,14 +102,9 @@ export default function BrandList({
             <span>entries</span>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              Search:
-            </span>
-            <div className="relative w-full sm:w-64">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
-                <FiSearch size={14} />
-              </span>
+          <div className="w-full sm:w-auto">
+            <div className="relative">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm" />
               <input
                 type="text"
                 value={searchQuery}
@@ -121,7 +113,7 @@ export default function BrandList({
                   setCurrentPage(1);
                 }}
                 placeholder="Search brands..."
-                className="w-full bg-background border border-input rounded pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                className="w-full sm:w-64 bg-background border border-input rounded pl-9 pr-3 py-1.5 text-xs text-foreground focus:outline-none"
               />
             </div>
           </div>
@@ -134,7 +126,7 @@ export default function BrandList({
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
               <tr className="bg-[var(--sidebar-foreground)] text-white font-medium select-none">
-                <th className="py-3 px-4 w-20">ID</th>
+                <th className="py-3 px-4 w-16">SL</th>
                 <th className="py-3 px-4">CODE</th>
                 <th className="py-3 px-4">NAME</th>
                 <th className="py-3 px-4 text-center w-28">ACTION</th>
@@ -161,11 +153,9 @@ export default function BrandList({
                     >
                       <td className="py-3 px-4 font-medium">{serialNumber}</td>
                       <td className="py-3 px-4 font-mono text-xs">
-                        {brand.code || "-"}
+                        {brand.code}
                       </td>
-                      <td className="py-3 px-4 font-medium">
-                        {brand.name || "-"}
-                      </td>
+                      <td className="py-3 px-4 font-medium">{brand.name}</td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           {/* Edit Button */}
@@ -178,7 +168,11 @@ export default function BrandList({
                           </button>
                           {/* Delete Button */}
                           <button
-                            onClick={() => handleDelete(brand.id)}
+                            onClick={() =>
+                              onDelete
+                                ? onDelete(brand.id, brand.name)
+                                : handleDelete(brand.id)
+                            }
                             title="Delete"
                             className="bg-[#ef4444] hover:bg-[#dc2626] text-white p-1.5 rounded transition-colors shadow-sm"
                           >
@@ -223,43 +217,19 @@ export default function BrandList({
             >
               Previous
             </button>
-
-            <div className="flex items-center gap-1 mx-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => {
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                          currentPage === page
-                            ? "bg-[var(--sidebar-foreground)] text-white"
-                            : "border border-border bg-card hover:bg-muted text-foreground"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    page === currentPage - 2 ||
-                    page === currentPage + 2
-                  ) {
-                    return (
-                      <span key={page} className="px-1 text-muted-foreground">
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                },
-              )}
-            </div>
-
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-8 h-8 rounded border text-xs font-medium transition-colors ${
+                  currentPage === page
+                    ? "bg-[var(--lime)] text-white border-[var(--lime)]"
+                    : "border-border bg-card hover:bg-muted text-foreground"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
