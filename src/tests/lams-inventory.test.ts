@@ -329,3 +329,83 @@ test("Inventory: Optimistic mutation handles backend failure without crashing", 
   assert.ok(catFound, "New category must be present in fallbackCategories");
 });
 
+test("Inventory Store: Requisitions, Material Usage, and Stock Transfers CRUD in-memory store works", async () => {
+  const {
+    getRequisitionsStore,
+    addRequisition,
+    getRequisitionById,
+    updateRequisition,
+    deleteRequisition,
+    getMaterialUsageStore,
+    addMaterialUsage,
+    getMaterialUsageById,
+    updateMaterialUsage,
+    deleteMaterialUsage,
+    getStockTransfersStore,
+    addStockTransfer,
+    getStockTransferById,
+    updateStockTransfer,
+    deleteStockTransfer,
+  } = await import("../app/api/inventory-store.ts");
+
+  // 1. Requisitions
+  const reqStore = getRequisitionsStore();
+  assert.ok(Array.isArray(reqStore), "Requisitions store must be an array");
+  const initialReqLen = reqStore.length;
+  const testReq = addRequisition({
+    id: "req-test-1",
+    code: "REQ-TEST-1",
+    projectName: "Tower Alpha",
+    projectType: "Real Estate",
+    demandDate: "2026-10-15",
+  });
+  assert.strictEqual(testReq.code, "REQ-TEST-1");
+  assert.strictEqual(getRequisitionsStore().length, initialReqLen + 1);
+  const foundReq = getRequisitionById("req-test-1");
+  assert.ok(foundReq && foundReq.projectName === "Tower Alpha");
+  updateRequisition("req-test-1", { projectName: "Tower Beta" });
+  assert.strictEqual(getRequisitionById("req-test-1")?.projectName, "Tower Beta");
+  deleteRequisition("req-test-1");
+  assert.strictEqual(getRequisitionById("req-test-1"), undefined);
+
+  // 2. Material Usage
+  const usageStore = getMaterialUsageStore();
+  assert.ok(Array.isArray(usageStore), "Material usage store must be an array");
+  const initialUsageLen = usageStore.length;
+  const testUsage = addMaterialUsage({
+    id: "usage-test-1",
+    usage_no: "MU-TEST-1",
+    date: "2026-10-12",
+    worker_staff_name: "John Doe",
+  });
+  assert.strictEqual(testUsage.usage_no, "MU-TEST-1");
+  assert.strictEqual(getMaterialUsageStore().length, initialUsageLen + 1);
+  const foundUsage = getMaterialUsageById("usage-test-1");
+  assert.ok(foundUsage && foundUsage.worker_staff_name === "John Doe");
+  updateMaterialUsage("usage-test-1", { worker_staff_name: "Jane Smith" });
+  assert.strictEqual(getMaterialUsageById("usage-test-1")?.worker_staff_name, "Jane Smith");
+  deleteMaterialUsage("usage-test-1");
+  assert.strictEqual(getMaterialUsageById("usage-test-1"), undefined);
+
+  // 3. Stock Transfers
+  const transferStore = getStockTransfersStore();
+  assert.ok(Array.isArray(transferStore), "Stock transfers store must be an array");
+  const initialTransferLen = transferStore.length;
+  const testTransfer = addStockTransfer({
+    id: "st-test-1",
+    code: "ST-TEST-1",
+    fromProject: "Site A",
+    toProject: "Site B",
+    quantity: 10,
+  });
+  assert.strictEqual(testTransfer.code, "ST-TEST-1");
+  assert.strictEqual(getStockTransfersStore().length, initialTransferLen + 1);
+  const foundTransfer = getStockTransferById("st-test-1");
+  assert.ok(foundTransfer && foundTransfer.quantity === 10);
+  updateStockTransfer("st-test-1", { quantity: 25 });
+  assert.strictEqual(getStockTransferById("st-test-1")?.quantity, 25);
+  deleteStockTransfer("st-test-1");
+  assert.strictEqual(getStockTransferById("st-test-1"), undefined);
+});
+
+

@@ -87,10 +87,10 @@ export default function StockTransferTable({
     return transfers.filter((item) => {
       const query = searchQuery.toLowerCase();
       return (
-        item.code.toLowerCase().includes(query) ||
-        item.fromProject.toLowerCase().includes(query) ||
-        item.toProject.toLowerCase().includes(query) ||
-        item.contact.toLowerCase().includes(query)
+        String(item.code || item.transfer_no || "").toLowerCase().includes(query) ||
+        String(typeof item.fromProject === "object" ? item.fromProject?.name : (item.fromProject || item.from_project_name || "")).toLowerCase().includes(query) ||
+        String(typeof item.toProject === "object" ? item.toProject?.name : (item.toProject || item.to_project_name || "")).toLowerCase().includes(query) ||
+        String(item.contact || "").toLowerCase().includes(query)
       );
     });
   }, [transfers, searchQuery]);

@@ -96,10 +96,10 @@ export default function MaterialUsageTable({
     return usages.filter((item) => {
       const query = searchQuery.toLowerCase();
       return (
-        item.code.toLowerCase().includes(query) ||
-        item.project.toLowerCase().includes(query) ||
-        item.purchaseGrn.toLowerCase().includes(query) ||
-        item.workerStaffName.toLowerCase().includes(query)
+        String(item.code || item.usage_no || "").toLowerCase().includes(query) ||
+        String(typeof item.project === "object" ? item.project?.name : (item.project || item.project_name || "")).toLowerCase().includes(query) ||
+        String(item.purchaseGrn || item.purchase_grn || "").toLowerCase().includes(query) ||
+        String(item.workerStaffName || item.worker_staff_name || "").toLowerCase().includes(query)
       );
     });
   }, [usages, searchQuery]);

@@ -902,7 +902,17 @@ async function apiFetch<T>(
   options: RequestInit = {},
   fallbackData?: T,
 ): Promise<T> {
-  const url = `${API_BASE}${endpoint}`;
+  // Routes where the backend DB has unmigrated columns (returning 500)
+  // are routed through internal Next.js proxy route handlers when running in the browser.
+  const internalProxyEndpoints = [
+    "/material-requisition",
+    "/inventory/material-usage",
+    "/inventory/stock-transfers",
+  ];
+  const useInternalProxy =
+    typeof window !== "undefined" &&
+    internalProxyEndpoints.some((p) => endpoint.startsWith(p));
+  const url = useInternalProxy ? `/api${endpoint}` : `${API_BASE}${endpoint}`;
   const method = (options.method || "GET").toUpperCase();
 
   try {

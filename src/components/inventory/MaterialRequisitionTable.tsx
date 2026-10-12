@@ -114,10 +114,10 @@ export default function MaterialRequisitionTable({
     return requisitions.filter((item) => {
       const query = searchQuery.toLowerCase();
       return (
-        item.code.toLowerCase().includes(query) ||
-        item.project.toLowerCase().includes(query) ||
-        item.projectType.toLowerCase().includes(query) ||
-        item.addedBy.toLowerCase().includes(query)
+        String(item.code || "").toLowerCase().includes(query) ||
+        String(item.project || item.projectName || "").toLowerCase().includes(query) ||
+        String(item.projectType || item.project_type || "").toLowerCase().includes(query) ||
+        String(item.addedBy || item.added_by || "").toLowerCase().includes(query)
       );
     });
   }, [requisitions, searchQuery]);

@@ -9,15 +9,39 @@ import { toast } from "sonner";
 
 export interface StockTransferItem {
   id: string | number;
-  code: string;
-  date: string;
-  fromProject: string;
-  fromSite: string;
-  fromTask: string;
-  toProject: string;
-  toSite: string;
-  toTask: string;
-  contact: string;
+  code?: string;
+  transfer_no?: string;
+  date?: string;
+  note?: string;
+  status?: string;
+  fromProject?: string;
+  from_project?: string | any;
+  from_project_name?: string;
+  from_project_id?: number;
+  fromSite?: string;
+  from_site?: string | any;
+  from_site_name?: string;
+  from_site_id?: number;
+  fromTask?: string;
+  from_task?: string;
+  toProject?: string;
+  to_project?: string | any;
+  to_project_name?: string;
+  to_project_id?: number;
+  toSite?: string;
+  to_site?: string | any;
+  to_site_name?: string;
+  to_site_id?: number;
+  toTask?: string;
+  to_task?: string;
+  contact?: string;
+  item_id?: string;
+  quantity?: number;
+  createdBy?: string;
+  created_by?: string;
+  projectId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function StockTransferAccounts() {

@@ -8,19 +8,37 @@ import { toast } from "sonner";
 import { materialRequisitionsApi } from "@/lib/inventoryApi";
 
 export interface MaterialRequisitionItem {
-  id: number;
-  select: boolean;
-  projectType: string;
-  project: string;
-  titleOfWork: string;
-  code: string;
-  ref: string;
-  date: string;
-  demandDate: string;
-  addedBy: string;
-  approvalStatus: string;
-  approver: string;
-  attachment: string;
+  id: number | string;
+  select?: boolean;
+  uuid?: string;
+  projectType?: string;
+  project_type?: string;
+  project?: string | any;
+  projectName?: string;
+  project_name?: string;
+  titleOfWork?: string;
+  title_of_work?: string;
+  titleOrNameOfWork?: string;
+  code?: string;
+  req_no?: string;
+  ref?: string;
+  referenceNumber?: string;
+  date?: string;
+  demandDate?: string;
+  demand_date?: string;
+  company?: string;
+  supplier?: string;
+  addedBy?: string;
+  added_by?: string;
+  approvalStatus?: string;
+  approvalLayer?: string;
+  status?: string;
+  approver?: string;
+  attachment?: string;
+  attachmentUrl?: string | null;
+  approvedByUsers?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function MaterialRequisitionAccounts() {
