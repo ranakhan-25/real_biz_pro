@@ -24,6 +24,11 @@ interface AcquisitionLeadsViewProps {
   onDeleteLead: (uuid: string) => void;
 }
 
+const DISTRICTS = ["Dhaka", "Narayanganj", "Gazipur", "Munshiganj", "Manikganj", "Narsingdi", "Tangail"];
+const UPAZILAS = ["Rupganj", "Keraniganj", "Savar", "Gazipur Sadar", "Sonargaon", "Dhamrai", "Kaliakair"];
+const SOURCES = ["Direct Owner", "Broker", "Referral", "Media / Ad", "Cold Contact", "Online Listing"];
+const USERS = ["Sakib Al Hasan", "Rezaul Karim", "Tanvir Hossain", "Shamim Khan", "Farhana Ahmed"];
+
 const STAGE_BADGES: Record<LeadStage, { bg: string; text: string; ring: string }> = {
   New: { bg: "bg-blue-50 dark:bg-blue-950/60", text: "text-blue-700 dark:text-blue-300", ring: "ring-blue-200 dark:ring-blue-800" },
   Contacted: { bg: "bg-purple-50 dark:bg-purple-950/60", text: "text-purple-700 dark:text-purple-300", ring: "ring-purple-200 dark:ring-purple-800" },
