@@ -2,7 +2,7 @@ import {
   fallbackMaterialRequisitions,
   fallbackMaterialUsage,
   fallbackStockTransfers,
-} from "../../lib/inventoryApi.ts";
+} from "@/lib/inventoryApi";
 
 // In-memory persistent stores across route calls in the Node.js runtime
 declare global {

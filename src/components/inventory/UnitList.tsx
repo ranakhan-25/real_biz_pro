@@ -76,7 +76,7 @@ export default function UnitList({
       const matchesSearch =
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.conversionUnit.toLowerCase().includes(searchQuery.toLowerCase());
+        Boolean(item.conversionUnit?.toLowerCase().includes(searchQuery.toLowerCase()));
 
       return matchesSearch;
     });

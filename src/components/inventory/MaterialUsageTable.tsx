@@ -106,11 +106,11 @@ export default function MaterialUsageTable({
 
   // Totals calculation
   const totalSubTotal = filteredUsages.reduce(
-    (acc, curr) => acc + curr.subTotal,
+    (acc, curr) => acc + (curr.subTotal ?? curr.subtotal ?? 0),
     0,
   );
   const totalGrandTotal = filteredUsages.reduce(
-    (acc, curr) => acc + curr.grandTotal,
+    (acc, curr) => acc + (curr.grandTotal ?? curr.grand_total ?? 0),
     0,
   );
 
@@ -226,9 +226,9 @@ export default function MaterialUsageTable({
                     <td className="py-3 px-3 text-muted-foreground">
                       {item.date}
                     </td>
-                    <td className="py-3 px-3">{item.subTotal.toFixed(2)}</td>
+                    <td className="py-3 px-3">{(item.subTotal ?? item.subtotal ?? 0).toFixed(2)}</td>
                     <td className="py-3 px-3 font-medium">
-                      {item.grandTotal.toFixed(2)}
+                      {(item.grandTotal ?? item.grand_total ?? 0).toFixed(2)}
                     </td>
                     <td className="py-3 px-3">{item.addedBy}</td>
                     <td className="py-3 px-3 text-muted-foreground">
@@ -236,9 +236,11 @@ export default function MaterialUsageTable({
                     </td>
                     <td className="py-3 px-3 text-xs leading-relaxed text-emerald-600 font-medium">
                       <div>✓ All Approvals Completed</div>
-                      <div className="text-muted-foreground">
-                        ✓ {item.approver.replace("\n", ", ")}
-                      </div>
+                      {Boolean(item.approver) && (
+                        <div className="text-muted-foreground">
+                          ✓ {item.approver?.replace("\n", ", ")}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-3 text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -262,7 +264,7 @@ export default function MaterialUsageTable({
                         <button
                           onClick={() =>
                             onDelete
-                              ? onDelete(item.id, item.code)
+                              ? onDelete(item.id, item.code || "")
                               : handleDelete(item.id)
                           }
                           title="Delete"

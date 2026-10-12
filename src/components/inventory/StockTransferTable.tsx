@@ -88,8 +88,8 @@ export default function StockTransferTable({
       const query = searchQuery.toLowerCase();
       return (
         String(item.code || item.transfer_no || "").toLowerCase().includes(query) ||
-        String(typeof item.fromProject === "object" ? item.fromProject?.name : (item.fromProject || item.from_project_name || "")).toLowerCase().includes(query) ||
-        String(typeof item.toProject === "object" ? item.toProject?.name : (item.toProject || item.to_project_name || "")).toLowerCase().includes(query) ||
+        String(item.fromProject || (item as any).from_project?.name || item.from_project_name || "").toLowerCase().includes(query) ||
+        String(item.toProject || (item as any).to_project?.name || item.to_project_name || "").toLowerCase().includes(query) ||
         String(item.contact || "").toLowerCase().includes(query)
       );
     });
@@ -228,7 +228,7 @@ export default function StockTransferTable({
                         <button
                           onClick={() =>
                             onDelete
-                              ? onDelete(item.id, item.code)
+                              ? onDelete(item.id, item.code || "")
                               : handleDelete(item.id)
                           }
                           title="Delete"

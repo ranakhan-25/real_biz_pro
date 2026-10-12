@@ -32,7 +32,7 @@ export default function MaterialRequisitionTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | number | null>(null);
 
   // Fetching data from backend API
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function MaterialRequisitionTable({
   };
 
   // Single select handler
-  const handleSelectOne = (id: number, checked: boolean) => {
+  const handleSelectOne = (id: string | number, checked: boolean) => {
     setRequisitions(
       requisitions.map((item) =>
         item.id === id ? { ...item, select: checked } : item,
@@ -102,7 +102,7 @@ export default function MaterialRequisitionTable({
   };
 
   // Delete handler
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string | number) => {
     if (confirm("Are you sure you want to delete this requisition?")) {
       setRequisitions(requisitions.filter((item) => item.id !== id));
     }
@@ -255,9 +255,9 @@ export default function MaterialRequisitionTable({
                     <td className="py-3 px-3">{item.addedBy}</td>
                     <td className="py-3 px-3 text-xs leading-relaxed text-emerald-600 font-medium">
                       <div>✓ All Approvals Completed</div>
-                      {item.approver.includes("\n") && (
+                      {Boolean(item.approver && item.approver.includes("\n")) && (
                         <div className="text-muted-foreground">
-                          ✓ {item.approver.replace("\n", ", ")}
+                          ✓ {item.approver?.replace("\n", ", ")}
                         </div>
                       )}
                     </td>

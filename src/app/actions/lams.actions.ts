@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import {
   mockAcquisitionLeads,
   mockLandOwners,
@@ -97,7 +97,7 @@ export async function createAcquisitionLead(data: any) {
     if (!res.ok) {
       console.warn("Backend createAcquisitionLead failed with status", res.status);
     }
-    revalidateTag("lams-acquisition-leads");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -122,7 +122,7 @@ export async function updateAcquisitionLead(uuid: string, data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-acquisition-leads");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -136,7 +136,7 @@ export async function deleteAcquisitionLead(uuid: string) {
     await fetch(`${API_BASE_URL}/lams/acquisition-leads/${uuid}`, {
       method: "DELETE",
     });
-    revalidateTag("lams-acquisition-leads");
+    revalidatePath("/dashboard/lams");
   } catch (err) {
     console.warn("deleteAcquisitionLead error:", err);
   }
@@ -207,7 +207,7 @@ export async function createLandOwner(data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-land-owners");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -239,7 +239,7 @@ export async function updateLandOwner(uuid: string, data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-land-owners");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -253,7 +253,7 @@ export async function deleteLandOwner(uuid: string) {
     await fetch(`${API_BASE_URL}/lams/land-owners/${uuid}`, {
       method: "DELETE",
     });
-    revalidateTag("lams-land-owners");
+    revalidatePath("/dashboard/lams");
   } catch (err) {
     console.warn("deleteLandOwner error:", err);
   }
@@ -324,7 +324,7 @@ export async function createNegotiationProcess(data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-negotiation-processes");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -350,7 +350,7 @@ export async function updateNegotiationProcess(uuid: string, data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-negotiation-processes");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -364,7 +364,7 @@ export async function deleteNegotiationProcess(uuid: string) {
     await fetch(`${API_BASE_URL}/lams/negotiation-processes/${uuid}`, {
       method: "DELETE",
     });
-    revalidateTag("lams-negotiation-processes");
+    revalidatePath("/dashboard/lams");
   } catch (err) {
     console.warn("deleteNegotiationProcess error:", err);
   }
@@ -432,7 +432,7 @@ export async function createLegalDocument(data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-legal-documents");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -458,7 +458,7 @@ export async function updateLegalDocument(uuid: string, data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-legal-documents");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -472,7 +472,7 @@ export async function deleteLegalDocument(uuid: string) {
     await fetch(`${API_BASE_URL}/lams/legal-documents/${uuid}`, {
       method: "DELETE",
     });
-    revalidateTag("lams-legal-documents");
+    revalidatePath("/dashboard/lams");
   } catch (err) {
     console.warn("deleteLegalDocument error:", err);
   }
@@ -542,7 +542,7 @@ export async function createFollowUp(data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-follow-ups");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -567,7 +567,7 @@ export async function updateFollowUp(uuid: string, data: any) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    revalidateTag("lams-follow-ups");
+    revalidatePath("/dashboard/lams");
     const json = await res.json().catch(() => null);
     return json?.data || json || payload;
   } catch (err) {
@@ -581,7 +581,7 @@ export async function deleteFollowUp(uuid: string) {
     await fetch(`${API_BASE_URL}/lams/follow-ups/${uuid}`, {
       method: "DELETE",
     });
-    revalidateTag("lams-follow-ups");
+    revalidatePath("/dashboard/lams");
   } catch (err) {
     console.warn("deleteFollowUp error:", err);
   }
