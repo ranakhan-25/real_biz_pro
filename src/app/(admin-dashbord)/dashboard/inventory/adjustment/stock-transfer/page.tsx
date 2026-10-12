@@ -75,8 +75,9 @@ export default function StockTransferAccounts() {
           : new Date().toISOString().split("T")[0],
         item_id: firstItemId,
         quantity: 1,
-        note: `Transfer from ${selectedTransfer.fromProject || "HQ"} to ${selectedTransfer.toProject || "Site"}`,
+        note: `Transfer from ${selectedTransfer.fromProject || "Hena Heights (PRJ-1001)"} to ${selectedTransfer.toProject || "Rifat Eyecon City (PRJ-1002)"}`,
         status: "Completed",
+        projectId: selectedTransfer.fromProject || "PRJ-1001",
       });
 
       toast.success(
@@ -155,9 +156,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setSupplier(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select an option</option>
-              <option value="Supplier A">Supplier A</option>
-              <option value="Supplier B">Supplier B</option>
+              <option value="">All Suppliers</option>
+              <option value="BSRM Steels Ltd">BSRM Steels Ltd</option>
+              <option value="Seven Rings Cement Corp">Seven Rings Cement Corp</option>
+              <option value="Bashundhara Multi Trading">Bashundhara Multi Trading</option>
+              <option value="BRB Cables Ltd">BRB Cables Ltd</option>
             </select>
           </div>
           <div>
@@ -167,9 +170,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setProject(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select value</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
-              <option value="Estern 19">Estern 19</option>
+              <option value="">All Projects</option>
+              <option value="Hena Heights (PRJ-1001)">Hena Heights (PRJ-1001)</option>
+              <option value="Rifat Eyecon City (PRJ-1002)">Rifat Eyecon City (PRJ-1002)</option>
+              <option value="Green Valley Residency (PRJ-1003)">Green Valley Residency (PRJ-1003)</option>
+              <option value="Metro Sky Tower (PRJ-1004)">Metro Sky Tower (PRJ-1004)</option>
             </select>
           </div>
         </div>
@@ -184,8 +189,11 @@ export default function StockTransferAccounts() {
               onChange={(e) => setTitleOfWork(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Title/Name of Work</option>
-              <option value="Work 1">Work 1</option>
+              <option value="">All Works</option>
+              <option value="Substructure & Foundation">Substructure & Foundation</option>
+              <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+              <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+              <option value="Sanitary & Electrical Fitting">Sanitary & Electrical Fitting</option>
             </select>
           </div>
         </div>
@@ -256,7 +264,9 @@ export default function StockTransferAccounts() {
                   </label>
                   <input
                     type="text"
+                    list="project-options"
                     disabled={modalMode === "view"}
+                    placeholder="e.g. Hena Heights (PRJ-1001)"
                     value={selectedTransfer.fromProject || ""}
                     onChange={(e) =>
                       setSelectedTransfer({ ...selectedTransfer, fromProject: e.target.value })
@@ -270,7 +280,9 @@ export default function StockTransferAccounts() {
                   </label>
                   <input
                     type="text"
+                    list="project-options"
                     disabled={modalMode === "view"}
+                    placeholder="e.g. Rifat Eyecon City (PRJ-1002)"
                     value={selectedTransfer.toProject || ""}
                     onChange={(e) =>
                       setSelectedTransfer({ ...selectedTransfer, toProject: e.target.value })
@@ -278,6 +290,12 @@ export default function StockTransferAccounts() {
                     className="w-full bg-background border border-input rounded px-3 py-2 text-sm text-foreground disabled:opacity-60"
                   />
                 </div>
+                <datalist id="project-options">
+                  <option value="Hena Heights (PRJ-1001)" />
+                  <option value="Rifat Eyecon City (PRJ-1002)" />
+                  <option value="Green Valley Residency (PRJ-1003)" />
+                  <option value="Metro Sky Tower (PRJ-1004)" />
+                </datalist>
               </div>
             </div>
 

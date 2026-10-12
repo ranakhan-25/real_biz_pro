@@ -3,13 +3,17 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "imports": {
+    "@/*": "./src/*"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "build:dev": "next build",
     "preview": "next start",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node --experimental-strip-types --test 'src/tests/**/*.test.ts'"
   },
   "overrides": {
     "rolldown": "1.2.1"

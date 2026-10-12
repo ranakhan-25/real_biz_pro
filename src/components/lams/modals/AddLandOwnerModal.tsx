@@ -32,34 +32,37 @@ export function AddLandOwnerModal({
 
   useEffect(() => {
     if (isOpen && editData) {
-      setAcquisitionLeadId(editData.acquisitionLeadId || "");
-      setOwnerName(editData.ownerName || "");
-      setFatherName(editData.fatherName || "");
-      setNidNumber(editData.nidNumber || "");
-      setPhone(editData.phone || "");
+      setAcquisitionLeadId(editData.acquisitionLeadId || editData.lead_id || "");
+      setOwnerName(editData.ownerName || editData.name || "");
+      setFatherName(editData.fatherName || editData.father_name || "");
+      setNidNumber(editData.nidNumber || editData.nid_number || "");
+      setPhone(editData.phone || editData.contact_number || "");
       setAddress(editData.address || "");
       setRemarks(editData.remarks || "");
       setStatus(editData.status || "Active");
-      setIsPrimary(editData.isPrimary || false);
+      setIsPrimary(editData.isPrimary ?? (editData.owner_type === "Owner"));
     } else if (isOpen && !editData) {
-      // reset 
+      const defaultId = acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+      if (!acquisitionLeadId || !acquisitionLeads.some((l) => (l.uuid || l.id) === acquisitionLeadId)) {
+        setAcquisitionLeadId(defaultId);
+      }
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, acquisitionLeads]);
 
   if (!isOpen) return null;
-
-  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ownerName || !phone) return;
 
-    const matchedLead = acquisitionLeads.find((l) => l.uuid === acquisitionLeadId);
+    const effectiveLeadId = acquisitionLeadId || acquisitionLeads[0]?.uuid || acquisitionLeads[0]?.id || "";
+    const matchedLead = acquisitionLeads.find((l) => (l.uuid || l.id) === effectiveLeadId);
 
     const newRecord: LandOwner = {
       id: `LO-${Date.now()}`,
+      uuid: `LO-${Date.now()}`,
       code: code || `LW-${Math.floor(1000000 + Math.random() * 9000000)}`,
-      acquisitionLeadId,
+      acquisitionLeadId: effectiveLeadId,
       landPlot: matchedLead ? `${matchedLead.dagNo} (${matchedLead.mouza})` : "General Parcel",
       ownerName,
       isPrimary,
@@ -137,11 +140,18 @@ export function AddLandOwnerModal({
                 onChange={(e) => setAcquisitionLeadId(e.target.value)}
                 className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-cyan-500/30"
               >
-                {acquisitionLeads.map((lead) => (
-                  <option key={lead.uuid} value={lead.uuid}>
-                    {lead.title} ({lead.mouza})
-                  </option>
-                ))}
+                {acquisitionLeads.length > 0 ? (
+                  acquisitionLeads.map((lead) => {
+                    const lId = lead.uuid || lead.id;
+                    return (
+                      <option key={lId} value={lId}>
+                        {lead.title} {lead.mouza ? `(${lead.mouza})` : ""}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option value="">No acquisition leads available</option>
+                )}
               </select>
             </div>
 

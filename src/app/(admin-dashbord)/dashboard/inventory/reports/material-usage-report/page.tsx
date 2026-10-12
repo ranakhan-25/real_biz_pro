@@ -5,28 +5,26 @@ import MaterialUsageReportTable from "@/components/inventory/MaterialUsageReport
 import React, { useState, useEffect, useMemo } from "react";
 
 
+import { materialUsageApi } from "@/lib/inventoryApi";
+
 export default function MaterialUsageReportContainer() {
   const [data, setData] = useState<MaterialUsageItem[]>([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
-        const res = await fetch(`${apiBase}/inventory/material-usage`);
-        if (!res.ok) return;
-        const json = await res.json();
-        const raw = json.data !== undefined ? json.data : json;
-        if (Array.isArray(raw)) {
-          const list = raw.map((u, idx) => ({
+        const raw = await materialUsageApi.getAll();
+        if (Array.isArray(raw) && raw.length > 0) {
+          const list = raw.map((u: any, idx: number) => ({
             id: u.id || idx + 1,
             invoiceNo: u.usage_no || u.code || `MU-${idx + 1}`,
             date: u.date ? new Date(u.date).toLocaleDateString() : "-",
-            project: u.project?.name || u.project_name || "Head Office",
-            titleOfWork: u.title_of_work || "-",
-            task: u.task || "-",
-            site: u.site?.name || u.site_name || "Main Site",
-            workerName: u.worker_staff_name || "-",
-            category: "General",
+            project: u.project?.name || u.project_name || "Hena Heights (PRJ-1001)",
+            titleOfWork: u.title_of_work || "RCC Casting (Beam & Column)",
+            task: u.task || "Beam Concreting Level-4",
+            site: u.site?.name || u.site_name || "Tower 1 Foundation Site",
+            workerName: u.worker_staff_name || "Rafiqul Islam (Site Engineer)",
+            category: u.category || "General",
             itemCode: u.item_code || "-",
             itemName: u.item_name || "Material",
             quantity: Number(u.quantity || 0),
@@ -35,7 +33,7 @@ export default function MaterialUsageReportContainer() {
           setData(list);
         }
       } catch (err) {
-        setData([]);
+        console.warn("Error loading material usage report:", err);
       }
     }
     loadData();
@@ -133,10 +131,12 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Category</option>
-              <option value="Rod">Rod</option>
-              <option value="Bricks">Bricks</option>
-              <option value="Sand">Sand</option>
+              <option value="">All Categories</option>
+              <option value="Raw Construction Materials">Raw Construction Materials</option>
+              <option value="Deformed Rebar & Steels">Deformed Rebar & Steels</option>
+              <option value="Cement & Aggregates">Cement & Aggregates</option>
+              <option value="Electrical & Conduits">Electrical & Conduits</option>
+              <option value="Plumbing & Sanitary">Plumbing & Sanitary</option>
             </select>
           </div>
 
@@ -150,11 +150,11 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedItem(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Item</option>
-              <option value="16mm Rod">16mm Rod</option>
-              <option value="20mm Rod">20mm Rod</option>
-              <option value="1st Class Brick">1st Class Brick</option>
-              <option value="Sand (FM 2.50)">Sand (FM 2.50)</option>
+              <option value="">All Items</option>
+              <option value="BSRM 16mm TMT 500W High Strength Bar">BSRM 16mm TMT 500W High Strength Bar</option>
+              <option value="Seven Rings Gold PCC 42.5N Cement">Seven Rings Gold PCC 42.5N Cement</option>
+              <option value="Pakur Black Crushed Stone Chips (3/4)">Pakur Black Crushed Stone Chips (3/4)</option>
+              <option value="Coarse River Sand (Sylhet FM 2.5)">Coarse River Sand (Sylhet FM 2.5)</option>
             </select>
           </div>
 
@@ -168,9 +168,10 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedProject(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select value</option>
-              <option value="Estern 19">Estern 19</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
+              <option value="">All Projects</option>
+              <option value="Hena Heights (PRJ-1001)">Hena Heights (PRJ-1001)</option>
+              <option value="Rifat Eyecon City (PRJ-1002)">Rifat Eyecon City (PRJ-1002)</option>
+              <option value="Green Valley Residency (PRJ-1003)">Green Valley Residency (PRJ-1003)</option>
             </select>
           </div>
         </div>
@@ -187,21 +188,29 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedTitleOfWork(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Title/Name of Work</option>
+              <option value="">All Works</option>
+              <option value="Substructure & Foundation">Substructure & Foundation</option>
+              <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+              <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+              <option value="Sanitary & Electrical Fitting">Sanitary & Electrical Fitting</option>
             </select>
           </div>
 
           {/* If Task */}
           <div className="space-y-1">
             <label className="text-xs text-gray-600 dark:text-gray-300 block">
-              If Task
+              Task
             </label>
             <select
               value={selectedTask}
               onChange={(e) => setSelectedTask(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Task</option>
+              <option value="">All Tasks</option>
+              <option value="Beam Concreting Level-4">Beam Concreting Level-4</option>
+              <option value="Slab Concreting Floor-3">Slab Concreting Floor-3</option>
+              <option value="Piling & Mat Foundation">Piling & Mat Foundation</option>
+              <option value="Column Casting Ground Floor">Column Casting Ground Floor</option>
             </select>
           </div>
 
@@ -215,7 +224,11 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedSite(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Site</option>
+              <option value="">All Sites</option>
+              <option value="Tower 1 Foundation Site">Tower 1 Foundation Site</option>
+              <option value="Block-B Casting Yard">Block-B Casting Yard</option>
+              <option value="Main Central Warehouse">Main Central Warehouse</option>
+              <option value="Site Store - Level 2">Site Store - Level 2</option>
             </select>
           </div>
 
@@ -229,7 +242,11 @@ export default function MaterialUsageReportContainer() {
               onChange={(e) => setSelectedWorker(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Worker</option>
+              <option value="">All Workers</option>
+              <option value="Rafiqul Islam (Site Engineer)">Rafiqul Islam (Site Engineer)</option>
+              <option value="Abdul Karim (Head Mason)">Abdul Karim (Head Mason)</option>
+              <option value="Kabir Hossain (Foreman)">Kabir Hossain (Foreman)</option>
+              <option value="Tareq Aziz (Supervisor)">Tareq Aziz (Supervisor)</option>
             </select>
           </div>
         </div>

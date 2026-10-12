@@ -51,12 +51,12 @@ export function AcquisitionLeadsView({
   const [editingLead, setEditingLead] = useState<any>(null);
   const [selectedLeadForDetail, setSelectedLeadForDetail] = useState<AcquisitionLead | null>(null);
 
-  // Collect unique filter options from dataset
+  // Collect unique filter options from dataset merged with defaults
   const safeLeads = Array.isArray(leads) ? leads : [];
-  const districts = useMemo(() => Array.from(new Set(safeLeads.map((l) => l.district))), [safeLeads]);
-  const upazilas = useMemo(() => Array.from(new Set(safeLeads.map((l) => l.upazila))), [safeLeads]);
-  const sources = useMemo(() => Array.from(new Set(safeLeads.map((l) => l.leadSource))), [safeLeads]);
-  const users = useMemo(() => Array.from(new Set(safeLeads.map((l) => l.assignedUser))), [safeLeads]);
+  const districts = useMemo(() => Array.from(new Set([...DISTRICTS, ...safeLeads.map((l) => l.district).filter(Boolean)])), [safeLeads]);
+  const upazilas = useMemo(() => Array.from(new Set([...UPAZILAS, ...safeLeads.map((l) => l.upazila).filter(Boolean)])), [safeLeads]);
+  const sources = useMemo(() => Array.from(new Set([...SOURCES, ...safeLeads.map((l) => l.leadSource).filter(Boolean)])), [safeLeads]);
+  const users = useMemo(() => Array.from(new Set([...USERS, ...safeLeads.map((l) => l.assignedUser).filter(Boolean)])), [safeLeads]);
 
   const resetFilters = () => {
     setSearchTerm("");

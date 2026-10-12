@@ -2,40 +2,386 @@ export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002/realbizpro/api/v1";
 
 // ---------------------------------------------------------------------------
+// Fallback Mock Datasets (Ensures frontend never displays blank dropdowns/tables)
+// ---------------------------------------------------------------------------
+export const fallbackCategories = [
+  { id: "cat-01", category_code: "CAT-101", code: "CAT-101", name: "Raw Construction Materials", type: "Material", inventoryCoa: "Inventory Asset", consumptionCoa: "Site Consumption" },
+  { id: "cat-02", category_code: "CAT-102", code: "CAT-102", name: "Deformed Rebar & Steels", type: "Material", inventoryCoa: "Steel Stock", consumptionCoa: "Reinforcement Cost" },
+  { id: "cat-03", category_code: "CAT-103", code: "CAT-103", name: "Cement & Aggregates", type: "Material", inventoryCoa: "Cement Stock", consumptionCoa: "Concreting Cost" },
+  { id: "cat-04", category_code: "CAT-104", code: "CAT-104", name: "Electrical & Conduits", type: "Material", inventoryCoa: "Electrical Asset", consumptionCoa: "Electrification Cost" },
+  { id: "cat-05", category_code: "CAT-105", code: "CAT-105", name: "Plumbing & Sanitary", type: "Material", inventoryCoa: "Sanitary Asset", consumptionCoa: "Plumbing Cost" },
+];
+
+export const fallbackSubCategories = [
+  { id: "scat-01", category_id: "cat-02", category: "Deformed Rebar & Steels", category_name: "Deformed Rebar & Steels", sub_category_code: "SC-201", code: "SC-201", name: "500W TMT Rebar (10mm - 25mm)" },
+  { id: "scat-02", category_id: "cat-03", category: "Cement & Aggregates", category_name: "Cement & Aggregates", sub_category_code: "SC-202", code: "SC-202", name: "Portland Composite Cement (PCC 42.5N)" },
+  { id: "scat-03", category_id: "cat-01", category: "Raw Construction Materials", category_name: "Raw Construction Materials", sub_category_code: "SC-203", code: "SC-203", name: "Pakur Stone Aggregate (3/4 down)" },
+  { id: "scat-04", category_id: "cat-01", category: "Raw Construction Materials", category_name: "Raw Construction Materials", sub_category_code: "SC-204", code: "SC-204", name: "Coarse Sylhet Sand (FM 2.5)" },
+  { id: "scat-05", category_id: "cat-05", category: "Plumbing & Sanitary", category_name: "Plumbing & Sanitary", sub_category_code: "SC-205", code: "SC-205", name: "uPVC Schedule 40 Pressure Pipes" },
+];
+
+export const fallbackBrands = [
+  { id: "brd-01", code: "BRD-001", name: "BSRM Steels" },
+  { id: "brd-02", code: "BRD-002", name: "Seven Rings Cement" },
+  { id: "brd-03", code: "BRD-003", name: "Bashundhara Cement" },
+  { id: "brd-04", code: "BRD-004", name: "BRB Cable Industries" },
+  { id: "brd-05", code: "BRD-005", name: "RFL Plastics & Pipes" },
+];
+
+export const fallbackUnits = [
+  { id: "unt-01", code: "MT", name: "Metric Ton (MT)", conversionUnit: "KG", rate: "1000" },
+  { id: "unt-02", code: "BAG", name: "Bag (50 KG)", conversionUnit: "KG", rate: "50" },
+  { id: "unt-03", code: "CFT", name: "Cubic Feet (CFT)", conversionUnit: "CFT", rate: "1" },
+  { id: "unt-04", code: "PCS", name: "Pieces (Pcs)", conversionUnit: "PCS", rate: "1" },
+  { id: "unt-05", code: "RFT", name: "Running Feet (RFT)", conversionUnit: "RFT", rate: "1" },
+];
+
+export const fallbackItems = [
+  {
+    id: "item-01",
+    item_code: "ITM-501",
+    code: "ITM-501",
+    name: "BSRM 16mm TMT 500W High Strength Bar",
+    category_id: "cat-02",
+    category: { id: "cat-02", name: "Deformed Rebar & Steels" },
+    brand_id: "brd-01",
+    brand: { id: "brd-01", name: "BSRM Steels" },
+    unit_id: "unt-01",
+    unit: { id: "unt-01", name: "Metric Ton (MT)" },
+    purchase_price: 94500,
+    sale_price: 98000,
+  },
+  {
+    id: "item-02",
+    item_code: "ITM-502",
+    code: "ITM-502",
+    name: "Seven Rings Gold PCC 42.5N Cement",
+    category_id: "cat-03",
+    category: { id: "cat-03", name: "Cement & Aggregates" },
+    brand_id: "brd-02",
+    brand: { id: "brd-02", name: "Seven Rings Cement" },
+    unit_id: "unt-02",
+    unit: { id: "unt-02", name: "Bag (50 KG)" },
+    purchase_price: 540,
+    sale_price: 580,
+  },
+  {
+    id: "item-03",
+    item_code: "ITM-503",
+    code: "ITM-503",
+    name: "Pakur Black Crushed Stone Chips (3/4)",
+    category_id: "cat-01",
+    category: { id: "cat-01", name: "Raw Construction Materials" },
+    brand_id: "brd-01",
+    brand: { id: "brd-01", name: "Standard" },
+    unit_id: "unt-03",
+    unit: { id: "unt-03", name: "Cubic Feet (CFT)" },
+    purchase_price: 185,
+    sale_price: 210,
+  },
+  {
+    id: "item-04",
+    item_code: "ITM-504",
+    code: "ITM-504",
+    name: "Coarse River Sand (Sylhet FM 2.5)",
+    category_id: "cat-01",
+    category: { id: "cat-01", name: "Raw Construction Materials" },
+    brand_id: "brd-01",
+    brand: { id: "brd-01", name: "Standard" },
+    unit_id: "unt-03",
+    unit: { id: "unt-03", name: "Cubic Feet (CFT)" },
+    purchase_price: 48,
+    sale_price: 58,
+  },
+  {
+    id: "item-05",
+    item_code: "ITM-505",
+    code: "ITM-505",
+    name: "BRB 2.5 SQMM Single Core FR Wire",
+    category_id: "cat-04",
+    category: { id: "cat-04", name: "Electrical & Conduits" },
+    brand_id: "brd-04",
+    brand: { id: "brd-04", name: "BRB Cable Industries" },
+    unit_id: "unt-05",
+    unit: { id: "unt-05", name: "Running Feet (RFT)" },
+    purchase_price: 135,
+    sale_price: 155,
+  },
+];
+
+export const fallbackSuppliers = [
+  {
+    id: "sup-01",
+    code: "SUP-101",
+    name: "Meghna Rebar & Building Supply",
+    company: "Meghna Holdings Ltd",
+    mobile: "+880 1711-223344",
+    phone: "+880 1711-223344",
+    email: "supply@meghnasteel.com",
+    address: "Tejgaon I/A, Dhaka-1208",
+    under: "Sundry Creditors",
+    credit_limit: 5000000,
+    opening_balance: 0,
+  },
+  {
+    id: "sup-02",
+    code: "SUP-102",
+    name: "Confidence Cement & Materials Syndicate",
+    company: "Confidence Building Materials",
+    mobile: "+880 1819-556677",
+    phone: "+880 1819-556677",
+    email: "orders@confidencecement.com",
+    address: "Agrabad C/A, Chattogram",
+    under: "Sundry Creditors",
+    credit_limit: 3000000,
+    opening_balance: 0,
+  },
+  {
+    id: "sup-03",
+    code: "SUP-103",
+    name: "Eastern Cables & Electrical Corp",
+    company: "Eastern Electro Systems",
+    mobile: "+880 1912-889900",
+    phone: "+880 1912-889900",
+    email: "info@easternelectric.com",
+    address: "Motijheel C/A, Dhaka-1000",
+    under: "Sundry Creditors",
+    credit_limit: 1500000,
+    opening_balance: 0,
+  },
+];
+
+export const fallbackPurchases = [
+  {
+    id: "pur-01",
+    code: "PUR-2026-001",
+    purchase_no: "PUR-2026-001",
+    date: "2026-10-08",
+    project: "PRJ-1001 - Dhaka Commercial Center",
+    project_type: "Commercial",
+    supplier_id: "sup-01",
+    supplier: { id: "sup-01", name: "Meghna Rebar & Building Supply" },
+    subtotal: 945000,
+    discount: 5000,
+    delivery_charge: 10000,
+    grand_total: 950000,
+    paid_amount: 500000,
+    due_amount: 450000,
+    payment_method: "Bank Transfer",
+    items: [
+      { item_id: "item-01", quantity: 10, rate: 94500, amount: 945000 },
+    ],
+  },
+  {
+    id: "pur-02",
+    code: "PUR-2026-002",
+    purchase_no: "PUR-2026-002",
+    date: "2026-10-09",
+    project: "PRJ-1002 - Bashundhara Tower",
+    project_type: "Residential",
+    supplier_id: "sup-02",
+    supplier: { id: "sup-02", name: "Confidence Cement & Materials Syndicate" },
+    subtotal: 270000,
+    discount: 2000,
+    delivery_charge: 5000,
+    grand_total: 273000,
+    paid_amount: 273000,
+    due_amount: 0,
+    payment_method: "Cheque",
+    items: [
+      { item_id: "item-02", quantity: 500, rate: 540, amount: 270000 },
+    ],
+  },
+];
+
+export const fallbackStockReport = [
+  {
+    item_id: "item-01",
+    item_name: "BSRM 16mm TMT 500W High Strength Bar",
+    category: "Deformed Rebar & Steels",
+    brand: "BSRM Steels",
+    unit: "Metric Ton (MT)",
+    opening: 5.0,
+    in: 25.0,
+    out: 12.5,
+    current_stock: 17.5,
+    closing: 17.5,
+    closingAmount: 1653750,
+  },
+  {
+    item_id: "item-02",
+    item_name: "Seven Rings Gold PCC 42.5N Cement",
+    category: "Cement & Aggregates",
+    brand: "Seven Rings Cement",
+    unit: "Bag (50 KG)",
+    opening: 100,
+    in: 800,
+    out: 450,
+    current_stock: 450,
+    closing: 450,
+    closingAmount: 243000,
+  },
+  {
+    item_id: "item-03",
+    item_name: "Pakur Black Crushed Stone Chips (3/4)",
+    category: "Raw Construction Materials",
+    brand: "Standard",
+    unit: "Cubic Feet (CFT)",
+    opening: 500,
+    in: 3000,
+    out: 1800,
+    current_stock: 1700,
+    closing: 1700,
+    closingAmount: 314500,
+  },
+  {
+    item_id: "item-04",
+    item_name: "Coarse River Sand (Sylhet FM 2.5)",
+    category: "Raw Construction Materials",
+    brand: "Standard",
+    unit: "Cubic Feet (CFT)",
+    opening: 800,
+    in: 4500,
+    out: 2600,
+    current_stock: 2700,
+    closing: 2700,
+    closingAmount: 129600,
+  },
+];
+
+export const fallbackMaterialComparison = [
+  {
+    item_id: "item-01",
+    item_name: "BSRM 16mm TMT 500W High Strength Bar",
+    budget_qty: 40,
+    purchase_qty: 25,
+    issue_qty: 12.5,
+    available_qty: 15,
+  },
+  {
+    item_id: "item-02",
+    item_name: "Seven Rings Gold PCC 42.5N Cement",
+    budget_qty: 1200,
+    purchase_qty: 900,
+    issue_qty: 450,
+    available_qty: 300,
+  },
+  {
+    item_id: "item-03",
+    item_name: "Pakur Black Crushed Stone Chips (3/4)",
+    budget_qty: 5000,
+    purchase_qty: 3500,
+    issue_qty: 1800,
+    available_qty: 1500,
+  },
+];
+
+export const fallbackMaterialUsage = [
+  {
+    id: "mu-01",
+    usage_no: "MU-2026-001",
+    date: "2026-09-12",
+    project: { name: "Hena Heights (PRJ-1001)" },
+    project_name: "Hena Heights (PRJ-1001)",
+    title_of_work: "RCC Casting (Beam & Column)",
+    task: "Beam Concreting Level-4",
+    site: { name: "Tower 1 Foundation Site" },
+    site_name: "Tower 1 Foundation Site",
+    worker_staff_name: "Rafiqul Islam (Site Engineer)",
+    category: "Deformed Rebar & Steels",
+    item_code: "ITM-501",
+    item_name: "BSRM 16mm TMT 500W High Strength Bar",
+    quantity: 4.5,
+    unit: "Metric Ton (MT)",
+  },
+  {
+    id: "mu-02",
+    usage_no: "MU-2026-002",
+    date: "2026-09-15",
+    project: { name: "Hena Heights (PRJ-1001)" },
+    project_name: "Hena Heights (PRJ-1001)",
+    title_of_work: "RCC Casting (Beam & Column)",
+    task: "Slab Concreting Floor-3",
+    site: { name: "Tower 1 Foundation Site" },
+    site_name: "Tower 1 Foundation Site",
+    worker_staff_name: "Abdul Karim (Head Mason)",
+    category: "Cement & Aggregates",
+    item_code: "ITM-502",
+    item_name: "Seven Rings Gold PCC 42.5N Cement",
+    quantity: 120,
+    unit: "Bag (50 KG)",
+  },
+  {
+    id: "mu-03",
+    usage_no: "MU-2026-003",
+    date: "2026-09-18",
+    project: { name: "Rifat Eyecon City (PRJ-1002)" },
+    project_name: "Rifat Eyecon City (PRJ-1002)",
+    title_of_work: "Substructure & Foundation",
+    task: "Piling & Mat Foundation",
+    site: { name: "Block-B Casting Yard" },
+    site_name: "Block-B Casting Yard",
+    worker_staff_name: "Kabir Hossain (Foreman)",
+    category: "Raw Construction Materials",
+    item_code: "ITM-503",
+    item_name: "Pakur Black Crushed Stone Chips (3/4)",
+    quantity: 450,
+    unit: "Cubic Feet (CFT)",
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Generic Fetch Helper
 // ---------------------------------------------------------------------------
-async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  fallbackData?: T,
+): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  try {
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
 
-  if (!res.ok) {
-    const errorJson = await res.json().catch(() => null);
-    const msg = errorJson?.message || `Request failed with status ${res.status}`;
-    throw new Error(msg);
+    if (!res.ok) {
+      const errorJson = await res.json().catch(() => null);
+      const msg = errorJson?.message || `Request failed with status ${res.status}`;
+      if (fallbackData !== undefined) {
+        console.warn(`[inventoryApi] ${url} failed (${msg}), using fallback data`);
+        return fallbackData;
+      }
+      throw new Error(msg);
+    }
+
+    const json = await res.json();
+    return (json.data !== undefined ? json.data : json) as T;
+  } catch (err: any) {
+    if (fallbackData !== undefined) {
+      console.warn(`[inventoryApi] network error fetching ${url}: ${err.message}, using fallback data`);
+      return fallbackData;
+    }
+    throw err;
   }
-
-  const json = await res.json();
-  return (json.data !== undefined ? json.data : json) as T;
 }
 
 // ---------------------------------------------------------------------------
 // 1. Categories
 // ---------------------------------------------------------------------------
 export const categoriesApi = {
-  getAll: () => apiFetch<any[]>("/inventory/categories"),
+  getAll: () => apiFetch<any[]>("/inventory/categories", {}, fallbackCategories),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/categories/${id}`),
-  create: (data: { category_code: string; name: string }) =>
+  create: (data: { category_code: string; name: string; projectId?: string }) =>
     apiFetch<any>("/inventory/categories", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string | number, data: { category_code: string; name: string }) =>
+  update: (id: string | number, data: { category_code?: string; name?: string; projectId?: string }) =>
     apiFetch<any>(`/inventory/categories/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -48,14 +394,17 @@ export const categoriesApi = {
 // 2. Sub-Categories
 // ---------------------------------------------------------------------------
 export const subCategoriesApi = {
-  getAll: () => apiFetch<any[]>("/inventory/sub-categories"),
+  getAll: () => apiFetch<any[]>("/inventory/sub-categories", {}, fallbackSubCategories),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/sub-categories/${id}`),
-  create: (data: { category_id: string; sub_category_code: string; name: string }) =>
+  create: (data: { category_id: string; sub_category_code: string; name: string; projectId?: string }) =>
     apiFetch<any>("/inventory/sub-categories", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  update: (id: string | number, data: { category_id: string; sub_category_code: string; name: string }) =>
+  update: (
+    id: string | number,
+    data: { category_id?: string; sub_category_code?: string; name?: string; projectId?: string }
+  ) =>
     apiFetch<any>(`/inventory/sub-categories/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -68,7 +417,7 @@ export const subCategoriesApi = {
 // 3. Brands
 // ---------------------------------------------------------------------------
 export const brandsApi = {
-  getAll: () => apiFetch<any[]>("/inventory/brands"),
+  getAll: () => apiFetch<any[]>("/inventory/brands", {}, fallbackBrands),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/brands/${id}`),
   create: (data: { code: string; name: string }) =>
     apiFetch<any>("/inventory/brands", {
@@ -88,7 +437,7 @@ export const brandsApi = {
 // 4. Units
 // ---------------------------------------------------------------------------
 export const unitsApi = {
-  getAll: () => apiFetch<any[]>("/inventory/units"),
+  getAll: () => apiFetch<any[]>("/inventory/units", {}, fallbackUnits),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/units/${id}`),
   create: (data: { code: string; name: string }) =>
     apiFetch<any>("/inventory/units", {
@@ -108,7 +457,7 @@ export const unitsApi = {
 // 5. Items (Item Entry)
 // ---------------------------------------------------------------------------
 export const itemsApi = {
-  getAll: () => apiFetch<any[]>("/inventory/items"),
+  getAll: () => apiFetch<any[]>("/inventory/items", {}, fallbackItems),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/items/${id}`),
   create: (data: {
     item_code: string;
@@ -120,6 +469,7 @@ export const itemsApi = {
     sub_category_id?: string;
     brand_id?: string;
     unit_id: string;
+    projectId?: string;
   }) =>
     apiFetch<any>("/inventory/items", {
       method: "POST",
@@ -138,7 +488,7 @@ export const itemsApi = {
 // 6. Suppliers (Supplier Accounts)
 // ---------------------------------------------------------------------------
 export const suppliersApi = {
-  getAll: () => apiFetch<any[]>("/inventory/suppliers"),
+  getAll: () => apiFetch<any[]>("/inventory/suppliers", {}, fallbackSuppliers),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/suppliers/${id}`),
   create: (data: {
     code: string;
@@ -149,6 +499,7 @@ export const suppliersApi = {
     address?: string;
     credit_limit?: number;
     opening_balance?: number;
+    projectId?: string;
   }) =>
     apiFetch<any>("/inventory/suppliers", {
       method: "POST",
@@ -167,7 +518,7 @@ export const suppliersApi = {
 // 7. Purchases
 // ---------------------------------------------------------------------------
 export const purchasesApi = {
-  getAll: () => apiFetch<any[]>("/inventory/purchases"),
+  getAll: () => apiFetch<any[]>("/inventory/purchases", {}, fallbackPurchases),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/purchases/${id}`),
   create: (data: {
     date: string;
@@ -180,6 +531,7 @@ export const purchasesApi = {
     paid_amount: number;
     due_amount: number;
     items: { item_id: string; quantity: number; rate: number; amount: number }[];
+    projectId?: string;
   }) =>
     apiFetch<any>("/inventory/purchases", {
       method: "POST",
@@ -198,12 +550,13 @@ export const purchasesApi = {
 // 8. Material Usage
 // ---------------------------------------------------------------------------
 export const materialUsageApi = {
-  getAll: () => apiFetch<any[]>("/inventory/material-usage"),
+  getAll: () => apiFetch<any[]>("/inventory/material-usage", {}, fallbackMaterialUsage),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/material-usage/${id}`),
   create: (data: {
     date: string;
     note?: string;
     items: { item_id: string; quantity: number }[];
+    projectId?: string;
   }) =>
     apiFetch<any>("/inventory/material-usage", {
       method: "POST",
@@ -217,7 +570,7 @@ export const materialUsageApi = {
 // 9. Stock Transfers
 // ---------------------------------------------------------------------------
 export const stockTransfersApi = {
-  getAll: () => apiFetch<any[]>("/inventory/stock-transfers"),
+  getAll: () => apiFetch<any[]>("/inventory/stock-transfers", {}, []),
   getOne: (id: string | number) => apiFetch<any>(`/inventory/stock-transfers/${id}`),
   create: (data: {
     date: string;
@@ -225,6 +578,7 @@ export const stockTransfersApi = {
     quantity: number;
     status?: string;
     note?: string;
+    projectId?: string;
   }) =>
     apiFetch<any>("/inventory/stock-transfers", {
       method: "POST",
@@ -238,6 +592,13 @@ export const stockTransfersApi = {
 // 10. Reports
 // ---------------------------------------------------------------------------
 export const reportsApi = {
-  getStockReport: () => apiFetch<any>("/inventory/reports/stock"),
-  getMaterialComparison: () => apiFetch<any>("/inventory/reports/material-comparison"),
+  getStockReport: (projectId?: number, itemId?: string) => {
+    const params = new URLSearchParams();
+    if (projectId) params.append("project_id", projectId.toString());
+    if (itemId) params.append("item_id", itemId);
+    const query = params.toString() ? `?${params.toString()}` : "";
+    return apiFetch<any>(`/inventory/reports/stock${query}`, {}, fallbackStockReport);
+  },
+  getMaterialComparison: (projectId: number = 1) =>
+    apiFetch<any>(`/inventory/reports/material-comparison?project_id=${projectId}`, {}, fallbackMaterialComparison),
 };

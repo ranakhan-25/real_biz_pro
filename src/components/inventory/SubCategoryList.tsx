@@ -21,6 +21,7 @@ export default function SubCategoryList({
   onDelete,
 }: SubCategoryListProps) {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
@@ -28,6 +29,22 @@ export default function SubCategoryList({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Load parent categories for filter
+  useEffect(() => {
+    async function loadFilterCategories() {
+      try {
+        const res = await fetch(`${API_BASE}/inventory/categories`).then((r) => r.json()).catch(() => null);
+        const raw = res?.data !== undefined ? res.data : res;
+        if (Array.isArray(raw)) {
+          setCategoriesList(raw.map((c: any) => ({ id: c.id, name: c.name })));
+        }
+      } catch (err) {
+        console.warn("Could not load categories for filter:", err);
+      }
+    }
+    loadFilterCategories();
+  }, []);
 
   // Fetching data from backend API
   useEffect(() => {
@@ -106,10 +123,19 @@ export default function SubCategoryList({
             className="w-full sm:w-80 bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
           >
             <option value="">All Categories</option>
-            <option value="Global Link City">Global Link City</option>
-            <option value="Mega Project">Mega Project</option>
-            <option value="Black Marble">Black Marble</option>
-            <option value="White Marble">White Marble</option>
+            {categoriesList.length > 0 ? (
+              categoriesList.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))
+            ) : (
+              Array.from(new Set(subCategories.map((s) => s.category))).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))
+            )}
           </select>
         </div>
 

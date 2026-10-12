@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { purchasesApi, suppliersApi, itemsApi } from "@/lib/inventoryApi";
+import { purchasesApi, suppliersApi, itemsApi, categoriesApi } from "@/lib/inventoryApi";
 
 // Purchase item type definition
 interface PurchaseItem {
@@ -36,40 +36,51 @@ export default function PurchaseForm() {
 
   // Form states
   const [isMaterialUsages, setIsMaterialUsages] = useState(false);
-  const [date, setDate] = useState("10/09/2026");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [supplier, setSupplier] = useState("");
-  const [code, setCode] = useState("PUR7987201");
-  const [projectType, setProjectType] = useState("");
-  const [project, setProject] = useState("");
-  const [titleOfWork, setTitleOfWork] = useState("");
-  const [itTask, setItTask] = useState("");
-  const [site, setSite] = useState("");
+  const [code, setCode] = useState(`PUR${Math.floor(1000000 + Math.random() * 9000000)}`);
+  const [projectType, setProjectType] = useState("Commercial");
+  const [project, setProject] = useState("PRJ-1001");
+  const [titleOfWork, setTitleOfWork] = useState("Structural RCC & Foundation");
+  const [itTask, setItTask] = useState("Material Requisition");
+  const [site, setSite] = useState("Site A (Block-A)");
   const [category, setCategory] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
 
   // Dynamic dropdown lists
   const [suppliersList, setSuppliersList] = useState<any[]>([]);
   const [itemsList, setItemsList] = useState<any[]>([]);
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [sups, itms] = await Promise.all([
+        const [sups, itms, cats] = await Promise.all([
           suppliersApi.getAll().catch(() => []),
           itemsApi.getAll().catch(() => []),
+          categoriesApi.getAll().catch(() => []),
         ]);
         if (Array.isArray(sups)) {
           setSuppliersList(sups);
           if (sups.length > 0 && !supplier) setSupplier(sups[0].id);
         }
         if (Array.isArray(itms)) setItemsList(itms);
+        if (Array.isArray(cats)) setCategoriesList(cats);
       } catch (err) {
         console.warn("Failed to load options for PurchaseForm:", err);
       }
     }
     loadData();
   }, []);
+
+  // Filter items by category if selected
+  const availableItems = React.useMemo(() => {
+    if (!category) return itemsList;
+    return itemsList.filter(
+      (i) => i.category_id === category || i.category?.id === category || i.category?.name === category
+    );
+  }, [itemsList, category]);
 
   // Items table state
   const [items, setItems] = useState<PurchaseItem[]>([]);
@@ -164,7 +175,7 @@ export default function PurchaseForm() {
     try {
       setIsSubmitting(true);
       const payload = {
-        date: new Date().toISOString().split("T")[0],
+        date: date || new Date().toISOString().split("T")[0],
         supplier_id: supplier,
         payment_method: isCheque ? "Cheque" : paymentMethod,
         subtotal: Number(subtotal || 0),
@@ -173,6 +184,7 @@ export default function PurchaseForm() {
         grand_total: Number(grandTotal || 0),
         paid_amount: Number(paid || 0),
         due_amount: Number(due || 0),
+        projectId: project || "PRJ-1001",
         items: items.map((it) => ({
           item_id: it.itemId || it.id.toString(),
           quantity: Number(it.quantity || 1),
@@ -218,7 +230,7 @@ export default function PurchaseForm() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Date</label>
             <input
-              type="text"
+              type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
@@ -270,9 +282,10 @@ export default function PurchaseForm() {
               onChange={(e) => setProjectType(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Project Type</option>
               <option value="Commercial">Commercial</option>
               <option value="Residential">Residential</option>
+              <option value="Mixed-Use">Mixed-Use</option>
+              <option value="Industrial">Industrial</option>
             </select>
           </div>
         </div>
@@ -288,9 +301,10 @@ export default function PurchaseForm() {
               onChange={(e) => setProject(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Project</option>
-              <option value="Project 1">Project 1</option>
-              <option value="Project 2">Project 2</option>
+              <option value="PRJ-1001">PRJ-1001 - Dhaka Commercial Center</option>
+              <option value="PRJ-1002">PRJ-1002 - Bashundhara Tower</option>
+              <option value="PRJ-1003">PRJ-1003 - Uttara Lakeview Residency</option>
+              <option value="PRJ-1004">PRJ-1004 - Mirpur Shopping Complex</option>
             </select>
           </div>
           <div>
@@ -302,8 +316,11 @@ export default function PurchaseForm() {
               onChange={(e) => setTitleOfWork(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Title/Name of Work</option>
-              <option value="Work 1">Work 1</option>
+              <option value="Structural RCC & Foundation">Structural RCC & Foundation</option>
+              <option value="Masonry & Brick Work">Masonry & Brick Work</option>
+              <option value="Plumbing & Sanitary Lines">Plumbing & Sanitary Lines</option>
+              <option value="Electrical Conduit & Cabling">Electrical Conduit & Cabling</option>
+              <option value="Finishing & Interior Fit-out">Finishing & Interior Fit-out</option>
             </select>
           </div>
           <div>
@@ -313,8 +330,10 @@ export default function PurchaseForm() {
               onChange={(e) => setItTask(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Task</option>
-              <option value="Task 1">Task 1</option>
+              <option value="Material Requisition">Material Requisition</option>
+              <option value="Procurement & Gate In">Procurement & Gate In</option>
+              <option value="Quality Inspection">Quality Inspection</option>
+              <option value="Site Stock Transfer">Site Stock Transfer</option>
             </select>
           </div>
           <div>
@@ -324,8 +343,9 @@ export default function PurchaseForm() {
               onChange={(e) => setSite(e.target.value)}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Site</option>
-              <option value="Site 1">Site 1</option>
+              <option value="Site A (Block-A)">Site A (Block-A)</option>
+              <option value="Site B (Tower-1)">Site B (Tower-1)</option>
+              <option value="Site C (Central Warehouse)">Site C (Central Warehouse)</option>
             </select>
           </div>
         </div>
@@ -336,12 +356,18 @@ export default function PurchaseForm() {
             <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSelectedItem("");
+              }}
               className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
             >
-              <option value="">Select Category</option>
-              <option value="Rod">Rod</option>
-              <option value="Cement">Cement</option>
+              <option value="">All Categories</option>
+              {categoriesList.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -355,11 +381,15 @@ export default function PurchaseForm() {
                 className="w-full bg-background border border-input rounded px-3 py-1.5 text-xs text-foreground"
               >
                 <option value="">Select Item</option>
-                {itemsList.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name} ({i.code || i.item_code || "ITM"})
-                  </option>
-                ))}
+                {availableItems.length > 0 ? (
+                  availableItems.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name} ({i.code || i.item_code || "ITM"})
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No items available for selected category</option>
+                )}
               </select>
               <button
                 type="button"

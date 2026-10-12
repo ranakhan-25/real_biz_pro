@@ -1,4 +1,4 @@
-import {
+import type {
   LandOwner,
   AcquisitionLead,
   NegotiationRecord,
@@ -7,7 +7,7 @@ import {
   LamsKpiMetric,
   PipelineStageStat,
   MouzaDistributionStat,
-} from "@/types/lams";
+} from "../../types/lams.ts";
 
 export const mockKpiMetrics: LamsKpiMetric[] = [
   {
@@ -531,3 +531,6 @@ export const mockFollowUps: FollowUpItem[] = [
     assignedTo: "Rezaul Karim",
   },
 ];
+
+export const mockNegotiationRecords = mockNegotiations;
+export const mockFollowUpItems = mockFollowUps;

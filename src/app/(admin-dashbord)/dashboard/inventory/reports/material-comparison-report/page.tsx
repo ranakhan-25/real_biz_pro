@@ -15,7 +15,7 @@ export default function MaterialComparisonContainer() {
   useEffect(() => {
     async function loadComparison() {
       try {
-        const res = await reportsApi.getMaterialComparison(1);
+        const res = await reportsApi.getMaterialComparison(selectedProject || "PRJ-1001");
         const raw = res?.data || res;
         if (Array.isArray(raw) && raw.length > 0) {
           const list = raw.map((r: any, idx: number) => ({
@@ -40,7 +40,7 @@ export default function MaterialComparisonContainer() {
       }
     }
     loadComparison();
-  }, []);
+  }, [selectedProject]);
 
   // Filter States
   const [selectedProject, setSelectedProject] = useState("");
@@ -126,9 +126,11 @@ export default function MaterialComparisonContainer() {
               onChange={(e) => setSelectedProject(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select value</option>
-              <option value="Hena Heights">Hena Heights</option>
-              <option value="Rifat Eyecon City">Rifat Eyecon City</option>
+              <option value="">All Projects</option>
+              <option value="PRJ-1001">Hena Heights (PRJ-1001)</option>
+              <option value="PRJ-1002">Rifat Eyecon City (PRJ-1002)</option>
+              <option value="PRJ-1003">Green Valley Residency (PRJ-1003)</option>
+              <option value="PRJ-1004">Metro Sky Tower (PRJ-1004)</option>
             </select>
           </div>
 
@@ -142,9 +144,11 @@ export default function MaterialComparisonContainer() {
               onChange={(e) => setSelectedTask(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500 text-gray-600 dark:text-gray-300 shadow-sm"
             >
-              <option value="">Select Task</option>
-              <option value="Task 1">Task 1</option>
-              <option value="Task 2">Task 2</option>
+              <option value="">All Tasks</option>
+              <option value="Substructure & Foundation">Substructure & Foundation</option>
+              <option value="RCC Casting (Beam & Column)">RCC Casting (Beam & Column)</option>
+              <option value="Brickwork & Masonry">Brickwork & Masonry</option>
+              <option value="Finishing & Fitting">Finishing & Fitting</option>
             </select>
           </div>
         </div>
