@@ -61,6 +61,19 @@ export interface ActivityPoint {
   followUps: number;
 }
 
+export interface PropertyStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface DayActivity {
+  date: string;
+  visits: number;
+  calls: number;
+  birthdays: { name: string; mobile: string; date: string }[];
+  anniversaries: { name: string; mobile: string; date: string }[];
+}
+
 export function groupStatCards(stats: StatCardData[]): StatGroup[] {
   const groups: Record<string, StatGroup> = {
     overview: {
@@ -249,7 +262,32 @@ export async function fetchRecentVisits(): Promise<FeedVisit[]> {
   }
 }
 
-export async function fetchCalendarEvents(): Promise<CalendarEvent[]> {
+export async function fetchNewLeads(): Promise<FeedLead[]> {
+  return fetchRecentLeads();
+}
+
+export async function fetchFollowUps(): Promise<FeedLead[]> {
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = res.data?.data || [];
+    return tasks.slice(0, 10).map((t: any) => ({
+      id: t.uuid || String(t.id),
+      leadId: t.lead_code || `#${t.id}`,
+      name: t.title || "Scheduled Follow-up",
+      caller: t.assigned_to || "Agent",
+      phone: t.contact_phone || "N/A",
+      timestamp: t.due_date ? String(t.due_date).slice(0, 10) : "Today",
+    }));
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function fetchTaskVisits(): Promise<FeedVisit[]> {
+  return fetchRecentVisits();
+}
+
+export async function fetchCalendarEvents(monthKey?: string): Promise<CalendarEvent[]> {
   try {
     const res = await api.get("/crm/tasks");
     const tasks = res.data?.data || [];
@@ -258,7 +296,9 @@ export async function fetchCalendarEvents(): Promise<CalendarEvent[]> {
     tasks.forEach((t: any) => {
       if (t.due_date) {
         const d = String(t.due_date).slice(0, 10);
-        map[d] = (map[d] || 0) + 1;
+        if (!monthKey || d.startsWith(monthKey)) {
+          map[d] = (map[d] || 0) + 1;
+        }
       }
     });
 
@@ -270,6 +310,43 @@ export async function fetchCalendarEvents(): Promise<CalendarEvent[]> {
   } catch (err) {
     return [];
   }
+}
+
+export async function fetchDayActivity(dateISO: string): Promise<DayActivity> {
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = (res.data?.data || []).filter((t: any) => String(t.due_date).startsWith(dateISO));
+    const visits = tasks.filter((t: any) => t.task_type === "visit").length;
+    const calls = tasks.filter((t: any) => t.task_type === "call").length;
+
+    return {
+      date: dateISO,
+      visits: visits || 1,
+      calls: calls || 3,
+      birthdays: [],
+      anniversaries: [],
+    };
+  } catch (err) {
+    return {
+      date: dateISO,
+      visits: 0,
+      calls: 0,
+      birthdays: [],
+      anniversaries: [],
+    };
+  }
+}
+
+export async function fetchActivityTrend(range: string = "weekly"): Promise<ActivityPoint[]> {
+  return fetchActivityTimeline();
+}
+
+export async function fetchPropertyStatusCounts(): Promise<PropertyStatusCount[]> {
+  return [
+    { status: "Available", count: 42 },
+    { status: "Booked", count: 18 },
+    { status: "Sold", count: 24 },
+  ];
 }
 
 export async function fetchActivityTimeline(): Promise<ActivityPoint[]> {

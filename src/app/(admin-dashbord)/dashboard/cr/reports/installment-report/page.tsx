@@ -4,6 +4,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown, Search, CheckCircle2 } from "lucide-react";
 
+import { crApi } from "@/lib/crApi";
+
 const flatLandMenu = ["Flat/Land", "Flat/Land Sale", "Flat/Land Sale Payment"];
 
 const salesByOptions = ["Tazmul Reza", "Rifat Hosain", "Mohin Uddin"];
@@ -27,79 +29,6 @@ const datePresets = [
   "This Month",
   "Last Month",
   "Custom Range",
-];
-
-const ALL_ROWS = [
-  {
-    id: 1,
-    project: "",
-    flatLand: "",
-    customer: "",
-    totalValue: "",
-    paid: "0",
-    due: "0",
-    installmentDate: "2026-09-03",
-    installmentAmount: "73800",
-    recovered: "0",
-    installmentDue: "73800",
-    salesBy: "",
-  },
-  {
-    id: 2,
-    project: "",
-    flatLand: "",
-    customer: "",
-    totalValue: "",
-    paid: "0",
-    due: "0",
-    installmentDate: "2026-09-03",
-    installmentAmount: "73800",
-    recovered: "0",
-    installmentDue: "73800",
-    salesBy: "",
-  },
-  {
-    id: 3,
-    project: "Sheba Eyecon Tower",
-    flatLand: "F 3",
-    customer: "Sagor kumar",
-    totalValue: "10925000",
-    paid: "122320",
-    due: "10802680",
-    installmentDate: "2026-09-03",
-    installmentAmount: "10802680",
-    recovered: "0",
-    installmentDue: "10802680",
-    salesBy: "",
-  },
-  {
-    id: 4,
-    project: "Lake Garden",
-    flatLand: "A1",
-    customer: "Mr. Raju raz",
-    totalValue: "84200000",
-    paid: "28066666.66",
-    due: "56133333.34",
-    installmentDate: "2026-09-30",
-    installmentAmount: "28066666.66",
-    recovered: "28066666.66",
-    installmentDue: "0",
-    salesBy: "",
-  },
-  {
-    id: 5,
-    project: "Lake Garden",
-    flatLand: "C-10",
-    customer: "Abc",
-    totalValue: "15340000",
-    paid: "200000",
-    due: "13340000",
-    installmentDate: "2026-09-24",
-    installmentAmount: "277916.67",
-    recovered: "0",
-    installmentDue: "277916.67",
-    salesBy: "",
-  },
 ];
 
 /* ── Reusable Searchable Select ── */
@@ -354,9 +283,68 @@ export default function InstallmentReportPage() {
   const [project, setProject] = useState("");
   const [dateRange, setDateRange] = useState("1 September, 2026 - 30 September, 2026");
 
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const agreements = await crApi.getAgreements();
+        if (!mounted) return;
+        const transformed: any[] = [];
+        agreements.forEach((ag: any, idx: number) => {
+          if (Array.isArray(ag.schedule) && ag.schedule.length > 0) {
+            ag.schedule.forEach((inst: any) => {
+              transformed.push({
+                id: `${ag.agreement_no || ag.id}-${inst.installment_no}`,
+                project: ag.project_name || "Head Office",
+                flatLand: ag.unit_no || "Unit",
+                customer: ag.customer_name || "Customer",
+                totalValue: Number(ag.agreed_price || 0).toLocaleString(),
+                paid: Number(ag.total_paid || 0).toLocaleString(),
+                due: Number(ag.outstanding_balance || 0).toLocaleString(),
+                installmentDate: inst.due_date ? String(inst.due_date).slice(0, 10) : "N/A",
+                installmentAmount: Number(inst.due_amount || 0).toLocaleString(),
+                recovered: Number(inst.paid_amount || 0).toLocaleString(),
+                installmentDue: (Number(inst.due_amount || 0) - Number(inst.paid_amount || 0)).toLocaleString(),
+                salesBy: ag.sales_person_name || "Sales Rep",
+              });
+            });
+          } else {
+            transformed.push({
+              id: ag.agreement_no || `#${ag.id || idx + 1}`,
+              project: ag.project_name || "Head Office",
+              flatLand: ag.unit_no || "Unit",
+              customer: ag.customer_name || "Customer",
+              totalValue: Number(ag.agreed_price || 0).toLocaleString(),
+              paid: Number(ag.total_paid || 0).toLocaleString(),
+              due: Number(ag.outstanding_balance || 0).toLocaleString(),
+              installmentDate: ag.created_at ? String(ag.created_at).slice(0, 10) : "N/A",
+              installmentAmount: Number(ag.agreed_price || 0).toLocaleString(),
+              recovered: Number(ag.total_paid || 0).toLocaleString(),
+              installmentDue: Number(ag.outstanding_balance || 0).toLocaleString(),
+              salesBy: ag.sales_person_name || "Sales Rep",
+            });
+          }
+        });
+        setRows(transformed);
+      } catch (err) {
+        console.error("Failed to load installment report:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ALL_ROWS.filter((r) => {
+    return rows.filter((r) => {
       const matchSearch =
         !q ||
         r.customer.toLowerCase().includes(q) ||
@@ -366,7 +354,7 @@ export default function InstallmentReportPage() {
       const matchProject = !project || r.project === project;
       return matchSearch && matchProject;
     });
-  }, [search, project]);
+  }, [rows, search, project]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / entries));
@@ -514,7 +502,16 @@ export default function InstallmentReportPage() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={13} className="px-2.5 py-10 text-center text-ink-muted">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <span>Loading live installment report...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : pageRows.length === 0 ? (
                   <tr>
                     <td colSpan={13} className="px-2.5 py-10 text-center text-ink-faint">
                       No records found
