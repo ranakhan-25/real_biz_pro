@@ -34,6 +34,28 @@ export const crApi = {
     }
   },
 
+  async updateSetup(uuid: string, dto: any) {
+    try {
+      const res = await crClient.put(`/setups/${uuid}`, dto);
+      showAlert.success("Setup Updated", "Policy plan updated successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Update Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async deleteSetup(uuid: string) {
+    try {
+      const res = await crClient.delete(`/setups/${uuid}`);
+      showAlert.success("Setup Deleted", "Policy plan deleted successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Delete Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
   // Sale Agreements & Amortization
   async getAgreements() {
     try {
@@ -63,6 +85,39 @@ export const crApi = {
       return res.data?.data || res.data;
     } catch (err: any) {
       showAlert.error("Agreement Creation Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async updateAgreement(uuid: string, dto: any) {
+    try {
+      const res = await crClient.put(`/agreements/${uuid}`, dto);
+      showAlert.success("Agreement Updated", "Sale agreement updated successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Update Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async deleteAgreement(uuid: string) {
+    try {
+      const res = await crClient.delete(`/agreements/${uuid}`);
+      showAlert.success("Agreement Deleted", "Sale agreement deleted successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Delete Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async addPlotDistribution(uuid: string, dto: any) {
+    try {
+      const res = await crClient.post(`/agreements/${uuid}/plot-distribution`, dto);
+      showAlert.success("Plot Allocated", "Plot allotment attached to agreement.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Plot Allocation Failed", err.response?.data?.message || err.message);
       throw err;
     }
   },
@@ -120,6 +175,17 @@ export const crApi = {
       return res.data?.data || res.data;
     } catch (err: any) {
       showAlert.error("Recovery Logging Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async updateRecoveryLog(uuid: string, dto: any) {
+    try {
+      const res = await crClient.put(`/recovery/${uuid}`, dto);
+      showAlert.success("Recovery Log Updated", "Action record updated successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Update Failed", err.response?.data?.message || err.message);
       throw err;
     }
   },
