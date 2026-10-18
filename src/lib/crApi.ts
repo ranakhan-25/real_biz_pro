@@ -213,6 +213,10 @@ export const crApi = {
     }
   },
 
+  async getRealizationSummary() {
+    return this.getOverdueSummary();
+  },
+
   async getCollectionSummary() {
     try {
       const res = await crClient.get("/reports/collection-summary");

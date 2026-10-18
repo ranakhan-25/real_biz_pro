@@ -210,11 +210,11 @@ export function CrmPageTemplate({
     const targetId = row.id || row.uuid;
     if (!apiEndpoint || !targetId) return;
 
-    const confirmRes = await showAlert.confirm(
+    const isConfirmed = await showAlert.confirm(
       "Confirm Delete",
       `Are you sure you want to delete this record?`
     );
-    if (!confirmRes.isConfirmed) return;
+    if (!isConfirmed) return;
 
     try {
       await api.delete(`${apiEndpoint}/${targetId}`);
