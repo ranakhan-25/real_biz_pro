@@ -42,6 +42,19 @@ export interface Investor {
   nominees: Nominee[];
 }
 
+type InvestorFormData = {
+  code: string;
+  name: string;
+  mobile: string;
+  email: string;
+  nid: string;
+  address: string;
+  chartOfGroups: string;
+  under: string;
+  nominees: Nominee[];
+  imageFile?: File | null;
+};
+
 // ---------- API helpers ----------
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
@@ -83,7 +96,20 @@ async function fetchInvestors(): Promise<{ data: Investor[]; meta: any }> {
   return { data: mapped, meta: json?.data?.meta };
 }
 
-async function createInvestor(payload: Record<string, any>) {
+function buildFormData(payload: Record<string, any>, imageFile?: File | null) {
+  const fd = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (key === "nominees") {
+      fd.append(key, JSON.stringify(value));
+    } else if (value !== undefined && value !== null) {
+      fd.append(key, String(value));
+    }
+  });
+  if (imageFile) fd.append("image", imageFile);
+  return fd;
+}
+
+async function createInvestor(payload: Record<string, any>, imageFile?: File | null) {
   const res = await fetch(`${API_BASE}/realbizpro/api/v1/investor`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -94,15 +120,15 @@ async function createInvestor(payload: Record<string, any>) {
     try {
       const body = await res.json();
       msg = body?.message || body?.error || msg;
-    } catch (e) {
-      throw new Error(e instanceof Error ? e.message : String(e));
+    } catch {
+      /* ignore */
     }
     throw new Error(msg);
   }
   return res.json();
 }
 
-async function updateInvestor(uuid: string, payload: Record<string, any>) {
+async function updateInvestor(uuid: string, payload: Record<string, any>, imageFile?: File | null) {
   const res = await fetch(`${API_BASE}/realbizpro/api/v1/investor/${uuid}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -113,8 +139,8 @@ async function updateInvestor(uuid: string, payload: Record<string, any>) {
     try {
       const body = await res.json();
       msg = body?.message || body?.error || msg;
-    } catch (e) {
-      throw new Error(e instanceof Error ? e.message : String(e));
+    } catch {
+      /* ignore */
     }
     throw new Error(msg);
   }
@@ -140,9 +166,9 @@ function InvestorFormModal({
   title: string;
   initialData?: Investor;
   onClose: () => void;
-  onSubmit: (data: Partial<Investor>) => Promise<void>;
+  onSubmit: (data: InvestorFormData) => Promise<void>;
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<InvestorFormData>({
     code:
       initialData?.code ||
       `INV-${new Date().getFullYear()}-${String(
@@ -155,10 +181,10 @@ function InvestorFormModal({
     address: initialData?.address || "",
     chartOfGroups: initialData?.chartOfGroups || "",
     under: initialData?.under || "Corporate",
-    nominees:
-      initialData?.nominees?.length
-        ? initialData.nominees
-        : [{ nomineeName: "", nomineeNid: "", relation: "", percentage: "" }],
+    nominees: initialData?.nominees?.length
+      ? initialData.nominees
+      : [{ nomineeName: "", nomineeNid: "", relation: "", percentage: "" }],
+    imageFile: null,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -177,7 +203,12 @@ function InvestorFormModal({
       ...formData,
       nominees: [
         ...formData.nominees,
-        { nomineeName: "", nomineeNid: "", relation: "", percentage: "" },
+        {
+          nomineeName: formData.name || "", // uporer Name copy
+          nomineeNid: formData.nid || "", // uporer NID copy
+          relation: "",
+          percentage: "",
+        },
       ],
     });
   };
@@ -207,6 +238,7 @@ function InvestorFormModal({
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            type="button"
           >
             <X className="w-5 h-5" />
           </button>
@@ -315,9 +347,25 @@ function InvestorFormModal({
               <div className="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white">
                 <label className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2 cursor-pointer border-r border-slate-300 transition-colors flex items-center gap-1.5">
                   <Upload className="w-3.5 h-3.5 text-slate-500" /> Choose File
-                  <input type="file" className="hidden" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        imageFile: e.target.files?.[0] || null,
+                      })
+                    }
+                  />
                 </label>
-                <span className="px-3 text-xs text-slate-400">No file chosen</span>
+                <span className="px-3 text-xs text-slate-400 truncate max-w-[140px]">
+                  {formData.imageFile
+                    ? formData.imageFile.name
+                    : initialData?.image
+                      ? "Current image"
+                      : "No file chosen"}
+                </span>
               </div>
             </div>
 
@@ -362,6 +410,15 @@ function InvestorFormModal({
                 <option value="Individual">Individual</option>
               </select>
             </div>
+
+            <button
+              type="button"
+              onClick={addNomineeRow}
+              className="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-semibold self-end"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Item
+            </button>
           </div>
 
           {/* Nominee Details */}
@@ -491,6 +548,7 @@ export default function InvestorManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingInvestor, setEditingInvestor] = useState<Investor | null>(null);
@@ -516,6 +574,11 @@ export default function InvestorManagementPage() {
     loadData();
   }, []);
 
+  // Reset to first page when search or entries change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, entriesPerPage]);
+
   const filteredInvestors = investors.filter(
     (inv) =>
       inv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -523,6 +586,16 @@ export default function InvestorManagementPage() {
       inv.mobile.includes(searchQuery) ||
       inv.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.nid.includes(searchQuery),
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredInvestors.length / entriesPerPage),
+  );
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedInvestors = filteredInvestors.slice(
+    startIndex,
+    startIndex + entriesPerPage,
   );
 
   const handleDelete = async (investor: Investor) => {
@@ -539,7 +612,7 @@ export default function InvestorManagementPage() {
   };
 
   // Form → API payload
-  const toApiPayload = (data: Partial<Investor>) => ({
+  const toApiPayload = (data: InvestorFormData) => ({
     code: data.code || "",
     name: data.name || "",
     mobileNo: data.mobile || "",
@@ -645,81 +718,79 @@ export default function InvestorManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredInvestors.length > 0 ? (
-                    filteredInvestors
-                      .slice(0, entriesPerPage)
-                      .map((investor, index) => (
-                        <tr
-                          key={investor.uuid || investor.id}
-                          className="hover:bg-slate-50/80 transition-colors"
-                        >
-                          <td className="py-3 px-4 font-medium text-slate-600">
-                            {index + 1}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-xs text-indigo-600 font-semibold">
-                            {investor.code}
-                          </td>
-                          <td className="py-3 px-4 font-medium text-slate-900">
-                            {investor.name}
-                          </td>
-                          <td className="py-3 px-4 text-slate-600">
-                            {investor.mobile}
-                          </td>
-                          <td className="py-3 px-4 text-slate-600">
-                            {investor.email || "—"}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-xs text-slate-600">
-                            {investor.nid}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                              {investor.under || "—"}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            {investor.image ? (
-                              <img
-                                src={
-                                  investor.image.startsWith("http")
-                                    ? investor.image
-                                    : `${API_BASE}/${investor.image}`
-                                }
-                                alt={investor.name}
-                                className="w-9 h-9 rounded-full object-cover mx-auto border border-slate-200 shadow-xs"
-                              />
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-slate-200 mx-auto flex items-center justify-center text-xs font-bold text-slate-500">
-                                {investor.name?.charAt(0) || "?"}
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="inline-flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => setSelectedInvestor(investor)}
-                                title="View Profile / Details"
-                                className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md transition-colors"
-                              >
-                                <User className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setEditingInvestor(investor)}
-                                title="Edit Investor"
-                                className="p-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-md transition-colors"
-                              >
-                                <Edit3 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(investor)}
-                                title="Delete Investor"
-                                className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                  {paginatedInvestors.length > 0 ? (
+                    paginatedInvestors.map((investor, index) => (
+                      <tr
+                        key={investor.uuid || investor.id}
+                        className="hover:bg-slate-50/80 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-medium text-slate-600">
+                          {startIndex + index + 1}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs text-indigo-600 font-semibold">
+                          {investor.code}
+                        </td>
+                        <td className="py-3 px-4 font-medium text-slate-900">
+                          {investor.name}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {investor.mobile}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {investor.email || "—"}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs text-slate-600">
+                          {investor.nid}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            {investor.under || "—"}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {investor.image ? (
+                            <img
+                              src={
+                                investor.image.startsWith("http")
+                                  ? investor.image
+                                  : `${API_BASE}/${investor.image}`
+                              }
+                              alt={investor.name}
+                              className="w-9 h-9 rounded-full object-cover mx-auto border border-slate-200 shadow-xs"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-slate-200 mx-auto flex items-center justify-center text-xs font-bold text-slate-500">
+                              {investor.name?.charAt(0) || "?"}
                             </div>
-                          </td>
-                        </tr>
-                      ))
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => setSelectedInvestor(investor)}
+                              title="View Profile / Details"
+                              className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md transition-colors"
+                            >
+                              <User className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditingInvestor(investor)}
+                              title="Edit Investor"
+                              className="p-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-md transition-colors"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(investor)}
+                              title="Delete Investor"
+                              className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   ) : (
                     <tr>
                       <td
@@ -736,22 +807,40 @@ export default function InvestorManagementPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500">
               <div>
-                Showing 1 to {Math.min(entriesPerPage, filteredInvestors.length)}{" "}
+                Showing {filteredInvestors.length === 0 ? 0 : startIndex + 1} to{" "}
+                {Math.min(
+                  startIndex + entriesPerPage,
+                  filteredInvestors.length,
+                )}{" "}
                 of {filteredInvestors.length} entries
               </div>
               <div className="inline-flex items-center gap-1">
                 <button
-                  disabled
-                  className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
                   Previous
                 </button>
-                <button className="px-3 py-1 rounded border border-indigo-600 bg-indigo-600 text-white font-medium">
-                  1
-                </button>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 rounded border font-medium ${
+                      currentPage === i + 1
+                        ? "border-indigo-600 bg-indigo-600 text-white"
+                        : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
                 <button
-                  disabled
-                  className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
                   Next
                 </button>
@@ -768,7 +857,7 @@ export default function InvestorManagementPage() {
           onClose={() => setIsAddOpen(false)}
           onSubmit={async (data) => {
             try {
-              await createInvestor(toApiPayload(data));
+              await createInvestor(toApiPayload(data), data.imageFile);
               setIsAddOpen(false);
               await loadData();
             } catch (err: any) {
@@ -789,6 +878,7 @@ export default function InvestorManagementPage() {
               await updateInvestor(
                 editingInvestor.uuid,
                 toApiPayload(data),
+                data.imageFile,
               );
               setEditingInvestor(null);
               await loadData();

@@ -1,389 +1,669 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Plus, 
-  ChevronRight, 
-  Home, 
-  X, 
-  Save, 
-  Edit, 
-  Trash2, 
-  ArrowLeft,
-  FileText
-} from 'lucide-react';
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Home,
+  ChevronRight,
+  Plus,
+  Edit,
+  Trash2,
+  X,
+  Loader2,
+  Save,
+  Folder,
+} from "lucide-react";
 
-export interface BoqTitleRecord {
-  id: string;
-  projectType: string;
+// ==================== TYPES ====================
+export interface BoqTitleItem {
+  id: number | string;
+  uuid: string;
+  projectId: string;
   title: string;
+  status?: string;
 }
 
-const initialBoqData: BoqTitleRecord[] = [
-  { id: '1', projectType: 'Building Construction', title: 'Design Cost' },
-  { id: '2', projectType: 'Building Construction', title: 'Project Overhead' },
-  { id: '3', projectType: 'Civil Works', title: 'Indirect Common Cost' },
-  { id: '4', projectType: 'Civil Works', title: 'Direct Common Cost' },
-  { id: '5', projectType: 'Interior Fitout', title: 'Paints Works' },
-  { id: '6', projectType: 'Plumbing & Sanitary', title: 'Sanitary Works' },
-  { id: '7', projectType: 'Interior Fitout', title: 'Thai & Glass Works' },
-  { id: '8', projectType: 'Electrical', title: 'Electric Works' },
-  { id: '9', projectType: 'Civil Works', title: 'Tiles & Marble Works' },
-  { id: '10', projectType: 'Metal Fabrication', title: 'MS & SS Works' },
-  { id: '11', projectType: 'Electrical', title: 'Substation & Generator Installation' },
-  { id: '12', projectType: 'HVAC', title: 'Central AC Ducting Work' },
-  { id: '13', projectType: 'Plumbing & Sanitary', title: 'Firefighting System Setup' },
-  { id: '14', projectType: 'Building Construction', title: 'Piling & Foundation Work' },
-  { id: '15', projectType: 'Interior Fitout', title: 'False Ceiling & Partitions' },
-  { id: '16', projectType: 'Security', title: 'CCTV & Networking Setup' }
-];
+interface ProjectOption {
+  uuid: string;
+  name: string;
+}
 
-export default function BoqTitleListModule() {
-  const [viewMode, setViewMode] = useState<'list' | 'create'>('list');
-  const [boqList, setBoqList] = useState<BoqTitleRecord[]>(initialBoqData);
-  const [searchQuery, setSearchQuery] = useState('');
+// ==================== API CONFIG ====================
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
+const API_PREFIX = "/realbizpro/api/v1";
+
+const BOQ_API = `${API_BASE_URL}${API_PREFIX}/boq`;
+const PROJECT_API = `${API_BASE_URL}${API_PREFIX}/project`;
+
+// ==================== API FUNCTIONS ====================
+async function fetchProjects(): Promise<ProjectOption[]> {
+  try {
+    const query = new URLSearchParams({ page: "1", limit: "100" });
+    const res = await fetch(`${PROJECT_API}?${query}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const rows =
+      json?.data?.data ?? (Array.isArray(json?.data) ? json.data : null) ?? [];
+    return Array.isArray(rows)
+      ? rows
+          .filter((p: any) => p?.uuid)
+          .map((p: any) => ({
+            uuid: String(p.uuid),
+            name: String(p.name || p.projectName || p.code || "Unnamed"),
+          }))
+      : [];
+  } catch (err) {
+    console.error("fetchProjects error:", err);
+    return [];
+  }
+}
+
+async function fetchBoqTitles(): Promise<BoqTitleItem[]> {
+  const query = new URLSearchParams({ page: "1", limit: "100" });
+  const res = await fetch(`${BOQ_API}?${query}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err?.message || `Failed to fetch boq titles: ${res.status}`,
+    );
+  }
+  const json = await res.json();
+  const rows = json?.data?.data ?? json?.data ?? [];
+
+  return Array.isArray(rows)
+    ? rows.map((item: any) => ({
+        id: item.id ?? item.uuid,
+        uuid: item.uuid,
+        projectId: item.projectId || item.project?.uuid || "",
+        title: item.titleOfWork || item.title || "",
+        status: item.status || "active",
+      }))
+    : [];
+}
+
+async function createBoqTitle(payload: Record<string, any>) {
+  console.log("POST payload →", payload);
+  const res = await fetch(BOQ_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error("POST error →", err);
+    throw new Error(err?.message || "Create boq title failed");
+  }
+  return res.json();
+}
+
+async function updateBoqTitle(uuid: string, payload: Record<string, any>) {
+  console.log("PUT", uuid, "payload →", payload);
+  const res = await fetch(`${BOQ_API}/${uuid}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error("PUT error →", err);
+    throw new Error(err?.message || "Update boq title failed");
+  }
+  return res.json();
+}
+
+async function deleteBoqTitle(uuid: string) {
+  const res = await fetch(`${BOQ_API}/${uuid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Delete boq title failed");
+  }
+  return res.json().catch(() => ({}));
+}
+
+// ==================== MAIN PAGE ====================
+export default function BoqTitleListPage() {
+  const [items, setItems] = useState<BoqTitleItem[]>([]);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal State for Edit
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<BoqTitleRecord | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Form State
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BoqTitleItem | null>(null);
+
   const [formData, setFormData] = useState({
-    projectType: 'Building Construction',
-    title: ''
+    projectId: "",
+    title: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // ==================== LOAD ====================
+  const loadItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchBoqTitles();
+      setItems(data);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Failed to load boq titles");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+    fetchProjects()
+      .then(setProjects)
+      .catch((e) => console.error("projects:", e));
+  }, [loadItems]);
+
+  // ==================== FILTER ====================
+  const filtered = items.filter((item) => {
+    const q = searchQuery.toLowerCase();
+    return item.title.toLowerCase().includes(q);
   });
 
-  const filteredData = boqList.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.projectType.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredData.length / entriesPerPage) || 1;
+  const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
   const startIndex = (currentPage - 1) * entriesPerPage;
-  const currentTableData = filteredData.slice(startIndex, startIndex + entriesPerPage);
+  const paginated = filtered.slice(startIndex, startIndex + entriesPerPage);
 
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newItem: BoqTitleRecord = {
-      id: Date.now().toString(),
-      projectType: formData.projectType,
-      title: formData.title
-    };
-    setBoqList([newItem, ...boqList]);
-    setViewMode('list');
-    setFormData({ projectType: 'Building Construction', title: '' });
+  // ==================== RESET ====================
+  const resetForm = () => {
+    setFormData({ projectId: "", title: "" });
+    setFormError(null);
   };
 
-  const handleUpdateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedItem) return;
-    setBoqList(boqList.map(item => item.id === selectedItem.id ? {
-      ...item,
-      projectType: formData.projectType,
-      title: formData.title
-    } : item));
-    setIsEditOpen(false);
-    setSelectedItem(null);
+  const handleOpenAdd = () => {
+    resetForm();
+    setIsAddOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this BOQ title?')) {
-      setBoqList(boqList.filter(item => item.id !== id));
+  const handleOpenEdit = (item: BoqTitleItem) => {
+    setEditingItem(item);
+    setFormData({
+      projectId: item.projectId || "",
+      title: item.title || "",
+    });
+    setFormError(null);
+  };
+
+  // ==================== CREATE ====================
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.projectId) {
+      setFormError("Project is required");
+      return;
+    }
+    if (!formData.title.trim()) {
+      setFormError("Boq Title is required");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setFormError(null);
+
+      const now = new Date().toISOString();
+
+      await createBoqTitle({
+        projectId: formData.projectId,
+        titleOfWork: formData.title,
+        task: formData.title,
+        date: now,
+        budget: 0,
+        percentageOfTotalBudget: 0,
+        perSftBudget: 0,
+        cost: 0,
+        available: 0,
+      });
+
+      setIsAddOpen(false);
+      resetForm();
+      await loadItems();
+    } catch (err: any) {
+      setFormError(err?.message || "Create failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // ==================== UPDATE ====================
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem?.uuid) return;
+
+    if (!formData.projectId) {
+      setFormError("Project is required");
+      return;
+    }
+    if (!formData.title.trim()) {
+      setFormError("Boq Title is required");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setFormError(null);
+
+      await updateBoqTitle(editingItem.uuid, {
+        projectId: formData.projectId,
+        titleOfWork: formData.title,
+        task: formData.title,
+      });
+
+      setEditingItem(null);
+      resetForm();
+      await loadItems();
+    } catch (err: any) {
+      setFormError(err?.message || "Update failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ==================== DELETE ====================
+  const handleDelete = async (item: BoqTitleItem) => {
+    if (!item.uuid) return;
+    if (!confirm(`Delete boq title "${item.title}"?`)) return;
+    try {
+      setActionLoading(true);
+      await deleteBoqTitle(item.uuid);
+      setItems((prev) => prev.filter((c) => c.uuid !== item.uuid));
+    } catch (err: any) {
+      alert(err?.message || "Delete failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ==================== RENDER ====================
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col justify-between p-2 sm:p-3 font-sans">
-      <div className="space-y-3 w-full flex-1 flex flex-col">
-        
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium px-1">
-          <div className="flex items-center gap-1 hover:text-indigo-600 cursor-pointer transition-colors">
-            <Home className="w-3.5 h-3.5" /> Home
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-600">Accounts</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-indigo-600 font-semibold">
-            {viewMode === 'list' ? 'Boq Title List' : 'Boq Title Add'}
-          </span>
-        </div>
-
-        {/* Top Header & Actions Bar */}
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
-          <div>
-            <h1 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-600" /> 
-              {viewMode === 'list' ? 'Bill of Quantities (BOQ) Title Management' : 'Create New BOQ Title'}
-            </h1>
-            <p className="text-[11px] text-slate-500">Manage project estimate titles and cost categories across full screen layout.</p>
-          </div>
-
-          <div>
-            {viewMode === 'list' ? (
-              <button
-                onClick={() => setViewMode('create')}
-                className="inline-flex items-center gap-1.5 bg-[#5949d6] hover:bg-[#4d3ec2] text-white text-[11px] font-semibold px-4 py-2 rounded-md shadow-xs transition-all cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" /> +Title Add
-              </button>
-            ) : (
-              <button
-                onClick={() => setViewMode('list')}
-                className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold px-4 py-2 rounded-md shadow-xs transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Previous
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ================= VIEW 1: BOQ TITLE LIST TABLE ================= */}
-        {viewMode === 'list' && (
-          <div className="w-full flex-1 flex flex-col space-y-3">
-            
-            {/* Entries & Search Bar Container */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white px-4 py-3 rounded-t-lg border-x border-t border-slate-200 w-full shadow-xs">
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                <span>Show</span>
-                <select
-                  value={entriesPerPage}
-                  onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                  className="border border-slate-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-                <span>entries</span>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs text-slate-600 font-medium">Search:</span>
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    placeholder="Search titles or project types..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
-                  />
-                </div>
-              </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 font-sans">
+      <div className="max-w-[1400px] mx-auto space-y-4">
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <div className="flex items-center gap-1 hover:text-indigo-600 cursor-pointer">
+              <Home className="w-3.5 h-3.5" />
+              Home
             </div>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-600">Accounts</span>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-indigo-600 font-semibold">
+              Bog Title List
+            </span>
+          </div>
 
-            {/* Full Width Table */}
-            <div className="border-x border-b border-slate-200 rounded-b-lg overflow-hidden shadow-xs bg-white w-full flex-1">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#5949d6] text-white font-semibold tracking-wide">
-                      <th className="py-2.5 px-3 w-16">SL</th>
-                      <th className="py-2.5 px-3">PROJECT TYPE</th>
-                      <th className="py-2.5 px-3">TITLE</th>
-                      <th className="py-2.5 px-3 text-center w-28">ACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {currentTableData.length > 0 ? (
-                      currentTableData.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors">
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-600">{startIndex + index + 1}</td>
-                          <td className="py-2.5 px-3 font-semibold text-indigo-700">{item.projectType}</td>
-                          <td className="py-2.5 px-3 font-bold text-slate-900">{item.title}</td>
-                          <td className="py-2.5 px-3 text-center">
-                            <div className="inline-flex items-center gap-1.5 justify-center">
-                              <button
-                                type="button"
-                                onClick={() => { 
-                                  setSelectedItem(item); 
-                                  setFormData({ projectType: item.projectType, title: item.title });
-                                  setIsEditOpen(true); 
-                                }}
-                                className="p-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-600 rounded transition-colors cursor-pointer"
-                                title="Edit Title"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(item.id)}
-                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition-colors cursor-pointer"
-                                title="Delete Title"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="text-center py-12 text-slate-400 font-medium">
-                          No matching BOQ titles found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="inline-flex items-center gap-1.5 bg-[#5949d6] hover:bg-[#4d3ec2] text-white text-xs font-semibold px-4 py-2 rounded shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            +Title Add
+          </button>
+        </div>
 
-              {/* Pagination Footer */}
-              <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500 font-medium w-full">
-                <div>
-                  Showing {filteredData.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + entriesPerPage, filteredData.length)} of {filteredData.length} entries
-                </div>
-                <div className="inline-flex items-center gap-1">
-                  <button 
-                    type="button" 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded border border-slate-200 ${currentPage === 1 ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-100 cursor-pointer'}`}
-                  >
-                    Previous
-                  </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
-                    <button
-                      key={pageNumber}
-                      type="button"
-                      onClick={() => setCurrentPage(pageNumber)}
-                      className={`px-3 py-1 rounded border font-semibold ${currentPage === pageNumber ? 'border-[#5949d6] bg-[#5949d6] text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer'}`}
+        {/* TABLE CARD */}
+        <div className="bg-white rounded border border-slate-200 shadow-2xs">
+          {/* SHOW + SEARCH */}
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span>Show</span>
+              <select
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span>entries</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-600">Search:</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-48 px-3 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* ERROR */}
+          {error && (
+            <div className="mx-3 mb-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2 rounded text-xs flex items-center justify-between">
+              <span>{error}</span>
+              <button onClick={loadItems} className="underline text-xs">
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* TABLE */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead>
+                <tr className="bg-[#5949d6] text-white font-semibold uppercase tracking-wide">
+                  <th className="py-2.5 px-3 w-16">SL</th>
+                  <th className="py-2.5 px-3">PROJECT TYPE</th>
+                  <th className="py-2.5 px-3">TITLE</th>
+                  <th className="py-2.5 px-3 text-center w-28">ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center py-10 text-slate-400"
                     >
-                      {pageNumber}
-                    </button>
-                  ))}
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    </td>
+                  </tr>
+                ) : paginated.length > 0 ? (
+                  paginated.map((item, index) => (
+                    <tr
+                      key={item.uuid || item.id}
+                      className="hover:bg-indigo-50/40 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 text-slate-600">
+                        {startIndex + index + 1}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-700">
+                        {item.projectId
+                          ? projects.find((p) => p.uuid === item.projectId)
+                              ?.name || "-"
+                          : "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-800">
+                        <div className="flex items-center gap-2">
+                          <Folder className="w-3.5 h-3.5 text-slate-700" />
+                          <span className="font-medium">{item.title}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(item)}
+                            title="Edit"
+                            className="bg-cyan-400 hover:bg-cyan-500 text-white p-1.5 rounded transition-colors"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item)}
+                            disabled={actionLoading}
+                            title="Delete"
+                            className="bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center py-10 text-slate-400 font-medium"
+                    >
+                      No boq titles found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-                  <button 
-                    type="button" 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages || totalPages === 0}
-                    className={`px-3 py-1 rounded border border-slate-200 ${(currentPage === totalPages || totalPages === 0) ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 hover:bg-slate-100 cursor-pointer'}`}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+          {/* PAGINATION */}
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 gap-2 text-xs text-slate-500">
+            <div>
+              Showing {filtered.length === 0 ? 0 : startIndex + 1} to{" "}
+              {Math.min(startIndex + entriesPerPage, filtered.length)} of{" "}
+              {filtered.length} entries
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1 rounded border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setCurrentPage(p)}
+                  className={`px-3 py-1 rounded font-semibold ${
+                    currentPage === p
+                      ? "bg-[#5949d6] text-white"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                className="px-3 py-1 rounded border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* ================= VIEW 2: BOQ TITLE ADD FORM ================= */}
-        {viewMode === 'create' && (
-          <div className="bg-white rounded-lg border border-slate-200 shadow-xs p-5 w-full">
-            <h2 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-200 mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-600" /> New BOQ Title Entry Form
-            </h2>
-            <form onSubmit={handleAddSubmit} className="space-y-4 text-xs w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Project Type *</label>
-                  <select
-                    value={formData.projectType}
-                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="Building Construction">Building Construction</option>
-                    <option value="Civil Works">Civil Works</option>
-                    <option value="Interior Fitout">Interior Fitout</option>
-                    <option value="Plumbing & Sanitary">Plumbing & Sanitary</option>
-                    <option value="Electrical">Electrical</option>
-                    <option value="Metal Fabrication">Metal Fabrication</option>
-                    <option value="HVAC">HVAC</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">BOQ Title Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Enter BOQ title name..."
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold text-slate-900"
-                  />
-                </div>
+      {/* ==================== ADD MODAL ==================== */}
+      {isAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-md rounded shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200">
+              <h3 className="text-sm font-semibold text-slate-800">Boq</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleCreateSubmit}
+              className="p-5 space-y-4 text-xs"
+            >
+              {/* PROJECT */}
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Project <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={formData.projectId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, projectId: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p.uuid} value={p.uuid}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+
+              {/* BOQ TITLE */}
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Boq Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  placeholder="Boq Title"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded">
+                  {formError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setViewMode('list')}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer font-semibold"
+                  onClick={() => setIsAddOpen(false)}
+                  className="px-5 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded font-semibold"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-md shadow-xs cursor-pointer font-semibold flex items-center gap-1.5"
+                  disabled={submitting}
+                  className="px-6 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded font-semibold disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  <Save className="w-4 h-4" /> Save Title
+                  {submitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Submit
                 </button>
               </div>
             </form>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
-
-      {/* ================= MODAL: EDIT FORM ================= */}
-      {isEditOpen && selectedItem && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200">
-            <div className="bg-[#5949d6] text-white px-5 py-3.5 flex items-center justify-between">
-              <h3 className="font-bold text-xs flex items-center gap-2">
-                <Edit className="w-4 h-4 text-cyan-300" /> Edit BOQ Title
+      {/* ==================== EDIT MODAL ==================== */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-md rounded shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200">
+              <h3 className="text-sm font-semibold text-slate-800">
+                Edit Boq — {editingItem.title}
               </h3>
-              <button type="button" onClick={() => setIsEditOpen(false)} className="text-white/80 hover:text-white cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleUpdateSubmit} className="p-5 space-y-3 text-xs">
-              <div className="space-y-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Project Type *</label>
-                  <select
-                    value={formData.projectType}
-                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="Building Construction">Building Construction</option>
-                    <option value="Civil Works">Civil Works</option>
-                    <option value="Interior Fitout">Interior Fitout</option>
-                    <option value="Plumbing & Sanitary">Plumbing & Sanitary</option>
-                    <option value="Electrical">Electrical</option>
-                    <option value="Metal Fabrication">Metal Fabrication</option>
-                    <option value="HVAC">HVAC</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">BOQ Title Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold text-slate-900"
-                  />
-                </div>
+
+            <form onSubmit={handleEditSubmit} className="p-5 space-y-4 text-xs">
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Project <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={formData.projectId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, projectId: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p.uuid} value={p.uuid}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Boq Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  placeholder="Boq Title"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded">
+                  {formError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer font-semibold"
+                  onClick={() => setEditingItem(null)}
+                  className="px-5 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded font-semibold"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-md shadow-xs cursor-pointer font-semibold flex items-center gap-1.5"
+                  disabled={submitting}
+                  className="px-6 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded font-semibold disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  <Save className="w-4 h-4" /> Update Changes
+                  {submitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Update
                 </button>
               </div>
             </form>
