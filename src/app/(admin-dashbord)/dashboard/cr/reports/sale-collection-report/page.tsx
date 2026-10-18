@@ -304,20 +304,21 @@ export default function SaleCollectionReportPage() {
         const agreements = await crApi.getAgreements();
         if (!mounted) return;
         const mapped = agreements.map((ag: any, idx: number) => {
-          const totalVal = Number(ag.agreed_price || 0);
-          const totalRec = Number(ag.total_paid || 0);
-          const dueVal = Number(ag.outstanding_balance || 0);
+          const plans = ag.installment_plans || ag.schedule || [];
+          const totalVal = Number(ag.total_price || ag.agreed_price || 0);
+          const totalRec = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const dueVal = Math.max(0, totalVal - totalRec);
           return {
-            id: ag.agreement_no || `#${ag.id || idx + 1}`,
+            id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
             customer: ag.customer_name || "Customer",
-            project: ag.project_name || "Head Office",
-            flatNo: ag.unit_no || "Unit",
+            project: ag.project_id || ag.project_name || "Purbachal Project",
+            flatNo: ag.unit_identifier || ag.unit_no || "Plot / Flat",
             totalValue: totalVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             totalReceive: totalRec.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             due: dueVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             dueForRecovery: dueVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             recovered: totalRec.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-            salesBy: ag.sales_person_name || "Sales Rep",
+            salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
           };
         });
         setRows(mapped);

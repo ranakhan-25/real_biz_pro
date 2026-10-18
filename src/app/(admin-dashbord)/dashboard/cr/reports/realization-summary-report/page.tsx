@@ -138,19 +138,20 @@ export default function RealizationSummaryReportPage() {
         const agreements = await crApi.getAgreements();
         if (!mounted) return;
         const mapped = agreements.map((ag: any, idx: number) => {
-          const saleVal = Number(ag.agreed_price || 0);
-          const realized = Number(ag.total_paid || 0);
-          const balance = Number(ag.outstanding_balance || 0);
+          const plans = ag.installment_plans || ag.schedule || [];
+          const saleVal = Number(ag.total_price || ag.agreed_price || 0);
+          const realized = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const balance = Math.max(0, saleVal - realized);
           const percent = saleVal > 0 ? ((realized / saleVal) * 100).toFixed(2) : "0.00";
           return {
-            id: ag.agreement_no || `#${ag.id || idx + 1}`,
+            id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
             customer: ag.customer_name || "Customer",
-            flatNo: ag.unit_no || "Unit",
+            flatNo: ag.unit_identifier || ag.unit_no || "Plot / Flat",
             saleValue: saleVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             amountRealized: realized.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             balanceDue: balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             realization: percent,
-            lastPayment: ag.last_payment_date ? String(ag.last_payment_date).slice(0, 10) : "",
+            lastPayment: ag.agreement_date ? String(ag.agreement_date).slice(0, 10) : "",
           };
         });
         setRows(mapped);
