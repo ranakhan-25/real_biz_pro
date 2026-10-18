@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Plus, Download, ChevronRight, X, Loader2 } from "lucide-react";
+import { Search, Plus, Download, ChevronRight, X, Loader2, Edit2, Trash2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import api from "@/lib/api";
 import { showAlert } from "@/lib/swal";
@@ -115,8 +115,15 @@ export function CrmPageTemplate({
   const [dataRows, setDataRows] = useState<Record<string, string | number>[]>(rows);
   const [loading, setLoading] = useState(Boolean(apiEndpoint));
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  // Keep references to avoid re-triggering loadData
+  const transformRef = useRef(transformData);
+  transformRef.current = transformData;
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
 
   const loadData = useCallback(async () => {
     if (!apiEndpoint) return;
@@ -124,8 +131,8 @@ export function CrmPageTemplate({
     try {
       const res = await api.get(apiEndpoint);
       const items = res.data?.data || res.data || [];
-      if (transformData) {
-        setDataRows(transformData(items));
+      if (transformRef.current) {
+        setDataRows(transformRef.current(items));
       } else {
         // Fallback generic mapping
         setDataRows(
@@ -153,11 +160,11 @@ export function CrmPageTemplate({
     } catch (err: any) {
       console.error(`Error loading data for ${apiEndpoint}:`, err);
       // Fallback to static rows on initial load if provided
-      if (rows.length > 0) setDataRows(rows);
+      if (rowsRef.current && rowsRef.current.length > 0) setDataRows(rowsRef.current);
     } finally {
       setLoading(false);
     }
-  }, [apiEndpoint, transformData, rows]);
+  }, [apiEndpoint]);
 
   useEffect(() => {
     if (apiEndpoint) {
@@ -165,7 +172,7 @@ export function CrmPageTemplate({
     } else {
       setDataRows(rows);
     }
-  }, [apiEndpoint, loadData, rows]);
+  }, [apiEndpoint, loadData]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return dataRows;
@@ -177,6 +184,66 @@ export function CrmPageTemplate({
 
   const handleInputChange = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const openCreateModal = () => {
+    setEditingItem(null);
+    const initial: Record<string, any> = {};
+    createFields?.forEach((f) => {
+      if (f.defaultValue !== undefined) initial[f.key] = f.defaultValue;
+    });
+    setFormData(initial);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (row: any) => {
+    setEditingItem(row);
+    const initial: Record<string, any> = {};
+    createFields?.forEach((f) => {
+      initial[f.key] = row[f.key] ?? row[f.key.toLowerCase()] ?? "";
+    });
+    setFormData(initial);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (row: any) => {
+    const targetId = row.id || row.uuid;
+    if (!apiEndpoint || !targetId) return;
+
+    const confirmRes = await showAlert.confirm(
+      "Confirm Delete",
+      `Are you sure you want to delete this record?`
+    );
+    if (!confirmRes.isConfirmed) return;
+
+    try {
+      await api.delete(`${apiEndpoint}/${targetId}`);
+      showAlert.success("Deleted", "Record has been removed successfully.");
+      await loadData();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || "Failed to delete record.";
+      showAlert.error("Delete Failed", Array.isArray(msg) ? msg.join(", ") : msg);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (filtered.length === 0) {
+      showAlert.warning("No Data", "There are no records to export.");
+      return;
+    }
+    const headers = columns.map((c) => c.label).join(",");
+    const csvRows = filtered.map((row) =>
+      columns.map((c) => `"${String(row[c.key] ?? "").replace(/"/g, '""')}"`).join(",")
+    );
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...csvRows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${title.toLowerCase().replace(/\s+/g, "_")}_export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showAlert.success("Export Complete", "CSV file downloaded successfully.");
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -199,12 +266,19 @@ export function CrmPageTemplate({
       }
     }
 
-    // 2. Dispatch API Call
+    // 2. Dispatch API Call (PUT if editing, POST if creating)
     setSubmitting(true);
     try {
-      await api.post(apiEndpoint, formData);
-      showAlert.success("Success", `${title} created successfully!`);
+      if (editingItem && (editingItem.id || editingItem.uuid)) {
+        const targetId = editingItem.id || editingItem.uuid;
+        await api.put(`${apiEndpoint}/${targetId}`, formData);
+        showAlert.success("Updated Successfully", `${title} has been updated.`);
+      } else {
+        await api.post(apiEndpoint, formData);
+        showAlert.success("Created Successfully", `${title} created successfully!`);
+      }
       setIsModalOpen(false);
+      setEditingItem(null);
       setFormData({});
       await loadData();
     } catch (err: any) {
@@ -230,14 +304,7 @@ export function CrmPageTemplate({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                const initial: Record<string, any> = {};
-                createFields?.forEach((f) => {
-                  if (f.defaultValue !== undefined) initial[f.key] = f.defaultValue;
-                });
-                setFormData(initial);
-                setIsModalOpen(true);
-              }}
+              onClick={openCreateModal}
               className="flex items-center gap-1.5 rounded-md bg-[#0000F2] px-3.5 py-2 text-[13px] font-medium text-white shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
             >
               <Plus size={15} />
@@ -266,15 +333,28 @@ export function CrmPageTemplate({
               className="w-full rounded-md border border-border bg-canvas pl-8 pr-3 py-1.5 text-[12.5px] text-ink placeholder:text-ink-faint outline-none transition-colors focus:border-[#0000F2] focus:ring-2 focus:ring-[#0000F2]/20"
             />
           </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => loadData()}
-            className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:text-ink hover:bg-canvas cursor-pointer"
-          >
-            <Download size={13} />
-            Refresh
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => loadData()}
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:text-ink hover:bg-canvas cursor-pointer"
+              title="Refresh live data"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] font-medium text-ink-muted transition-colors hover:text-ink hover:bg-canvas cursor-pointer"
+              title="Export as CSV"
+            >
+              <Download size={13} />
+              Export
+            </motion.button>
+          </div>
         </div>
 
         {/* Table Container */}
@@ -290,6 +370,11 @@ export function CrmPageTemplate({
                     {col.label}
                   </th>
                 ))}
+                {createFields && (
+                  <th className="whitespace-nowrap px-4 py-2.5 text-[11.5px] font-semibold text-ink-muted text-right">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -301,6 +386,11 @@ export function CrmPageTemplate({
                         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
                       </td>
                     ))}
+                    {createFields && (
+                      <td className="px-4 py-3 text-right">
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-14 ml-auto" />
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
@@ -336,6 +426,28 @@ export function CrmPageTemplate({
                             )}
                           </td>
                         ))}
+                        {createFields && (
+                          <td className="whitespace-nowrap px-4 py-2.5 text-[13px] text-right">
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(row)}
+                                className="p-1 rounded text-ink-muted hover:text-[#0000F2] hover:bg-canvas transition-colors cursor-pointer"
+                                title="Edit Record"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(row)}
+                                className="p-1 rounded text-ink-muted hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Delete Record"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </motion.tr>
                     ))
                   ) : (
@@ -346,7 +458,7 @@ export function CrmPageTemplate({
                       transition={{ duration: 0.2 }}
                     >
                       <td
-                        colSpan={columns.length}
+                        colSpan={columns.length + (createFields ? 1 : 0)}
                         className="px-4 py-10 text-center text-[13px] text-ink-faint"
                       >
                         No live records found. Click &quot;{addLabel || "Add"}&quot; to create one.
@@ -367,7 +479,7 @@ export function CrmPageTemplate({
         </div>
       </motion.div>
 
-      {/* Dynamic Creation Modal with Strict Validation */}
+      {/* Dynamic Creation / Edit Modal with Strict Validation */}
       {isModalOpen && createFields && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <motion.div
@@ -377,10 +489,13 @@ export function CrmPageTemplate({
           >
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="font-display text-[16px] font-semibold text-ink">
-                {addLabel || "Add Record"}
+                {editingItem ? `Edit ${title}` : (addLabel || "Add Record")}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setEditingItem(null);
+                }}
                 className="text-ink-faint hover:text-ink cursor-pointer"
               >
                 <X size={18} />
@@ -436,7 +551,10 @@ export function CrmPageTemplate({
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingItem(null);
+                  }}
                   className="rounded-md border border-border px-3.5 py-1.5 text-[12.5px] font-medium text-ink-muted hover:bg-canvas cursor-pointer"
                 >
                   Cancel
@@ -447,7 +565,7 @@ export function CrmPageTemplate({
                   className="flex items-center gap-1.5 rounded-md bg-[#0000F2] px-4 py-1.5 text-[12.5px] font-medium text-white shadow-sm hover:opacity-90 disabled:opacity-60 cursor-pointer"
                 >
                   {submitting && <Loader2 size={13} className="animate-spin" />}
-                  Save Record
+                  {editingItem ? "Update Record" : "Save Record"}
                 </button>
               </div>
             </form>
