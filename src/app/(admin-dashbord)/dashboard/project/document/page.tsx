@@ -1,106 +1,195 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Calendar, Plus, Eye, Trash2, X, FileText } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Calendar, Plus, Eye, Trash2, X, FileText } from "lucide-react";
 
 interface DocumentItem {
-  id: number;
-  projectName: string;
+  uuid: string;
+  projectId: string;
+  project?: { uuid: string; code: string; name: string };
   documentName: string;
   documentType: string;
-  details: string;
-  RAJUK?: string;
+  details?: string | null;
+  rajuk?: string | null;
+  createdAt?: string;
 }
 
-const dummyDocuments: DocumentItem[] = [
-  {
-    id: 1,
-    projectName: "Sheba Eyecon Tower",
-    documentName: "Land Deed Copy",
-    documentType: "Legal",
-    details: "Original deed papers scanned.",
-  },
-  {
-    id: 2,
-    projectName: "Lake Garden",
-    documentName: "Approval Letter",
-    documentType: "Government",
-    RAJUK: "RAJUK clearance certificate.",
-    details: "RAJUK clearance certificate.",
-  },
-  {
-    id: 3,
-    projectName: "Estern 19",
-    documentName: "Environmental Clearance",
-    documentType: "Compliance",
-    details: "DOE environmental approval.",
-  },
-  {
-    id: 4,
-    projectName: "Sheba Eyecon Tower",
-    documentName: "Architectural Blueprint",
-    documentType: "Engineering",
-    details: "Final approved floor plans.",
-  },
-  {
-    id: 5,
-    projectName: "Lake Garden",
-    documentName: "Soil Test Report",
-    documentType: "Engineering",
-    details: "Geo-technical soil investigation.",
-  },
-  {
-    id: 6,
-    projectName: "Estern 19",
-    documentName: "Fire Safety Certificate",
-    documentType: "Safety",
-    details: "Fire department NOC document.",
-  },
-];
+interface ProjectOption {
+  uuid: string;
+  name: string;
+}
+
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002"}/realbizpro/api/v1`
+).replace(/\/+$/, "");
+
+function rowsFrom<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (!value || typeof value !== "object") return [];
+
+  const response = value as Record<string, unknown>;
+  for (const key of ["data", "documents", "projects", "items", "rows"]) {
+    if (key in response) {
+      const rows = rowsFrom<T>(response[key]);
+      if (rows.length > 0 || Array.isArray(response[key])) return rows;
+    }
+  }
+  return [];
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      Accept: "application/json",
+      ...(options?.body ? { "Content-Type": "application/json" } : {}),
+      ...options?.headers,
+    },
+    cache: "no-store",
+  });
+  const text = await response.text();
+  let body: unknown;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+  }
+  if (!response.ok) {
+    const payload =
+      body && typeof body === "object"
+        ? (body as Record<string, unknown>)
+        : undefined;
+    const message = payload?.message;
+    throw new Error(
+      Array.isArray(message)
+        ? message.join(", ")
+        : typeof message === "string"
+          ? message
+          : typeof body === "string"
+            ? body
+            : `Request failed (${response.status})`,
+    );
+  }
+  return body as T;
+}
 
 export default function DocumentationPage() {
-  const [docList, setDocList] = useState<DocumentItem[]>(dummyDocuments);
+  const [docList, setDocList] = useState<DocumentItem[]>([]);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingUuid, setDeletingUuid] = useState("");
+  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDate, setSelectedDate] = useState(
-    "1 September, 2026 - 30 September, 2026",
-  );
-  const [projectFilter, setProjectFilter] = useState("Select value");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [projectFilter, setProjectFilter] = useState("");
   const [entriesCount, setEntriesCount] = useState("50");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Modal State for "+ ADD NEW"
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectId, setNewProjectId] = useState("");
   const [newDocName, setNewDocName] = useState("");
   const [newDocType, setNewDocType] = useState("");
   const [newDetails, setNewDetails] = useState("");
 
-  const handleAddDocument = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDocName || !newProjectName) {
-      alert("Please fill in required fields");
-      return;
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [documentResponse, projectResponse] = await Promise.all([
+        request<unknown>("/project-documents?page=1&limit=100"),
+        request<unknown>("/project?page=1&limit=100"),
+      ]);
+      setDocList(rowsFrom<DocumentItem>(documentResponse));
+      setProjects(rowsFrom<ProjectOption>(projectResponse));
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not load documents.",
+      );
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    const newItem: DocumentItem = {
-      id: docList.length + 1,
-      projectName: newProjectName,
-      documentName: newDocName,
-      documentType: newDocType || "General",
-      details: newDetails || "-",
-    };
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
-    setDocList([newItem, ...docList]);
-    setIsModalOpen(false);
-    // Reset form
-    setNewProjectName("");
-    setNewDocName("");
-    setNewDocType("");
-    setNewDetails("");
+  const filteredDocuments = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return docList.filter((item) => {
+      const matchesProject = !projectFilter || item.projectId === projectFilter;
+      const matchesDate =
+        !selectedDate || item.createdAt?.slice(0, 10) === selectedDate;
+      const matchesSearch =
+        !query ||
+        [
+          item.project?.name,
+          item.documentName,
+          item.documentType,
+          item.details,
+          item.rajuk,
+        ].some((value) => value?.toLowerCase().includes(query));
+      return matchesProject && matchesDate && matchesSearch;
+    });
+  }, [docList, projectFilter, searchTerm, selectedDate]);
+
+  const pageSize = Number(entriesCount);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredDocuments.length / pageSize),
+  );
+  const pageDocuments = filteredDocuments.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  const handleAddDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      await request("/project-documents", {
+        method: "POST",
+        body: JSON.stringify({
+          projectId: newProjectId,
+          documentName: newDocName.trim(),
+          documentType: newDocType.trim() || "General",
+          details: newDetails.trim() || undefined,
+        }),
+      });
+      setIsModalOpen(false);
+      setNewProjectId("");
+      setNewDocName("");
+      setNewDocType("");
+      setNewDetails("");
+      setCurrentPage(1);
+      await loadData();
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not save document.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setDocList(docList.filter((item) => item.id !== id));
+  const handleDelete = async (uuid: string) => {
+    setDeletingUuid(uuid);
+    setError("");
+    try {
+      await request(`/project-documents/${uuid}`, { method: "DELETE" });
+      await loadData();
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not delete document.",
+      );
+    } finally {
+      setDeletingUuid("");
+    }
   };
 
   return (
@@ -133,9 +222,12 @@ export default function DocumentationPage() {
           </label>
           <div className="relative">
             <input
-              type="text"
+              type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <Calendar
@@ -151,13 +243,18 @@ export default function DocumentationPage() {
           </label>
           <select
             value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
+            onChange={(e) => {
+              setProjectFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option>Select value</option>
-            <option>Sheba Eyecon Tower</option>
-            <option>Lake Garden</option>
-            <option>Estern 19</option>
+            <option value="">All projects</option>
+            {projects.map((project) => (
+              <option key={project.uuid} value={project.uuid}>
+                {project.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -168,7 +265,10 @@ export default function DocumentationPage() {
           <span>Show</span>
           <select
             value={entriesCount}
-            onChange={(e) => setEntriesCount(e.target.value)}
+            onChange={(e) => {
+              setEntriesCount(e.target.value);
+              setCurrentPage(1);
+            }}
             className="border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500"
           >
             <option value="10">10</option>
@@ -184,7 +284,10 @@ export default function DocumentationPage() {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
             />
           </div>
@@ -206,18 +309,43 @@ export default function DocumentationPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-xs text-slate-700">
-            {docList.length > 0 ? (
-              docList.map((item, index) => (
-                <tr key={item.id} className="hover:bg-purple-50/40 transition">
-                  <td className="py-3 px-4 font-medium">{index + 1}</td>
+            {error ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="text-center py-6 text-rose-600 text-xs"
+                >
+                  {error}
+                </td>
+              </tr>
+            ) : loading ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="text-center py-6 text-slate-500 text-xs"
+                >
+                  Loading project documents...
+                </td>
+              </tr>
+            ) : pageDocuments.length > 0 ? (
+              pageDocuments.map((item, index) => (
+                <tr
+                  key={item.uuid}
+                  className="hover:bg-purple-50/40 transition"
+                >
+                  <td className="py-3 px-4 font-medium">
+                    {(currentPage - 1) * pageSize + index + 1}
+                  </td>
                   <td className="py-3 px-4 font-semibold text-slate-900">
-                    {item.projectName}
+                    {item.project?.name ?? "—"}
                   </td>
                   <td className="py-3 px-4 font-medium text-purple-700">
                     {item.documentName}
                   </td>
                   <td className="py-3 px-4">{item.documentType}</td>
-                  <td className="py-3 px-4 text-slate-500">{item.details}</td>
+                  <td className="py-3 px-4 text-slate-500">
+                    {item.details || item.rajuk || "—"}
+                  </td>
                   <td className="py-3 px-4 text-center">
                     <button
                       onClick={() =>
@@ -231,7 +359,8 @@ export default function DocumentationPage() {
                   </td>
                   <td className="py-3 px-4 text-center">
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => void handleDelete(item.uuid)}
+                      disabled={deletingUuid === item.uuid}
                       className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-1.5 rounded transition inline-flex items-center justify-center"
                       title="Delete"
                     >
@@ -246,7 +375,9 @@ export default function DocumentationPage() {
                   colSpan={7}
                   className="text-center py-6 text-slate-400 text-xs"
                 >
-                  No data available in table
+                  {docList.length === 0
+                    ? "No project documents yet."
+                    : "No documents match the selected filters."}
                 </td>
               </tr>
             )}
@@ -257,22 +388,30 @@ export default function DocumentationPage() {
       {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row justify-between items-center pt-4 text-xs text-slate-500 gap-4">
         <div>
-          Showing 1 to {docList.length} of {docList.length} entries
+          Showing{" "}
+          {filteredDocuments.length === 0
+            ? 0
+            : (currentPage - 1) * pageSize + 1}{" "}
+          to {Math.min(currentPage * pageSize, filteredDocuments.length)} of{" "}
+          {filteredDocuments.length} entries
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             className="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50"
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || loading}
           >
             Previous
           </button>
           <button className="px-3 py-1 bg-purple-600 text-white border border-purple-600 rounded">
-            1
+            {currentPage} / {totalPages}
           </button>
           <button
-            onClick={() => setCurrentPage((prev) => prev + 1)}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             className="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100"
+            disabled={currentPage >= totalPages || loading}
           >
             Next
           </button>
@@ -301,15 +440,17 @@ export default function DocumentationPage() {
                   Project Name *
                 </label>
                 <select
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
+                  value={newProjectId}
+                  onChange={(e) => setNewProjectId(e.target.value)}
                   required
                   className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="">Select Project</option>
-                  <option value="Sheba Eyecon Tower">Sheba Eyecon Tower</option>
-                  <option value="Lake Garden">Lake Garden</option>
-                  <option value="Estern 19">Estern 19</option>
+                  {projects.map((project) => (
+                    <option key={project.uuid} value={project.uuid}>
+                      {project.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -363,9 +504,10 @@ export default function DocumentationPage() {
                 </button>
                 <button
                   type="submit"
+                  disabled={saving}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-md text-xs shadow-sm transition"
                 >
-                  Save Document
+                  {saving ? "Saving..." : "Save Document"}
                 </button>
               </div>
             </form>

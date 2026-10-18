@@ -2,1382 +2,804 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-
 import {
-  Search,
-  Plus,
-  ChevronRight,
   Home,
-  X,
-  Save,
-  Eye,
+  ChevronRight,
+  Plus,
+  ArrowLeft,
   Edit,
   Trash2,
-  ArrowLeft,
-  Tag,
+  X,
+  Loader2,
+  Save,
 } from "lucide-react";
 
-// ============================================================
-// API CONFIG
-// ============================================================
+// ==================== TYPES ====================
+export interface SubCategoryItem {
+  id: number | string;
+  uuid: string;
+  categoryId: string;
+  categoryName: string;
+  type: string;
+  code: string;
+  name: string;
+  createdBy?: string;
+  updatedBy?: string;
+  status?: string;
+}
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "");
+interface RelatedOption {
+  uuid: string;
+  name: string;
+  type?: string;
+}
 
+// ==================== API CONFIG ====================
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
 const API_PREFIX = "/realbizpro/api/v1";
 
-const BILLING_SUB_CATEGORY_ENDPOINT = `${API_BASE_URL}${API_PREFIX}/billing-sub-category`;
+const SUB_CATEGORY_API = `${API_BASE_URL}${API_PREFIX}/billing-sub-category`;
+const CATEGORY_API = `${API_BASE_URL}${API_PREFIX}/category`;
 
-const CURRENT_USER = "Rana";
+// ==================== HELPERS ====================
+const generateSubCategoryCode = () => {
+  const rand = Math.floor(100000 + Math.random() * 900000);
+  return `SC${rand}`;
+};
 
-// ============================================================
-// TYPES
-// ============================================================
-
-export interface CategoryItem {
-  id: string;
-  uuid: string;
-  type: string;
-  categoryId: string | null;
-  code: string;
-  name: string;
-  description: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
-  deletedBy: string | null;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-}
-
-interface CategoryMeta {
-  total: number;
-  page: number;
-  limit: number;
-  skip: number;
-  totalPages: number;
-}
-
-interface CategoryListResponse {
-  success?: boolean;
-  data?: {
-    success?: boolean;
-    data?: {
-      data?: CategoryItem[];
-      meta?: CategoryMeta;
-    };
-  };
-  message?: string;
-}
-
-interface CategoryFormData {
-  type: string;
-  code: string;
-  name: string;
-  description: string;
-}
-
-// ============================================================
-// API REQUEST HELPER
-// ============================================================
-
-async function apiRequest<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
-  if (!API_BASE_URL) {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL is missing. Please check .env.local",
-    );
-  }
-
+// ==================== GENERIC OPTIONS FETCHER ====================
+async function fetchRelatedOptions(
+  endpoint: string,
+  label: string,
+): Promise<RelatedOption[]> {
   try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
+    const query = new URLSearchParams({ page: "1", limit: "100" });
+    const res = await fetch(`${endpoint}?${query}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
       cache: "no-store",
     });
-
-    const text = await response.text();
-
-    let body: any = null;
-
-    try {
-      body = text ? JSON.parse(text) : null;
-    } catch {
-      body = null;
+    if (!res.ok) {
+      console.warn(`Failed to fetch ${label}: ${res.status}`);
+      return [];
     }
-
-    if (!response.ok) {
-      const message =
-        body?.message ||
-        body?.error ||
-        `Request failed with status ${response.status}`;
-
-      throw new Error(Array.isArray(message) ? message.join(", ") : message);
-    }
-
-    return body as T;
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error(
-        "Failed to fetch. Please check that the backend is running, the API URL is correct, and CORS is configured.",
-      );
-    }
-
-    throw error;
+    const json = await res.json();
+    const rows =
+      json?.data?.data ??
+      (Array.isArray(json?.data) ? json.data : null) ??
+      json?.rows ??
+      [];
+    return Array.isArray(rows)
+      ? rows
+          .filter((row: any) => row?.uuid)
+          .map((row: any) => ({
+            uuid: String(row.uuid),
+            name: String(
+              row.name ||
+                row.title ||
+                row.categoryName ||
+                row.subCategoryName ||
+                "Unnamed",
+            ),
+            type: row.type ? String(row.type) : undefined,
+          }))
+      : [];
+  } catch (err) {
+    console.error(`fetchRelatedOptions(${label}) error:`, err);
+    return [];
   }
 }
 
-// ============================================================
-// EXTRACT LIST RESPONSE
-// ============================================================
-
-function extractCategoryList(response: CategoryListResponse) {
-  /*
-    Your API response:
-
-    response
-      └── data
-          └── data
-              ├── data: [...]
-              └── meta: {...}
-
-    So:
-
-    response.data.data.data
-    response.data.data.meta
-  */
-
-  return {
-    rows: response?.data?.data?.data ?? [],
-    meta: response?.data?.data?.meta,
-  };
-}
-
-// ============================================================
-// EXTRACT SINGLE CATEGORY
-// ============================================================
-
-function extractSingleCategory(response: any): CategoryItem | null {
-  /*
-    Expected response:
-
-    {
-      success: true,
-      data: {
-        success: true,
-        data: {...}
-      }
-    }
-
-    Actual category:
-    response.data.data
-  */
-
-  if (response?.data?.data && !Array.isArray(response.data.data)) {
-    return response.data.data as CategoryItem;
-  }
-
-  if (response?.data && !Array.isArray(response.data)) {
-    return response.data as CategoryItem;
-  }
-
-  return null;
-}
-
-// ============================================================
-// COMPONENT
-// ============================================================
-
-export default function BillingSubCategoryListModule() {
-  // ==========================================================
-  // VIEW MODE
-  // ==========================================================
-
-  const [viewMode, setViewMode] = useState<"list" | "create">("list");
-
-  // ==========================================================
-  // DATA
-  // ==========================================================
-
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
-
-  const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(
-    null,
-  );
-
-  // ==========================================================
-  // FORM
-  // ==========================================================
-
-  const [formData, setFormData] = useState<CategoryFormData>({
-    type: "Service",
-    code: "",
-    name: "",
-    description: "",
+// ==================== API FUNCTIONS ====================
+async function fetchSubCategories(): Promise<SubCategoryItem[]> {
+  const query = new URLSearchParams({ page: "1", limit: "100" });
+  const res = await fetch(`${SUB_CATEGORY_API}?${query}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      err?.message || `Failed to fetch sub categories: ${res.status}`,
+    );
+  }
+  const json = await res.json();
+  const rows = json?.data?.data ?? json?.data ?? [];
 
-  // ==========================================================
-  // MODALS
-  // ==========================================================
+  return Array.isArray(rows)
+    ? rows.map((item: any) => ({
+        id: item.id ?? item.uuid,
+        uuid: item.uuid,
+        categoryId: item.categoryId || item.category?.uuid || "",
+        categoryName:
+          item.category?.name || item.categoryName || item.category || "",
+        type: item.type || item.category?.type || "",
+        code: item.code || "",
+        name: item.name || item.subCategoryName || "",
+        createdBy: item.createdBy || "",
+        updatedBy: item.updatedBy || "",
+        status: item.status || "active",
+      }))
+    : [];
+}
 
-  const [isViewOpen, setIsViewOpen] = useState(false);
+async function createSubCategory(payload: Record<string, any>) {
+  const res = await fetch(SUB_CATEGORY_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Create sub category failed");
+  }
+  return res.json();
+}
 
-  const [isEditOpen, setIsEditOpen] = useState(false);
+async function updateSubCategory(uuid: string, payload: Record<string, any>) {
+  const res = await fetch(`${SUB_CATEGORY_API}/${uuid}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Update sub category failed");
+  }
+  return res.json();
+}
 
-  // ==========================================================
-  // LOADING / ERROR
-  // ==========================================================
+async function deleteSubCategory(uuid: string) {
+  const res = await fetch(`${SUB_CATEGORY_API}/${uuid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || "Delete sub category failed");
+  }
+  return res.json().catch(() => ({}));
+}
 
-  const [loading, setLoading] = useState(false);
-
-  const [saving, setSaving] = useState(false);
-
-  const [error, setError] = useState("");
-
-  // ==========================================================
-  // SEARCH / FILTER
-  // ==========================================================
+// ==================== MAIN PAGE ====================
+export default function SubCategoryListPage() {
+  const [subCategories, setSubCategories] = useState<SubCategoryItem[]>([]);
+  const [categories, setCategories] = useState<RelatedOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [typeFilter, setTypeFilter] = useState("");
-
-  // ==========================================================
-  // PAGINATION
-  // ==========================================================
-
-  const [entriesPerPage, setEntriesPerPage] = useState(25);
-
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [meta, setMeta] = useState<CategoryMeta>({
-    total: 0,
-    page: 1,
-    limit: 25,
-    skip: 0,
-    totalPages: 1,
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Modals
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<SubCategoryItem | null>(null);
+
+  // Form
+  const [formData, setFormData] = useState({
+    categoryId: "",
+    type: "",
+    code: generateSubCategoryCode(),
+    name: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // ==========================================================
-  // GET ALL BILLING SUB CATEGORIES
-  // ==========================================================
-
-  const fetchCategories = useCallback(
-    async (pageToLoad: number = currentPage) => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const params = new URLSearchParams();
-
-        params.set("page", String(pageToLoad));
-        params.set("limit", String(entriesPerPage));
-
-        if (searchQuery.trim()) {
-          params.set("search", searchQuery.trim());
-        }
-
-        if (typeFilter) {
-          params.set("type", typeFilter);
-        }
-
-        const url = `${BILLING_SUB_CATEGORY_ENDPOINT}?${params.toString()}`;
-
-        const response = await apiRequest<CategoryListResponse>(url);
-
-        const result = extractCategoryList(response);
-
-        setCategories(result.rows);
-
-        if (result.meta) {
-          setMeta({
-            total: result.meta.total ?? result.rows.length,
-            page: result.meta.page ?? pageToLoad,
-            limit: result.meta.limit ?? entriesPerPage,
-            skip: result.meta.skip ?? (pageToLoad - 1) * entriesPerPage,
-            totalPages: result.meta.totalPages ?? 1,
-          });
-        } else {
-          setMeta({
-            total: result.rows.length,
-            page: pageToLoad,
-            limit: entriesPerPage,
-            skip: (pageToLoad - 1) * entriesPerPage,
-            totalPages: 1,
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch billing sub categories:", err);
-
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch billing sub categories";
-
-        setError(message);
-        setCategories([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [currentPage, entriesPerPage, searchQuery, typeFilter],
-  );
-
-  // ==========================================================
-  // INITIAL LOAD / SEARCH / FILTER
-  // ==========================================================
+  // ==================== LOAD DATA ====================
+  const loadSubCategories = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchSubCategories();
+      setSubCategories(data);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Failed to load sub categories");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCategories(currentPage);
-    }, 400);
+    loadSubCategories();
+    fetchRelatedOptions(CATEGORY_API, "categories")
+      .then(setCategories)
+      .catch((e) => console.error("categories:", e));
+  }, [loadSubCategories]);
 
-    return () => clearTimeout(timer);
-  }, [fetchCategories, currentPage]);
+  // ==================== FILTER ====================
+  const filtered = subCategories.filter((item) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      item.name.toLowerCase().includes(q) ||
+      item.code.toLowerCase().includes(q) ||
+      item.categoryName.toLowerCase().includes(q);
+    const matchesCategory = categoryFilter
+      ? item.categoryId === categoryFilter
+      : true;
+    return matchesSearch && matchesCategory;
+  });
 
-  // ==========================================================
-  // FORM CHANGE
-  // ==========================================================
+  const totalPages = Math.ceil(filtered.length / entriesPerPage) || 1;
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginated = filtered.slice(startIndex, startIndex + entriesPerPage);
 
-  const handleFormChange = (field: keyof CategoryFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  // ==========================================================
-  // CREATE BILLING SUB CATEGORY
-  // ==========================================================
-
-  const handleAddCategorySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setSaving(true);
-      setError("");
-
-      if (!formData.type.trim()) {
-        setError("Billing sub category type is required");
-        return;
-      }
-
-      if (!formData.code.trim()) {
-        setError("Billing sub category code is required");
-        return;
-      }
-
-      if (!formData.name.trim()) {
-        setError("Billing sub category name is required");
-        return;
-      }
-
-      const payload = {
-        type: formData.type.trim(),
-        code: formData.code.trim(),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        createdBy: CURRENT_USER,
-        updatedBy: CURRENT_USER,
-      };
-
-      await apiRequest(BILLING_SUB_CATEGORY_ENDPOINT, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-
-      // Reset form
-      setFormData({
-        type: "Service",
-        code: "",
-        name: "",
-        description: "",
-      });
-
-      // Back to list
-      setViewMode("list");
-
-      // Go to first page
-      setCurrentPage(1);
-
-      // Reload
-      await fetchCategories(1);
-    } catch (err) {
-      console.error("Create billing sub category error:", err);
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to create billing sub category";
-
-      setError(message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ==========================================================
-  // GET BILLING SUB CATEGORY BY UUID
-  // ==========================================================
-
-  const handleView = async (uuid: string) => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await apiRequest<any>(
-        `${BILLING_SUB_CATEGORY_ENDPOINT}/${uuid}`,
-        {
-          method: "GET",
-        },
-      );
-
-      const category = extractSingleCategory(response);
-
-      if (!category) {
-        throw new Error("Billing sub category data not found");
-      }
-
-      setSelectedCategory(category);
-      setIsViewOpen(true);
-    } catch (err) {
-      console.error("Get billing sub category error:", err);
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to get billing sub category";
-
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==========================================================
-  // OPEN EDIT
-  // ==========================================================
-
-  const handleOpenEdit = (category: CategoryItem) => {
-    setSelectedCategory(category);
-
+  // ==================== RESET ====================
+  const resetForm = () => {
     setFormData({
-      type: category.type || "Service",
-      code: category.code || "",
-      name: category.name || "",
-      description: category.description || "",
-    });
-
-    setIsEditOpen(true);
-  };
-
-  // ==========================================================
-  // UPDATE BILLING SUB CATEGORY
-  // ==========================================================
-
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedCategory?.uuid) {
-      setError("Billing sub category UUID is missing");
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setError("");
-
-      if (!formData.type.trim()) {
-        setError("Billing sub category type is required");
-        return;
-      }
-
-      if (!formData.name.trim()) {
-        setError("Billing sub category name is required");
-        return;
-      }
-
-      const payload = {
-        type: formData.type.trim(),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        updatedBy: CURRENT_USER,
-      };
-
-      await apiRequest(
-        `${BILLING_SUB_CATEGORY_ENDPOINT}/${selectedCategory.uuid}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        },
-      );
-
-      setIsEditOpen(false);
-      setSelectedCategory(null);
-
-      setFormData({
-        type: "Service",
-        code: "",
-        name: "",
-        description: "",
-      });
-
-      await fetchCategories(currentPage);
-    } catch (err) {
-      console.error("Update billing sub category error:", err);
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to update billing sub category";
-
-      setError(message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ==========================================================
-  // DELETE BILLING SUB CATEGORY
-  // ==========================================================
-
-  const handleDelete = async (category: CategoryItem) => {
-    if (!category.uuid) {
-      setError("Billing sub category UUID is missing");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${category.name}"?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      await apiRequest(`${BILLING_SUB_CATEGORY_ENDPOINT}/${category.uuid}`, {
-        method: "DELETE",
-      });
-
-      await fetchCategories(currentPage);
-    } catch (err) {
-      console.error("Delete billing sub category error:", err);
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to delete billing sub category";
-
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==========================================================
-  // RESTORE
-  // ==========================================================
-
-  const handleRestore = async (uuid: string) => {
-    try {
-      setLoading(true);
-      setError("");
-
-      await apiRequest(`${BILLING_SUB_CATEGORY_ENDPOINT}/${uuid}/restore`, {
-        method: "PATCH",
-      });
-
-      await fetchCategories(currentPage);
-    } catch (err) {
-      console.error("Restore billing sub category error:", err);
-
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to restore billing sub category";
-
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==========================================================
-  // SEARCH
-  // ==========================================================
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  };
-
-  // ==========================================================
-  // TYPE FILTER
-  // ==========================================================
-
-  const handleTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTypeFilter(e.target.value);
-    setCurrentPage(1);
-  };
-
-  // ==========================================================
-  // ENTRIES PER PAGE
-  // ==========================================================
-
-  const handleEntriesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setEntriesPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  // ==========================================================
-  // PAGE
-  // ==========================================================
-
-  const goToPage = (page: number) => {
-    if (page < 1 || page > meta.totalPages) {
-      return;
-    }
-
-    setCurrentPage(page);
-  };
-
-  const pageNumbers = Array.from(
-    {
-      length: Math.max(meta.totalPages, 1),
-    },
-    (_, index) => index + 1,
-  );
-
-  // ==========================================================
-  // OPEN CREATE
-  // ==========================================================
-
-  const handleOpenCreate = () => {
-    setError("");
-
-    setFormData({
-      type: "Service",
-      code: "",
+      categoryId: "",
+      type: "",
+      code: generateSubCategoryCode(),
       name: "",
-      description: "",
     });
-
-    setViewMode("create");
+    setFormError(null);
   };
 
-  // ==========================================================
-  // RENDER
-  // ==========================================================
+  // ==================== OPEN ADD ====================
+  const handleOpenAdd = () => {
+    resetForm();
+    setIsAddOpen(true);
+  };
 
+  // ==================== OPEN EDIT ====================
+  const handleOpenEdit = (item: SubCategoryItem) => {
+    setEditingItem(item);
+    setFormData({
+      categoryId: item.categoryId || "",
+      type: item.type || "",
+      code: item.code || "",
+      name: item.name || "",
+    });
+    setFormError(null);
+  };
+
+  // ==================== CREATE ====================
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.categoryId) {
+      setFormError("Category is required");
+      return;
+    }
+    if (!formData.type) {
+      setFormError("Type is required (Category not properly loaded)");
+      return;
+    }
+    if (!formData.name.trim()) {
+      setFormError("Sub Category Name is required");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      setFormError(null);
+
+      await createSubCategory({
+        categoryId: formData.categoryId,
+        type: formData.type,
+        code: formData.code,
+        name: formData.name,
+      });
+
+      setIsAddOpen(false);
+      resetForm();
+      await loadSubCategories();
+    } catch (err: any) {
+      setFormError(err?.message || "Create failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ==================== UPDATE ====================
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem?.uuid) return;
+    if (!formData.categoryId) {
+      setFormError("Category is required");
+      return;
+    }
+    if (!formData.type) {
+      setFormError("Type is required (Category not properly loaded)");
+      return;
+    }
+    if (!formData.name.trim()) {
+      setFormError("Sub Category Name is required");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      setFormError(null);
+
+      await updateSubCategory(editingItem.uuid, {
+        categoryId: formData.categoryId,
+        type: formData.type,
+        code: formData.code,
+        name: formData.name,
+      });
+
+      setEditingItem(null);
+      resetForm();
+      await loadSubCategories();
+    } catch (err: any) {
+      setFormError(err?.message || "Update failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ==================== DELETE ====================
+  const handleDelete = async (item: SubCategoryItem) => {
+    if (!item.uuid) return;
+    if (!confirm(`Delete sub category "${item.name}"?`)) return;
+    try {
+      setActionLoading(true);
+      await deleteSubCategory(item.uuid);
+      setSubCategories((prev) => prev.filter((c) => c.uuid !== item.uuid));
+    } catch (err: any) {
+      alert(err?.message || "Delete failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ==================== RENDER ====================
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col justify-between p-2 sm:p-3 font-sans">
-      <div className="space-y-3 w-full flex-1 flex flex-col">
-        {/* ====================================================
-            BREADCRUMB
-        ==================================================== */}
-
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium px-1">
-          <div className="flex items-center gap-1 hover:text-indigo-600 cursor-pointer transition-colors">
-            <Home className="w-3.5 h-3.5" />
-            Home
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 font-sans">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* BREADCRUMB + HEADER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <div className="flex items-center gap-1 hover:text-indigo-600 cursor-pointer">
+                <Home className="w-3.5 h-3.5" />
+                Home
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-600">Billing</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-indigo-600 font-semibold">
+                Sub Category List
+              </span>
+            </div>
           </div>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-
-          <span className="text-slate-600">Billing</span>
-
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-
-          <span className="text-indigo-600 font-semibold">
-            {viewMode === "list"
-              ? "Billing Sub Category List"
-              : "Add Billing Sub Category"}
-          </span>
-        </div>
-
-        {/* ====================================================
-            HEADER
-        ==================================================== */}
-
-        <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
-          <div>
-            <h1 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Tag className="w-4 h-4 text-indigo-600" />
-
-              {viewMode === "list"
-                ? "Billing Sub Category Management Dashboard"
-                : "Create New Billing Sub Category"}
-            </h1>
-
-            <p className="text-[11px] text-slate-500">
-              Manage all billing sub category records.
-            </p>
-          </div>
-
-          <div>
-            {viewMode === "list" ? (
-              <button
-                type="button"
-                onClick={handleOpenCreate}
-                className="inline-flex items-center gap-1.5 bg-[#5949d6] hover:bg-[#4d3ec2] text-white text-[11px] font-semibold px-4 py-2 rounded-md shadow-xs transition-all cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                +Add Billing Sub Category
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold px-4 py-2 rounded-md shadow-xs transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Back to Previous
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ====================================================
-            ERROR
-        ==================================================== */}
-
-        {error && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs text-rose-700">
-            <span>{error}</span>
-
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setError("")}
-              className="text-rose-500 hover:text-rose-700"
+              onClick={handleOpenAdd}
+              className="inline-flex items-center gap-1.5 bg-[#5949d6] hover:bg-[#4d3ec2] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <Plus className="w-4 h-4" />
+              Add Sub Category
+            </button>
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="inline-flex items-center gap-1.5 bg-[#1e7e34] hover:bg-[#155d27] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Previous
+            </button>
+          </div>
+        </div>
+
+        {/* FILTER */}
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs">
+          <div className="max-w-xs">
+            <label className="block font-semibold text-slate-700 mb-1 text-xs">
+              Category
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.uuid} value={c.uuid}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* ERROR */}
+        {error && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-xs flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={loadSubCategories} className="underline text-xs">
+              Retry
             </button>
           </div>
         )}
 
-        {/* ====================================================
-            LIST VIEW
-        ==================================================== */}
-
-        {viewMode === "list" && (
-          <div className="w-full flex-1 flex flex-col space-y-3">
-            {/* Filter */}
-            <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs w-full">
-              <div className="w-full sm:w-1/3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Type <span className="text-rose-500">*</span>
-                </label>
-
-                <select
-                  value={typeFilter}
-                  onChange={handleTypeFilterChange}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">Select One Option</option>
-
-                  <option value="Product">Product</option>
-
-                  <option value="Service">Service</option>
-                </select>
-              </div>
+        {/* TABLE */}
+        <div className="bg-white rounded-lg border border-slate-200 shadow-2xs">
+          {/* SHOW + SEARCH */}
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span>Show</span>
+              <select
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span>entries</span>
             </div>
-
-            {/* Entries + Search */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white px-4 py-3 rounded-t-lg border-x border-t border-slate-200 w-full">
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                <span>Show</span>
-
-                <select
-                  value={entriesPerPage}
-                  onChange={handleEntriesChange}
-                  className="border border-slate-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value={10}>10</option>
-
-                  <option value={25}>25</option>
-
-                  <option value={50}>50</option>
-
-                  <option value={100}>100</option>
-                </select>
-
-                <span>entries</span>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs text-slate-600 font-medium">
-                  Search:
-                </span>
-
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-2.5 top-2 w-3.5 h-3.5 text-slate-400" />
-
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Search sub category name, code..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="border-x border-b border-slate-200 rounded-b-lg overflow-hidden shadow-xs bg-white w-full flex-1">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#5949d6] text-white font-semibold tracking-wide">
-                      <th className="py-2.5 px-4 w-16">SL</th>
-
-                      <th className="py-2.5 px-4 w-40">TYPE</th>
-
-                      <th className="py-2.5 px-4 w-48">CODE</th>
-
-                      <th className="py-2.5 px-4">NAME</th>
-
-                      <th className="py-2.5 px-4">DESCRIPTION</th>
-
-                      <th className="py-2.5 px-4 text-center w-36">ACTION</th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-slate-100">
-                    {loading ? (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="text-center py-12 text-slate-400 font-medium"
-                        >
-                          Loading billing sub categories...
-                        </td>
-                      </tr>
-                    ) : categories.length > 0 ? (
-                      categories.map((item, index) => (
-                        <tr
-                          key={item.uuid}
-                          className="hover:bg-indigo-50/40 transition-colors"
-                        >
-                          {/* SL */}
-                          <td className="py-2.5 px-4 font-mono font-bold text-slate-600">
-                            {meta.skip + index + 1}
-                          </td>
-
-                          {/* TYPE */}
-                          <td className="py-2.5 px-4">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                                item.type === "Product"
-                                  ? "bg-cyan-50 text-cyan-700 border border-cyan-200"
-                                  : "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                              }`}
-                            >
-                              {item.type}
-                            </span>
-                          </td>
-
-                          {/* CODE */}
-                          <td className="py-2.5 px-4 font-mono text-slate-700 font-semibold">
-                            {item.code}
-                          </td>
-
-                          {/* NAME */}
-                          <td className="py-2.5 px-4 font-bold text-slate-900">
-                            {item.name}
-                          </td>
-
-                          {/* DESCRIPTION */}
-                          <td className="py-2.5 px-4 text-slate-600 max-w-xs">
-                            <div className="truncate">
-                              {item.description || "-"}
-                            </div>
-                          </td>
-
-                          {/* ACTION */}
-                          <td className="py-2.5 px-4 text-center">
-                            <div className="inline-flex items-center gap-1 justify-center">
-                              {/* VIEW */}
-                              <button
-                                type="button"
-                                onClick={() => handleView(item.uuid)}
-                                className="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded transition-colors cursor-pointer"
-                                title="View Details"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* EDIT */}
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEdit(item)}
-                                className="p-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-600 rounded transition-colors cursor-pointer"
-                                title="Edit Record"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* DELETE */}
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(item)}
-                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition-colors cursor-pointer"
-                                title="Delete Record"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="text-center py-12 text-slate-400 font-medium"
-                        >
-                          No billing sub category records found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* ==================================================
-                  PAGINATION
-              ================================================== */}
-
-              <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500 font-medium w-full">
-                <div>
-                  Showing {meta.total === 0 ? 0 : meta.skip + 1} to{" "}
-                  {Math.min(meta.skip + categories.length, meta.total)} of{" "}
-                  {meta.total} entries
-                </div>
-
-                <div className="inline-flex items-center gap-1">
-                  {/* PREVIOUS */}
-                  <button
-                    type="button"
-                    disabled={currentPage <= 1 || loading}
-                    onClick={() => goToPage(currentPage - 1)}
-                    className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-slate-100"
-                  >
-                    Previous
-                  </button>
-
-                  {/* PAGE NUMBERS */}
-                  {pageNumbers.map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      disabled={loading}
-                      onClick={() => goToPage(page)}
-                      className={`px-3 py-1 rounded border ${
-                        currentPage === page
-                          ? "border-[#5949d6] bg-[#5949d6] text-white"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  {/* NEXT */}
-                  <button
-                    type="button"
-                    disabled={currentPage >= meta.totalPages || loading}
-                    onClick={() => goToPage(currentPage + 1)}
-                    className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-slate-100"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-600">Search:</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-56 px-3 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
           </div>
-        )}
 
-        {/* ======================================================
-            CREATE VIEW
-        ====================================================== */}
+          {/* TABLE BODY */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead>
+                <tr className="bg-[#5949d6] text-white font-semibold">
+                  <th className="py-2.5 px-3 w-16">SL</th>
+                  <th className="py-2.5 px-3">CATEGORY</th>
+                  <th className="py-2.5 px-3">CODE</th>
+                  <th className="py-2.5 px-3">NAME</th>
+                  <th className="py-2.5 px-3 text-center w-24">ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-10 text-slate-400"
+                    >
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    </td>
+                  </tr>
+                ) : paginated.length > 0 ? (
+                  paginated.map((item, index) => (
+                    <tr
+                      key={item.uuid || item.id}
+                      className="hover:bg-indigo-50/40 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 font-medium text-slate-600">
+                        {startIndex + index + 1}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-700">
+                        {item.categoryName || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-500 font-mono">
+                        {item.code}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(item)}
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                        >
+                          {item.name}
+                        </button>
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(item)}
+                            title="Edit"
+                            className="bg-cyan-400 hover:bg-cyan-500 text-white p-1.5 rounded transition-colors"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item)}
+                            disabled={actionLoading}
+                            title="Delete"
+                            className="bg-rose-500 hover:bg-rose-600 text-white p-1.5 rounded transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-10 text-slate-400 font-medium"
+                    >
+                      No sub categories found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {viewMode === "create" && (
-          <div className="bg-white rounded-lg border border-slate-200 shadow-xs p-5 w-full">
-            <h2 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-200 mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-indigo-600" />
-              New Billing Sub Category Registration Form
-            </h2>
+          {/* FOOTER */}
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 gap-2 text-xs text-slate-500">
+            <div>
+              Showing {filtered.length === 0 ? 0 : startIndex + 1} to{" "}
+              {Math.min(startIndex + entriesPerPage, filtered.length)} of{" "}
+              {filtered.length} entries
+            </div>
+            <div className="inline-flex items-center gap-1">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1 rounded border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setCurrentPage(p)}
+                  className={`px-3 py-1 rounded font-semibold ${
+                    currentPage === p
+                      ? "bg-[#5949d6] text-white"
+                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                className="px-3 py-1 rounded border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== ADD MODAL ==================== */}
+      {isAddOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-3xl rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-100 border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-800">Sub Category</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
             <form
-              onSubmit={handleAddCategorySubmit}
-              className="space-y-4 text-xs w-full"
+              onSubmit={handleCreateSubmit}
+              className="p-5 space-y-4 text-xs"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* TYPE */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* CATEGORY */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Billing Sub Category Type{" "}
-                    <span className="text-rose-500">*</span>
+                    Category <span className="text-rose-500">*</span>
                   </label>
-
                   <select
-                    value={formData.type}
-                    onChange={(e) => handleFormChange("type", e.target.value)}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    required
+                    value={formData.categoryId}
+                    onChange={(e) => {
+                      const selectedUuid = e.target.value;
+                      const selectedCategory = categories.find(
+                        (c) => c.uuid === selectedUuid,
+                      );
+                      setFormData({
+                        ...formData,
+                        categoryId: selectedUuid,
+                        type: selectedCategory?.type || "",
+                      });
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="Product">Product</option>
-
-                    <option value="Service">Service</option>
+                    <option value="">Select Category</option>
+                    {categories.map((c) => (
+                      <option key={c.uuid} value={c.uuid}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* CODE */}
+                {/* CODE — auto-generated */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Billing Sub Category Code{" "}
-                    <span className="text-rose-500">*</span>
+                    Sub Category Code
                   </label>
-
                   <input
                     type="text"
-                    required
                     value={formData.code}
-                    onChange={(e) => handleFormChange("code", e.target.value)}
-                    placeholder="SUB-PROD-001"
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono font-bold text-indigo-700 bg-slate-50 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    onChange={(e) =>
+                      setFormData({ ...formData, code: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
                 {/* NAME */}
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Billing Sub Category Name{" "}
-                    <span className="text-rose-500">*</span>
+                    Sub Category Name
                   </label>
-
                   <input
                     type="text"
-                    required
                     value={formData.name}
-                    onChange={(e) => handleFormChange("name", e.target.value)}
-                    placeholder="Enter billing sub category name..."
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                {/* DESCRIPTION */}
-                <div className="sm:col-span-2">
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Description / Notes
-                  </label>
-
-                  <textarea
-                    rows={3}
-                    value={formData.description}
                     onChange={(e) =>
-                      handleFormChange("description", e.target.value)
+                      setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="Optional billing sub category details..."
-                    className="w-full border border-slate-300 rounded-md p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    placeholder="Sub Category Name"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
-              {/* BUTTONS */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded text-xs">
+                  {formError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setViewMode("list")}
-                  disabled={saving}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer font-semibold disabled:opacity-50"
+                  onClick={() => setIsAddOpen(false)}
+                  className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold"
                 >
-                  Cancel
+                  Close
                 </button>
-
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-md shadow-xs cursor-pointer font-semibold flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-lg text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  <Save className="w-4 h-4" />
-
-                  {saving ? "Saving..." : "Save Billing Sub Category"}
+                  {submitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Submit
                 </button>
               </div>
             </form>
           </div>
-        )}
-      </div>
-
-      {/* ========================================================
-          VIEW MODAL
-      ======================================================== */}
-
-      {isViewOpen && selectedCategory && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200">
-            {/* HEADER */}
-            <div className="bg-[#5949d6] text-white px-5 py-3.5 flex items-center justify-between">
-              <h3 className="font-bold text-xs flex items-center gap-2">
-                <Eye className="w-4 h-4 text-cyan-300" />
-                Billing Sub Category: {selectedCategory.code}
-              </h3>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsViewOpen(false);
-                  setSelectedCategory(null);
-                }}
-                className="text-white/80 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* BODY */}
-            <div className="p-5 space-y-3 text-xs">
-              <div className="space-y-2 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-                {/* NAME */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Name:</span>
-
-                  <span className="font-bold text-slate-900">
-                    {selectedCategory.name}
-                  </span>
-                </div>
-
-                {/* TYPE */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Type:</span>
-
-                  <span className="font-bold text-indigo-700">
-                    {selectedCategory.type}
-                  </span>
-                </div>
-
-                {/* CODE */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Code:</span>
-
-                  <span className="font-mono font-bold text-slate-800">
-                    {selectedCategory.code}
-                  </span>
-                </div>
-
-                {/* CATEGORY ID */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">
-                    Category ID:
-                  </span>
-
-                  <span className="font-mono text-slate-700">
-                    {selectedCategory.categoryId || "-"}
-                  </span>
-                </div>
-
-                {/* CREATED BY */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">
-                    Created By:
-                  </span>
-
-                  <span className="font-semibold text-slate-700">
-                    {selectedCategory.createdBy || "-"}
-                  </span>
-                </div>
-
-                {/* UPDATED BY */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">
-                    Updated By:
-                  </span>
-
-                  <span className="font-semibold text-slate-700">
-                    {selectedCategory.updatedBy || "-"}
-                  </span>
-                </div>
-
-                {/* STATUS */}
-                <div className="flex justify-between py-1 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Status:</span>
-
-                  <span
-                    className={
-                      selectedCategory.deletedAt
-                        ? "font-bold text-rose-600"
-                        : "font-bold text-emerald-600"
-                    }
-                  >
-                    {selectedCategory.deletedAt ? "Deleted" : "Active"}
-                  </span>
-                </div>
-
-                {/* DESCRIPTION */}
-                <div className="flex flex-col py-1 gap-1">
-                  <span className="text-slate-500 font-medium">
-                    Description:
-                  </span>
-
-                  <p className="text-slate-700 bg-white p-2.5 rounded border border-slate-200">
-                    {selectedCategory.description || "-"}
-                  </p>
-                </div>
-
-                {/* UUID */}
-                <div className="flex flex-col py-1 gap-1">
-                  <span className="text-slate-500 font-medium">UUID:</span>
-
-                  <p className="font-mono text-[10px] text-slate-600 break-all">
-                    {selectedCategory.uuid}
-                  </p>
-                </div>
-              </div>
-
-              {/* CLOSE */}
-              <div className="flex justify-end pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsViewOpen(false);
-                    setSelectedCategory(null);
-                  }}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-semibold cursor-pointer"
-                >
-                  Close Details
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
-      {/* ========================================================
-          EDIT MODAL
-      ======================================================== */}
-
-      {isEditOpen && selectedCategory && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-200">
-            {/* HEADER */}
-            <div className="bg-[#5949d6] text-white px-5 py-3.5 flex items-center justify-between">
-              <h3 className="font-bold text-xs flex items-center gap-2">
-                <Edit className="w-4 h-4 text-cyan-300" />
-                Edit Billing Sub Category: {selectedCategory.code}
+      {/* ==================== EDIT MODAL ==================== */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white w-full max-w-3xl rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-100 border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-800">
+                Edit Sub Category — {editingItem.name}
               </h3>
-
               <button
                 type="button"
-                onClick={() => {
-                  setIsEditOpen(false);
-                  setSelectedCategory(null);
-                }}
-                className="text-white/80 hover:text-white cursor-pointer"
+                onClick={() => setEditingItem(null)}
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* FORM */}
-            <form
-              onSubmit={handleUpdateSubmit}
-              className="p-5 space-y-3 text-xs"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* TYPE */}
+            <form onSubmit={handleEditSubmit} className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Type <span className="text-rose-500">*</span>
+                    Category <span className="text-rose-500">*</span>
                   </label>
-
                   <select
-                    value={formData.type}
-                    onChange={(e) => handleFormChange("type", e.target.value)}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    required
+                    value={formData.categoryId}
+                    onChange={(e) => {
+                      const selectedUuid = e.target.value;
+                      const selectedCategory = categories.find(
+                        (c) => c.uuid === selectedUuid,
+                      );
+                      setFormData({
+                        ...formData,
+                        categoryId: selectedUuid,
+                        type: selectedCategory?.type || "",
+                      });
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="Product">Product</option>
-
-                    <option value="Service">Service</option>
+                    <option value="">Select Category</option>
+                    {categories.map((c) => (
+                      <option key={c.uuid} value={c.uuid}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* CODE */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Code
+                    Sub Category Code
                   </label>
-
                   <input
                     type="text"
-                    disabled
                     value={formData.code}
-                    className="w-full border border-slate-200 rounded-md px-3 py-2 font-mono font-bold text-slate-400 bg-slate-100 cursor-not-allowed"
+                    onChange={(e) =>
+                      setFormData({ ...formData, code: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
-                {/* NAME */}
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Name <span className="text-rose-500">*</span>
+                    Sub Category Name
                   </label>
-
                   <input
                     type="text"
-                    required
                     value={formData.name}
-                    onChange={(e) => handleFormChange("name", e.target.value)}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold text-slate-900"
-                  />
-                </div>
-
-                {/* DESCRIPTION */}
-                <div className="sm:col-span-2">
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Description
-                  </label>
-
-                  <textarea
-                    rows={3}
-                    value={formData.description}
                     onChange={(e) =>
-                      handleFormChange("description", e.target.value)
+                      setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full border border-slate-300 rounded-md p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
-              {/* BUTTONS */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded text-xs">
+                  {formError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  disabled={saving}
-                  onClick={() => {
-                    setIsEditOpen(false);
-                    setSelectedCategory(null);
-                  }}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer font-semibold disabled:opacity-50"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold"
                 >
-                  Cancel
+                  Close
                 </button>
-
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-md shadow-xs cursor-pointer font-semibold flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-[#5949d6] hover:bg-[#4d3ec2] text-white rounded-lg text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  <Save className="w-4 h-4" />
-
-                  {saving ? "Updating..." : "Update Changes"}
+                  {submitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Submit
                 </button>
               </div>
             </form>
