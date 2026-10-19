@@ -301,6 +301,9 @@ kpi
 
 const cr = `
 dashboard
+agreements
+setups
+recovery
 receipt-voucher
 overdue-list
 reports

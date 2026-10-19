@@ -295,37 +295,46 @@ export default function InstallmentReportPage() {
         if (!mounted) return;
         const transformed: any[] = [];
         agreements.forEach((ag: any, idx: number) => {
-          if (Array.isArray(ag.schedule) && ag.schedule.length > 0) {
-            ag.schedule.forEach((inst: any) => {
+          const plans = ag.installment_plans || ag.schedule || [];
+          const totalVal = Number(ag.total_price || ag.agreed_price || 0);
+          const totalPaid = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const totalDue = Math.max(0, totalVal - totalPaid);
+
+          if (Array.isArray(plans) && plans.length > 0) {
+            plans.forEach((inst: any) => {
+              const instPayable = Number(inst.payable_amount || inst.due_amount || 0);
+              const instPaid = Number(inst.paid_amount || 0);
+              const instDue = Math.max(0, instPayable - instPaid);
+
               transformed.push({
-                id: `${ag.agreement_no || ag.id}-${inst.installment_no}`,
-                project: ag.project_name || "Head Office",
-                flatLand: ag.unit_no || "Unit",
+                id: `${ag.agreement_number || ag.agreement_no || ag.id}-${inst.installment_no}`,
+                project: ag.project_id || ag.project_name || "Purbachal Project",
+                flatLand: ag.unit_identifier || ag.unit_no || "Plot / Flat",
                 customer: ag.customer_name || "Customer",
-                totalValue: Number(ag.agreed_price || 0).toLocaleString(),
-                paid: Number(ag.total_paid || 0).toLocaleString(),
-                due: Number(ag.outstanding_balance || 0).toLocaleString(),
+                totalValue: totalVal.toLocaleString(),
+                paid: totalPaid.toLocaleString(),
+                due: totalDue.toLocaleString(),
                 installmentDate: inst.due_date ? String(inst.due_date).slice(0, 10) : "N/A",
-                installmentAmount: Number(inst.due_amount || 0).toLocaleString(),
-                recovered: Number(inst.paid_amount || 0).toLocaleString(),
-                installmentDue: (Number(inst.due_amount || 0) - Number(inst.paid_amount || 0)).toLocaleString(),
-                salesBy: ag.sales_person_name || "Sales Rep",
+                installmentAmount: instPayable.toLocaleString(),
+                recovered: instPaid.toLocaleString(),
+                installmentDue: instDue.toLocaleString(),
+                salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
               });
             });
           } else {
             transformed.push({
-              id: ag.agreement_no || `#${ag.id || idx + 1}`,
-              project: ag.project_name || "Head Office",
-              flatLand: ag.unit_no || "Unit",
+              id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
+              project: ag.project_id || ag.project_name || "Purbachal Project",
+              flatLand: ag.unit_identifier || ag.unit_no || "Plot / Flat",
               customer: ag.customer_name || "Customer",
-              totalValue: Number(ag.agreed_price || 0).toLocaleString(),
-              paid: Number(ag.total_paid || 0).toLocaleString(),
-              due: Number(ag.outstanding_balance || 0).toLocaleString(),
-              installmentDate: ag.created_at ? String(ag.created_at).slice(0, 10) : "N/A",
-              installmentAmount: Number(ag.agreed_price || 0).toLocaleString(),
-              recovered: Number(ag.total_paid || 0).toLocaleString(),
-              installmentDue: Number(ag.outstanding_balance || 0).toLocaleString(),
-              salesBy: ag.sales_person_name || "Sales Rep",
+              totalValue: totalVal.toLocaleString(),
+              paid: totalPaid.toLocaleString(),
+              due: totalDue.toLocaleString(),
+              installmentDate: ag.agreement_date || (ag.createdAt ? String(ag.createdAt).slice(0, 10) : "N/A"),
+              installmentAmount: totalVal.toLocaleString(),
+              recovered: totalPaid.toLocaleString(),
+              installmentDue: totalDue.toLocaleString(),
+              salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
             });
           }
         });
