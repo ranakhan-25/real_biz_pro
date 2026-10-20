@@ -41,7 +41,6 @@ export default function FlatPage() {
           defaultValue: "Available",
           options: [
             { label: "Available", value: "Available" },
-            { label: "Ready", value: "Ready" },
             { label: "Booked", value: "Booked" },
             { label: "Sold", value: "Sold" },
           ],
