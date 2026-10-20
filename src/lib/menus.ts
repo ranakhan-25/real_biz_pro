@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /**
  * Sidebar menu structures for every module / role.
  * Trees are authored as indented text (2 spaces per level) and parsed once.
@@ -260,6 +261,8 @@ employee
   unit
   employee-list
   employee-hierarchy
+  Increment 
+  ID-Card-Generate
 configuration
   month-configuration
   deduction-rules
