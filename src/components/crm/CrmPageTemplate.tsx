@@ -34,6 +34,16 @@ export interface CrmPageData {
   createFields?: CreateFieldDef[];
 }
 
+export function extractApiItems(resData: any): any[] {
+  if (Array.isArray(resData)) return resData;
+  if (Array.isArray(resData?.data?.data)) return resData.data.data;
+  if (Array.isArray(resData?.data)) return resData.data;
+  if (Array.isArray(resData?.data?.rows)) return resData.data.rows;
+  if (Array.isArray(resData?.rows)) return resData.rows;
+  if (Array.isArray(resData?.items)) return resData.items;
+  return [];
+}
+
 const containerVariants = {
   hidden: { opacity: 0, y: 8 },
   visible: {
@@ -126,21 +136,42 @@ export function CrmPageTemplate({
   rowsRef.current = rows;
 
   const loadData = useCallback(async () => {
-    if (!apiEndpoint) return;
+    if (!apiEndpoint) {
+      if (typeof window !== "undefined") {
+        const stored = window.localStorage.getItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setDataRows(parsed);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+      if (rowsRef.current && rowsRef.current.length > 0) {
+        setDataRows(rowsRef.current);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await api.get(apiEndpoint);
-      const items = res.data?.data || res.data || [];
+      const items = extractApiItems(res.data);
       if (transformRef.current) {
-        setDataRows(transformRef.current(items));
-      } else {
+        const transformed = transformRef.current(items);
+        setDataRows(transformed.length > 0 ? transformed : (rowsRef.current?.length ? rowsRef.current : []));
+      } else if (items.length > 0) {
         // Fallback generic mapping
         setDataRows(
           items.map((item: any) => ({
             id: item.uuid || item.id,
-            name: item.name || item.title || item.client_name || "N/A",
-            code: item.code || item.lead_code || "N/A",
-            status: item.is_active !== undefined ? (item.is_active ? "Active" : "Inactive") : (item.status || "Active"),
+            name: item.name || item.title || item.client_name || item.flatLandNo || item.code || "N/A",
+            code: item.code || item.lead_code || item.flatLandNo || "N/A",
+            status: item.status || (item.is_active !== undefined ? (item.is_active ? "Active" : "Inactive") : "Active"),
             description: item.description || item.notes || "—",
             city: item.city || "—",
             zone: item.zone || "—",
@@ -156,6 +187,10 @@ export function CrmPageTemplate({
             color: item.color || "#0000F2",
           }))
         );
+      } else if (rowsRef.current && rowsRef.current.length > 0) {
+        setDataRows(rowsRef.current);
+      } else {
+        setDataRows([]);
       }
     } catch (err: any) {
       console.error(`Error loading data for ${apiEndpoint}:`, err);
@@ -164,15 +199,11 @@ export function CrmPageTemplate({
     } finally {
       setLoading(false);
     }
-  }, [apiEndpoint]);
+  }, [apiEndpoint, title]);
 
   useEffect(() => {
-    if (apiEndpoint) {
-      loadData();
-    } else {
-      setDataRows(rows);
-    }
-  }, [apiEndpoint, loadData]);
+    loadData();
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return dataRows;
@@ -240,7 +271,13 @@ export function CrmPageTemplate({
         showAlert.error("Delete Failed", Array.isArray(msg) ? msg.join(", ") : msg);
       }
     } else {
-      setDataRows((prev) => prev.filter((r) => (r.id || r.uuid) !== targetId));
+      setDataRows((prev) => {
+        const updated = prev.filter((r) => (r.id || r.uuid) !== targetId);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
       showAlert.success("Deleted", "Record has been removed.");
     }
   };
@@ -306,21 +343,26 @@ export function CrmPageTemplate({
         setFormData({});
         await loadData();
       } else {
-        // Local state management fallback
-        if (editingItem && (editingItem.id || editingItem.uuid)) {
-          const targetId = editingItem.id || editingItem.uuid;
-          setDataRows((prev) =>
-            prev.map((r) => ((r.id || r.uuid) === targetId ? { ...r, ...formData } : r))
-          );
-          showAlert.success("Updated Successfully", `${title} has been updated.`);
-        } else {
-          const newRow = {
-            id: `local-${Date.now()}`,
-            ...formData,
-          };
-          setDataRows((prev) => [newRow, ...prev]);
-          showAlert.success("Created Successfully", `${title} created successfully!`);
-        }
+        // Local state management fallback with localStorage persistence
+        setDataRows((prev) => {
+          let updated: any[] = [];
+          if (editingItem && (editingItem.id || editingItem.uuid)) {
+            const targetId = editingItem.id || editingItem.uuid;
+            updated = prev.map((r) => ((r.id || r.uuid) === targetId ? { ...r, ...formData } : r));
+            showAlert.success("Updated Successfully", `${title} has been updated.`);
+          } else {
+            const newRow = {
+              id: `local-${Date.now()}`,
+              ...formData,
+            };
+            updated = [newRow, ...prev];
+            showAlert.success("Created Successfully", `${title} created successfully!`);
+          }
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`, JSON.stringify(updated));
+          }
+          return updated;
+        });
         setIsModalOpen(false);
         setEditingItem(null);
         setFormData({});
