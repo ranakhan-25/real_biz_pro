@@ -34,6 +34,16 @@ export interface CrmPageData {
   createFields?: CreateFieldDef[];
 }
 
+export function extractApiItems(resData: any): any[] {
+  if (Array.isArray(resData)) return resData;
+  if (Array.isArray(resData?.data?.data)) return resData.data.data;
+  if (Array.isArray(resData?.data)) return resData.data;
+  if (Array.isArray(resData?.data?.rows)) return resData.data.rows;
+  if (Array.isArray(resData?.rows)) return resData.rows;
+  if (Array.isArray(resData?.items)) return resData.items;
+  return [];
+}
+
 const containerVariants = {
   hidden: { opacity: 0, y: 8 },
   visible: {
@@ -126,21 +136,42 @@ export function CrmPageTemplate({
   rowsRef.current = rows;
 
   const loadData = useCallback(async () => {
-    if (!apiEndpoint) return;
+    if (!apiEndpoint) {
+      if (typeof window !== "undefined") {
+        const stored = window.localStorage.getItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setDataRows(parsed);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+      if (rowsRef.current && rowsRef.current.length > 0) {
+        setDataRows(rowsRef.current);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await api.get(apiEndpoint);
-      const items = res.data?.data || res.data || [];
+      const items = extractApiItems(res.data);
       if (transformRef.current) {
-        setDataRows(transformRef.current(items));
-      } else {
+        const transformed = transformRef.current(items);
+        setDataRows(transformed.length > 0 ? transformed : (rowsRef.current?.length ? rowsRef.current : []));
+      } else if (items.length > 0) {
         // Fallback generic mapping
         setDataRows(
           items.map((item: any) => ({
             id: item.uuid || item.id,
-            name: item.name || item.title || item.client_name || "N/A",
-            code: item.code || item.lead_code || "N/A",
-            status: item.is_active !== undefined ? (item.is_active ? "Active" : "Inactive") : (item.status || "Active"),
+            name: item.name || item.title || item.client_name || item.flatLandNo || item.code || "N/A",
+            code: item.code || item.lead_code || item.flatLandNo || "N/A",
+            status: item.status || (item.is_active !== undefined ? (item.is_active ? "Active" : "Inactive") : "Active"),
             description: item.description || item.notes || "—",
             city: item.city || "—",
             zone: item.zone || "—",
@@ -156,6 +187,10 @@ export function CrmPageTemplate({
             color: item.color || "#0000F2",
           }))
         );
+      } else if (rowsRef.current && rowsRef.current.length > 0) {
+        setDataRows(rowsRef.current);
+      } else {
+        setDataRows([]);
       }
     } catch (err: any) {
       console.error(`Error loading data for ${apiEndpoint}:`, err);
@@ -164,15 +199,11 @@ export function CrmPageTemplate({
     } finally {
       setLoading(false);
     }
-  }, [apiEndpoint]);
+  }, [apiEndpoint, title]);
 
   useEffect(() => {
-    if (apiEndpoint) {
-      loadData();
-    } else {
-      setDataRows(rows);
-    }
-  }, [apiEndpoint, loadData]);
+    loadData();
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return dataRows;
@@ -182,6 +213,21 @@ export function CrmPageTemplate({
     );
   }, [query, dataRows, columns]);
 
+  const activeFields: CreateFieldDef[] = useMemo(() => {
+    if (createFields && createFields.length > 0) return createFields;
+    if (!addLabel) return [];
+    return columns
+      .filter((col) => col.key !== "id" && col.key !== "uuid" && col.key !== "actions")
+      .map((col) => ({
+        key: col.key,
+        label: col.label,
+        type: "text" as const,
+        placeholder: `Enter ${col.label.toLowerCase()}...`,
+        required: false,
+        defaultValue: "",
+      }));
+  }, [createFields, addLabel, columns]);
+
   const handleInputChange = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
@@ -189,7 +235,7 @@ export function CrmPageTemplate({
   const openCreateModal = () => {
     setEditingItem(null);
     const initial: Record<string, any> = {};
-    createFields?.forEach((f) => {
+    activeFields.forEach((f) => {
       if (f.defaultValue !== undefined) initial[f.key] = f.defaultValue;
     });
     setFormData(initial);
@@ -199,7 +245,7 @@ export function CrmPageTemplate({
   const openEditModal = (row: any) => {
     setEditingItem(row);
     const initial: Record<string, any> = {};
-    createFields?.forEach((f) => {
+    activeFields.forEach((f) => {
       initial[f.key] = row[f.key] ?? row[f.key.toLowerCase()] ?? "";
     });
     setFormData(initial);
@@ -208,7 +254,6 @@ export function CrmPageTemplate({
 
   const handleDelete = async (row: any) => {
     const targetId = row.id || row.uuid;
-    if (!apiEndpoint || !targetId) return;
 
     const isConfirmed = await showAlert.confirm(
       "Confirm Delete",
@@ -216,13 +261,24 @@ export function CrmPageTemplate({
     );
     if (!isConfirmed) return;
 
-    try {
-      await api.delete(`${apiEndpoint}/${targetId}`);
-      showAlert.success("Deleted", "Record has been removed successfully.");
-      await loadData();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Failed to delete record.";
-      showAlert.error("Delete Failed", Array.isArray(msg) ? msg.join(", ") : msg);
+    if (apiEndpoint && targetId) {
+      try {
+        await api.delete(`${apiEndpoint}/${targetId}`);
+        showAlert.success("Deleted", "Record has been removed successfully.");
+        await loadData();
+      } catch (err: any) {
+        const msg = err.response?.data?.message || err.message || "Failed to delete record.";
+        showAlert.error("Delete Failed", Array.isArray(msg) ? msg.join(", ") : msg);
+      }
+    } else {
+      setDataRows((prev) => {
+        const updated = prev.filter((r) => (r.id || r.uuid) !== targetId);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
+      showAlert.success("Deleted", "Record has been removed.");
     }
   };
 
@@ -248,10 +304,10 @@ export function CrmPageTemplate({
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiEndpoint || !createFields) return;
+    if (activeFields.length === 0) return;
 
     // 1. Strict Frontend Validation
-    for (const f of createFields) {
+    for (const f of activeFields) {
       const val = formData[f.key];
       if (f.required && (val === undefined || val === null || String(val).trim() === "")) {
         showAlert.warning("Required Field Missing", `Please provide a value for "${f.label}".`);
@@ -266,21 +322,51 @@ export function CrmPageTemplate({
       }
     }
 
-    // 2. Dispatch API Call (PUT if editing, POST if creating)
+    // 2. Dispatch API Call if apiEndpoint exists, or update local state
     setSubmitting(true);
     try {
-      if (editingItem && (editingItem.id || editingItem.uuid)) {
-        const targetId = editingItem.id || editingItem.uuid;
-        await api.put(`${apiEndpoint}/${targetId}`, formData);
-        showAlert.success("Updated Successfully", `${title} has been updated.`);
+      if (apiEndpoint) {
+        if (editingItem && (editingItem.id || editingItem.uuid)) {
+          const targetId = editingItem.id || editingItem.uuid;
+          try {
+            await api.put(`${apiEndpoint}/${targetId}`, formData);
+          } catch {
+            await api.patch(`${apiEndpoint}/${targetId}`, formData);
+          }
+          showAlert.success("Updated Successfully", `${title} has been updated.`);
+        } else {
+          await api.post(apiEndpoint, formData);
+          showAlert.success("Created Successfully", `${title} created successfully!`);
+        }
+        setIsModalOpen(false);
+        setEditingItem(null);
+        setFormData({});
+        await loadData();
       } else {
-        await api.post(apiEndpoint, formData);
-        showAlert.success("Created Successfully", `${title} created successfully!`);
+        // Local state management fallback with localStorage persistence
+        setDataRows((prev) => {
+          let updated: any[] = [];
+          if (editingItem && (editingItem.id || editingItem.uuid)) {
+            const targetId = editingItem.id || editingItem.uuid;
+            updated = prev.map((r) => ((r.id || r.uuid) === targetId ? { ...r, ...formData } : r));
+            showAlert.success("Updated Successfully", `${title} has been updated.`);
+          } else {
+            const newRow = {
+              id: `local-${Date.now()}`,
+              ...formData,
+            };
+            updated = [newRow, ...prev];
+            showAlert.success("Created Successfully", `${title} created successfully!`);
+          }
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(`crm_store_${title.toLowerCase().replace(/\s+/g, "_")}`, JSON.stringify(updated));
+          }
+          return updated;
+        });
+        setIsModalOpen(false);
+        setEditingItem(null);
+        setFormData({});
       }
-      setIsModalOpen(false);
-      setEditingItem(null);
-      setFormData({});
-      await loadData();
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Failed to submit.";
       showAlert.error("Submission Failed", Array.isArray(msg) ? msg.join(", ") : msg);
@@ -370,7 +456,7 @@ export function CrmPageTemplate({
                     {col.label}
                   </th>
                 ))}
-                {createFields && (
+                {activeFields.length > 0 && (
                   <th className="whitespace-nowrap px-4 py-2.5 text-[11.5px] font-semibold text-ink-muted text-right">
                     Actions
                   </th>
@@ -386,7 +472,7 @@ export function CrmPageTemplate({
                         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
                       </td>
                     ))}
-                    {createFields && (
+                    {activeFields.length > 0 && (
                       <td className="px-4 py-3 text-right">
                         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-14 ml-auto" />
                       </td>
@@ -426,7 +512,7 @@ export function CrmPageTemplate({
                             )}
                           </td>
                         ))}
-                        {createFields && (
+                        {activeFields.length > 0 && (
                           <td className="whitespace-nowrap px-4 py-2.5 text-[13px] text-right">
                             <div className="inline-flex items-center gap-1.5 justify-end">
                               <button
@@ -458,7 +544,7 @@ export function CrmPageTemplate({
                       transition={{ duration: 0.2 }}
                     >
                       <td
-                        colSpan={columns.length + (createFields ? 1 : 0)}
+                        colSpan={columns.length + (activeFields.length > 0 ? 1 : 0)}
                         className="px-4 py-10 text-center text-[13px] text-ink-faint"
                       >
                         No live records found. Click &quot;{addLabel || "Add"}&quot; to create one.
@@ -480,7 +566,7 @@ export function CrmPageTemplate({
       </motion.div>
 
       {/* Dynamic Creation / Edit Modal with Strict Validation */}
-      {isModalOpen && createFields && (
+      {isModalOpen && activeFields.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -504,7 +590,7 @@ export function CrmPageTemplate({
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-                {createFields.map((f) => (
+                {activeFields.map((f) => (
                   <div key={f.key} className="space-y-1">
                     <label className="text-[12px] font-medium text-ink-muted block">
                       {f.label} {f.required && <span className="text-red-500">*</span>}
