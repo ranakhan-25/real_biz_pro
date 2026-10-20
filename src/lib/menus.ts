@@ -272,6 +272,7 @@ configuration
   holiday
   zkteco-device-configuration
 attendance
+  attendance
   attendance-log
   pending-attendance
   attendance-reconciliations
