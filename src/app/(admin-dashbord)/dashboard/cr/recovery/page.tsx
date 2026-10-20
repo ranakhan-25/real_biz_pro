@@ -126,11 +126,17 @@ export default function RecoveryLedgerPage() {
     setOfficerName(item.officer_name || "");
     setPromisedPaymentDate(item.promised_payment_date ? item.promised_payment_date.slice(0, 10) : "");
     setPromisedAmount(item.promised_amount || "");
-    setOutcomeStatus(item.outcome_status || "promised");
-    setCustomerResponse(item.customer_response || "");
+    setOutcomeStatus(item.outcome_status || item.outcome || "promised");
+    setCustomerResponse(item.customer_response || item.remarks || "");
     setLegalNoticeRef(item.legal_notice_ref || "");
-    setRemarks(item.remarks || "");
-    setNextFollowupDate(item.next_followup_date ? item.next_followup_date.slice(0, 10) : "");
+    setRemarks(item.remarks || item.customer_response || "");
+    setNextFollowupDate(
+      item.next_followup_date
+        ? item.next_followup_date.slice(0, 10)
+        : item.next_action_date
+        ? item.next_action_date.slice(0, 10)
+        : ""
+    );
     setIsModalOpen(true);
   };
 
@@ -158,10 +164,12 @@ export default function RecoveryLedgerPage() {
         officer_name: officerName.trim(),
         promised_payment_date: promisedPaymentDate || undefined,
         promised_amount: promisedAmount !== "" ? Number(promisedAmount) : undefined,
+        outcome: outcomeStatus,
         outcome_status: outcomeStatus,
-        customer_response: customerResponse.trim() || undefined,
+        customer_response: customerResponse.trim() || remarks.trim() || undefined,
         legal_notice_ref: legalNoticeRef.trim() || undefined,
         remarks: remarks.trim() || undefined,
+        next_action_date: nextFollowupDate || undefined,
         next_followup_date: nextFollowupDate || undefined,
       };
 
@@ -286,7 +294,7 @@ export default function RecoveryLedgerPage() {
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold text-amber-600">
-            {recoveryLogs.filter((r) => r.next_followup_date && new Date(r.next_followup_date) >= new Date()).length}
+            {recoveryLogs.filter((r) => (r.next_followup_date || r.next_action_date) && new Date(r.next_followup_date || r.next_action_date) >= new Date()).length}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Pending action reminders scheduled</p>
         </div>
@@ -297,7 +305,7 @@ export default function RecoveryLedgerPage() {
             <CheckCircle className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold text-emerald-600">
-            {recoveryLogs.filter((r) => r.outcome_status === "resolved").length}
+            {recoveryLogs.filter((r) => (r.outcome_status || r.outcome) === "resolved").length}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Accounts brought current</p>
         </div>
@@ -369,8 +377,9 @@ export default function RecoveryLedgerPage() {
                     color: "bg-muted text-muted-foreground",
                   };
                   const Icon = typeCfg.icon;
-                  const outcomeCfg = OUTCOME_CONFIG[item.outcome_status] || {
-                    label: item.outcome_status,
+                  const outcomeKey = item.outcome_status || item.outcome || "in_progress";
+                  const outcomeCfg = OUTCOME_CONFIG[outcomeKey] || {
+                    label: outcomeKey,
                     color: "bg-muted text-muted-foreground",
                   };
 
@@ -426,9 +435,9 @@ export default function RecoveryLedgerPage() {
                         <div className="text-xs text-foreground line-clamp-2">
                           {item.customer_response || item.remarks || "—"}
                         </div>
-                        {item.next_followup_date && (
+                        {(item.next_followup_date || item.next_action_date) && (
                           <div className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 font-medium flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> Next: {String(item.next_followup_date).slice(0, 10)}
+                            <Clock className="w-3 h-3" /> Next: {String(item.next_followup_date || item.next_action_date).slice(0, 10)}
                           </div>
                         )}
                       </td>

@@ -14,6 +14,7 @@ export default function DealNegotiationActivityPage() {
         negotiations.map((n) => ({
           id: n.uuid || n.id,
           property: n.property_id || "Prime Plot",
+          client: n.lead?.client_name || n.lead?.full_name || (n.lead_id ? `Lead #${n.lead_id}` : "Direct Client"),
           offer: `${Number(n.offer_price || 0).toLocaleString()} BDT`,
           agreed: `${Number(n.agreed_price || 0).toLocaleString()} BDT`,
           discount: `${Number(n.discount_amount || 0).toLocaleString()} BDT`,
@@ -23,6 +24,7 @@ export default function DealNegotiationActivityPage() {
       }
       columns={[
         { key: "property", label: "Property Identifier" },
+        { key: "client", label: "Client / Lead" },
         { key: "offer", label: "Client Offer" },
         { key: "agreed", label: "Agreed Price" },
         { key: "discount", label: "Discount Granted" },
@@ -31,6 +33,7 @@ export default function DealNegotiationActivityPage() {
       ]}
       createFields={[
         { key: "property_id", label: "Property Identifier", type: "text", required: true, placeholder: "e.g. PLOT-SEC17-4A" },
+        { key: "lead_id", label: "Lead ID (Optional)", type: "number", placeholder: "Leave blank for auto-assign" },
         { key: "offer_price", label: "Client Offer Price (BDT)", type: "number", required: true, placeholder: "9000000" },
         { key: "agreed_price", label: "Agreed Sale Price (BDT)", type: "number", required: true, placeholder: "8600000" },
         { key: "discount_amount", label: "Special Discount (BDT)", type: "number", defaultValue: 0 },
