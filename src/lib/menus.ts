@@ -270,8 +270,8 @@ configuration
   salary-grade
   leave-type
   holiday
-attendance
   zkteco-device-configuration
+attendance
   attendance-log
   pending-attendance
   attendance-reconciliations
