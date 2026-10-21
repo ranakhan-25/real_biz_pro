@@ -70,7 +70,20 @@ dashboard
 projects
   project-type
   project
-  site
+  site 
+  project-master
+  building
+  floor
+  unit-plot
+  project-party
+  project-agreement
+  project-milestone
+  project-task                                                      
+  project-budget
+  project-cost
+  project-progress
+
+  project-control
   report
 
     project-details 
