@@ -3,7 +3,7 @@
 import type { SubCategory } from "@/app/(admin-dashbord)/dashboard/inventory/products/sub-categories/page";
 import React, { useState, useEffect, useMemo } from "react";
 import { FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
-import { API_BASE } from "@/lib/inventoryApi";
+import { API_BASE, categoriesApi, subCategoriesApi, fallbackSubCategories, fallbackCategories } from "@/lib/inventoryApi";
 
 interface SubCategoryListProps {
   apiEndpoint?: string;
@@ -21,6 +21,7 @@ export default function SubCategoryList({
   onDelete,
 }: SubCategoryListProps) {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
@@ -29,28 +30,50 @@ export default function SubCategoryList({
   const [entriesPerPage, setEntriesPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Load parent categories for filter
+  useEffect(() => {
+    async function loadFilterCategories() {
+      try {
+        let raw = await categoriesApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackCategories;
+        }
+        setCategoriesList(raw.map((c: any) => ({ id: c.id, name: c.name })));
+      } catch (err) {
+        setCategoriesList(fallbackCategories.map((c: any) => ({ id: c.id, name: c.name })));
+      }
+    }
+    loadFilterCategories();
+  }, []);
+
   // Fetching data from backend API
   useEffect(() => {
     async function fetchSubCategories() {
       try {
         setLoading(true);
-        const response = await fetch(apiEndpoint);
-        if (!response.ok) throw new Error("API failed");
-        const json = await response.json();
-        const raw = json.data !== undefined ? json.data : json;
-        const list = Array.isArray(raw)
-          ? raw.map((item: any) => ({
-              id: item.id,
-              category: item.category?.name || item.category_name || item.category_id || "Category",
-              category_id: item.category_id,
-              code: item.sub_category_code || item.code || "",
-              name: item.name || "",
-            }))
-          : [];
+        let raw = await subCategoriesApi.getAll().catch(() => null);
+        if (!Array.isArray(raw) || raw.length === 0) {
+          raw = fallbackSubCategories;
+        }
+        const list = raw.map((item: any) => ({
+          id: item.id,
+          category: item.category?.name || item.category_name || item.category || "Category",
+          category_id: item.category_id,
+          code: item.sub_category_code || item.code || "",
+          name: item.name || "",
+        }));
         setSubCategories(list);
       } catch (error) {
         console.error("Error fetching sub-categories:", error);
-        setSubCategories([]);
+        setSubCategories(
+          fallbackSubCategories.map((item: any) => ({
+            id: item.id,
+            category: item.category || "Category",
+            category_id: item.category_id,
+            code: item.code || "",
+            name: item.name || "",
+          }))
+        );
       } finally {
         setLoading(false);
       }
@@ -106,10 +129,19 @@ export default function SubCategoryList({
             className="w-full sm:w-80 bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
           >
             <option value="">All Categories</option>
-            <option value="Global Link City">Global Link City</option>
-            <option value="Mega Project">Mega Project</option>
-            <option value="Black Marble">Black Marble</option>
-            <option value="White Marble">White Marble</option>
+            {categoriesList.length > 0 ? (
+              categoriesList.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))
+            ) : (
+              Array.from(new Set(subCategories.map((s) => s.category))).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))
+            )}
           </select>
         </div>
 

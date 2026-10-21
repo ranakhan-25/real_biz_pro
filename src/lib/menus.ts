@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /**
  * Sidebar menu structures for every module / role.
  * Trees are authored as indented text (2 spaces per level) and parsed once.
@@ -70,7 +71,20 @@ dashboard
 projects
   project-type
   project
-  site
+  site 
+  project-master
+  building
+  floor
+  unit-plot
+  project-party
+  project-agreement
+  project-milestone
+  project-task                                                      
+  project-budget
+  project-cost
+  project-progress
+
+  project-control
   report
 
     project-details 
@@ -260,6 +274,8 @@ employee
   unit
   employee-list
   employee-hierarchy
+  Increment 
+  ID-Card-Generate
 configuration
   month-configuration
   deduction-rules
@@ -267,8 +283,9 @@ configuration
   salary-grade
   leave-type
   holiday
-attendance
   zkteco-device-configuration
+attendance
+  attendance
   attendance-log
   pending-attendance
   attendance-reconciliations
@@ -298,6 +315,9 @@ kpi
 
 const cr = `
 dashboard
+agreements
+setups
+recovery
 receipt-voucher
 overdue-list
 reports

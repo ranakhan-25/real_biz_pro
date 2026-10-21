@@ -185,7 +185,7 @@ export function NegotiationProcessView({
                       >
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => toggleExpand(item.uuid)}
+                            onClick={() => toggleExpand(item.uuid || item.id)}
                             className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 transition-all font-bold"
                             title={isExpanded ? "Collapse" : "Expand"}
                           >
@@ -235,11 +235,11 @@ export function NegotiationProcessView({
                         </td>
 
                         <td className="py-3 px-3 text-center">
-                          <button
-                            onClick={() => onDeleteNegotiation(item.uuid)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all"
-                            title="Delete Negotiation"
-                          >
+                            <button
+                              onClick={() => onDeleteNegotiation(item.uuid || item.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all"
+                              title="Delete Negotiation"
+                            >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </td>

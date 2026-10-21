@@ -25,7 +25,7 @@ function StatCard({
 }: StatCardProps) {
   return (
     <div className="flex h-[74px] items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 shadow-sm">
-
+    
       <div
         className={`flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-lg ${iconClass}`}
       >
@@ -63,7 +63,7 @@ export default function RifatDashboardPage() {
           icon={<CreditCard size={20} />}
           iconClass="bg-emerald-500 text-white"
         />
-
+     
         <StatCard
           title="COST"
           value="65,538"

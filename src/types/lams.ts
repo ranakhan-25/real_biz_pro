@@ -33,6 +33,7 @@ export type FollowUpStatus =
 
 export interface LandOwner {
   id: string;
+  uuid?: string;
   code: string;
   acquisitionLeadId: string;
   landPlot: string;
@@ -46,10 +47,12 @@ export interface LandOwner {
   addedBy: string;
   remarks?: string;
   ownershipSharePercentage?: number;
+  projectId?: string;
 }
 
 export interface AcquisitionLead {
   id: string;
+  uuid?: string;
   leadCode: string;
   title: string;
   address: string;
@@ -73,10 +76,12 @@ export interface AcquisitionLead {
   ownerAddress: string;
   createdAt: string;
   remarks?: string;
+  projectId?: string;
 }
 
 export interface NegotiationRecord {
   id: string;
+  uuid?: string;
   acquisitionLeadId: string;
   leadTitle: string;
   mouza: string;
@@ -89,10 +94,12 @@ export interface NegotiationRecord {
   meetingDate: string;
   attendedBy: string;
   remarks: string;
+  projectId?: string;
 }
 
 export interface LegalDocument {
   id: string;
+  uuid?: string;
   acquisitionLeadId: string;
   leadTitle: string;
   documentType: string;
@@ -102,10 +109,12 @@ export interface LegalDocument {
   verifiedBy: string;
   verificationDate?: string;
   remarks: string;
+  projectId?: string;
 }
 
 export interface FollowUpItem {
   id: string;
+  uuid?: string;
   sl: number;
   date: string;
   acquisitionLeadId: string;
@@ -116,6 +125,7 @@ export interface FollowUpItem {
   status: FollowUpStatus;
   note: string;
   assignedTo: string;
+  projectId?: string;
 }
 
 export interface LamsKpiMetric {
