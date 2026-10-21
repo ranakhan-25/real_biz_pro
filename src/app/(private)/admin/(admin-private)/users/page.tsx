@@ -2,8 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronLeft,
-  ChevronRight,
   Edit3,
   Eye,
   Filter,
@@ -115,6 +113,7 @@ export default function UsersPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isUsingDummy, setIsUsingDummy] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -193,25 +192,22 @@ export default function UsersPage() {
       if (userList.length === 0) {
         setUsers(DEMO_USERS);
         setTotalUsers(DEMO_USERS.length);
-        setError(
-          "Using demo data because the API is returning no user records.",
-        );
+        setIsUsingDummy(true);
+        setError("");
         return;
       }
 
       setUsers(userList);
       setTotalUsers(total || userList.length);
+      setIsUsingDummy(false);
 
       if (userList.length === 0 && total > 0 && page > 1) {
         setPage((current) => Math.max(1, current - 1));
       }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
-      setError(
-        err instanceof Error
-          ? `${err.message} Using demo data instead.`
-          : "Using demo data because the backend is unavailable.",
-      );
+      setIsUsingDummy(true);
+      setError("");
       setUsers(DEMO_USERS);
       setTotalUsers(DEMO_USERS.length);
     } finally {
@@ -389,6 +385,16 @@ export default function UsersPage() {
         </div>
       </div>
 
+      {/* DEMO DATA BANNER */}
+      {isUsingDummy && (
+        <div className="mb-5 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 shadow-sm">
+          <span className="flex h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+          <span>
+            API is offline. Showing <strong>Demo Data</strong>.
+          </span>
+        </div>
+      )}
+
       {/* TABLE CARD */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {/* TOOLBAR */}
@@ -401,11 +407,6 @@ export default function UsersPage() {
               placeholder="Search username or email..."
               aria-label="Search users"
               className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none focus:bg-white focus:ring-4"
-              style={
-                {
-                  // focus styles via CSS variable if needed
-                } as React.CSSProperties
-              }
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = primaryColor;
                 e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
@@ -440,8 +441,8 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {/* ERROR */}
-        {error && (
+        {/* REAL ERROR (not demo) */}
+        {error && !isUsingDummy && (
           <div
             role="alert"
             className="m-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
@@ -647,58 +648,9 @@ export default function UsersPage() {
                         {formatDate(user.createdAt)}
                       </td>
 
-                      {/* ACTIONS */}
+                      {/* ACTIONS — only dropdown */}
                       <td className="relative px-5 py-4">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => openView(user)}
-                            title="View user"
-                            aria-label={`View ${fullName}`}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = primaryColor;
-                              e.currentTarget.style.backgroundColor = `${primaryColor}15`;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = "";
-                              e.currentTarget.style.backgroundColor = "";
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => openEdit(user)}
-                            title="Edit user"
-                            aria-label={`Edit ${fullName}`}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = primaryColor;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = "";
-                            }}
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => requestDelete(user)}
-                            title="Delete user"
-                            aria-label={`Delete ${fullName}`}
-                            disabled={deletingId === user.id}
-                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            {deletingId === user.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </button>
-
+                        <div className="flex items-center justify-end">
                           <button
                             type="button"
                             onClick={() =>
@@ -706,7 +658,7 @@ export default function UsersPage() {
                                 menuUserId === user.id ? null : user.id,
                               )
                             }
-                            title="More"
+                            title="More actions"
                             aria-label={`More actions for ${fullName}`}
                             aria-haspopup="menu"
                             aria-expanded={menuUserId === user.id}
@@ -714,43 +666,49 @@ export default function UsersPage() {
                           >
                             <MoreHorizontal className="h-5 w-5" />
                           </button>
-                        </div>
 
-                        {menuUserId === user.id && (
-                          <div
-                            ref={menuRootRef}
-                            role="menu"
-                            className="absolute right-5 top-14 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
-                          >
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => openView(user)}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50"
+                          {menuUserId === user.id && (
+                            <div
+                              ref={menuRootRef}
+                              role="menu"
+                              className="absolute right-5 top-12 z-20 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl"
                             >
-                              <Eye className="h-4 w-4" />
-                              View Details
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => openEdit(user)}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50"
-                            >
-                              <Edit3 className="h-4 w-4" />
-                              Edit User
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => requestDelete(user)}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-500 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete User
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => openView(user)}
+                                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View Details
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => openEdit(user)}
+                                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50"
+                              >
+                                <Edit3 className="h-4 w-4" />
+                                Edit User
+                              </button>
+                              <div className="my-1 border-t border-slate-100" />
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => requestDelete(user)}
+                                disabled={deletingId === user.id}
+                                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {deletingId === user.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                                Delete User
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </motion.tr>
                   );

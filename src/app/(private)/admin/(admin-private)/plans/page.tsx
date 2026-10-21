@@ -13,6 +13,11 @@ import {
   ChevronRight,
   Plus,
   CreditCard,
+  Users,
+  FolderKanban,
+  HardDrive,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 // ডামি ডেটা
@@ -55,7 +60,7 @@ const DUMMY_PLANS = [
   },
 ];
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 export default function PlanListPage() {
   const [plans, setPlans] = useState<any[]>([]);
@@ -241,216 +246,221 @@ export default function PlanListPage() {
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left border-collapse">
-              <thead className="bg-gray-300 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Plan
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Pricing
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Limits
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Subscribers
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-12 text-center text-gray-400"
-                    >
-                      Loading plans...
-                    </td>
-                  </tr>
-                ) : paginatedPlans.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-16 text-center flex flex-col items-center"
-                    >
-                      <CreditCard className="h-10 w-10 text-gray-200 mb-3" />
-                      <p className="text-gray-500 font-medium">
-                        No plans found.
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Try adjusting your search or filters.
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedPlans.map((plan) => (
-                    <tr
-                      key={plan.uuid}
-                      className="hover:bg-gray-50/50 transition-colors group"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-gray-900 text-sm">
-                            {plan.name}
-                          </span>
-                          <span className="text-xs text-gray-400 font-mono mt-0.5">
-                            {plan.code}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
-                            ${plan.monthly_price}{" "}
-                            <span className="text-xs text-gray-500 font-normal">
-                              /mo
-                            </span>
-                          </span>
-                          <span className="text-xs text-gray-500 mt-0.5">
-                            ${plan.yearly_price} /yr
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1 text-xs text-gray-600">
-                          <span>{plan.user_limit} Users</span>
-                          <span>{plan.project_limit} Projects</span>
-                          <span>{plan.storage_gb} GB Storage</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                            plan.status === "active"
-                              ? "bg-green-50 text-green-700 border border-green-200"
-                              : plan.status === "draft"
-                                ? "bg-gray-100 text-gray-700 border border-gray-200"
-                                : "bg-red-50 text-red-700 border border-red-200"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                              plan.status === "active"
-                                ? "bg-green-500"
-                                : plan.status === "draft"
-                                  ? "bg-gray-500"
-                                  : "bg-red-500"
-                            }`}
-                          ></span>
-                          {plan.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border"
-                          style={{
-                            backgroundColor: `${brandColor}10`,
-                            color: brandColor,
-                            borderColor: `${brandColor}20`,
-                          }}
-                        >
-                          {plan.subscribers || 0}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => {
-                              setSelectedPlan(plan);
-                              setIsEditOpen(true);
-                            }}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
-                            style={{ color: brandColor }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(plan.uuid)}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-red-50 text-red-600 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Cards Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse"
+              >
+                <div className="h-6 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div className="h-4 bg-gray-100 rounded w-1/3 mb-6"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-100 rounded w-full"></div>
+                  <div className="h-4 bg-gray-100 rounded w-4/5"></div>
+                  <div className="h-4 bg-gray-100 rounded w-3/5"></div>
+                </div>
+              </div>
+            ))}
           </div>
-
-          {/* Premium Pagination */}
-          {!isLoading && filteredPlans.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <span className="text-sm text-gray-500">
-                Showing{" "}
-                <span className="font-medium text-gray-900">
-                  {startIndex + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-gray-900">
-                  {Math.min(startIndex + ITEMS_PER_PAGE, filteredPlans.length)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-900">
-                  {filteredPlans.length}
-                </span>{" "}
-                results
-              </span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === i + 1
-                          ? "text-white shadow-sm"
-                          : "text-gray-600 hover:bg-gray-100"
+        ) : paginatedPlans.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 py-20 flex flex-col items-center justify-center">
+            <CreditCard className="h-12 w-12 text-gray-200 mb-4" />
+            <p className="text-gray-500 font-medium text-lg">No plans found.</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Try adjusting your search or filters.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedPlans.map((plan) => (
+              <div
+                key={plan.uuid}
+                className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 overflow-hidden group flex flex-col"
+              >
+                {/* Card Header */}
+                <div className="p-5 pb-4 border-b border-gray-50">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-gray-900 text-lg truncate">
+                        {plan.name}
+                      </h3>
+                      <p className="text-xs text-gray-400 font-mono mt-0.5">
+                        {plan.code}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
+                        plan.status === "active"
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : plan.status === "draft"
+                            ? "bg-gray-100 text-gray-700 border border-gray-200"
+                            : "bg-red-50 text-red-700 border border-red-200"
                       }`}
-                      style={
-                        currentPage === i + 1
-                          ? { backgroundColor: brandColor }
-                          : {}
-                      }
                     >
-                      {i + 1}
-                    </button>
-                  ))}
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                          plan.status === "active"
+                            ? "bg-green-500"
+                            : plan.status === "draft"
+                              ? "bg-gray-500"
+                              : "bg-red-500"
+                        }`}
+                      />
+                      {plan.status}
+                    </span>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+                {/* Pricing */}
+                <div className="px-5 pt-4 pb-3">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold text-gray-900">
+                      ${plan.monthly_price}
+                    </span>
+                    <span className="text-sm text-gray-500 font-medium">
+                      /mo
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    ${plan.yearly_price} billed yearly
+                  </p>
+                </div>
+
+                {/* Limits */}
+                <div className="px-5 py-3 space-y-2.5 flex-1">
+                  <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                    <Users className="h-4 w-4 text-gray-400 shrink-0" />
+                    <span>
+                      <strong className="font-semibold text-gray-800">
+                        {plan.user_limit}
+                      </strong>{" "}
+                      Users
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                    <FolderKanban className="h-4 w-4 text-gray-400 shrink-0" />
+                    <span>
+                      <strong className="font-semibold text-gray-800">
+                        {plan.project_limit}
+                      </strong>{" "}
+                      Projects
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                    <HardDrive className="h-4 w-4 text-gray-400 shrink-0" />
+                    <span>
+                      <strong className="font-semibold text-gray-800">
+                        {plan.storage_gb} GB
+                      </strong>{" "}
+                      Storage
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer: Subscribers + Actions */}
+                <div className="px-5 py-4 bg-gray-50/70 border-t border-gray-100 flex items-center justify-between gap-3">
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border"
+                    style={{
+                      backgroundColor: `${brandColor}10`,
+                      color: brandColor,
+                      borderColor: `${brandColor}20`,
+                    }}
+                  >
+                    {plan.subscribers || 0} subscribers
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => {
+                        setSelectedPlan(plan);
+                        setIsEditOpen(true);
+                      }}
+                      className="p-2 rounded-lg hover:bg-white text-gray-500 hover:text-gray-800 transition-colors border border-transparent hover:border-gray-200"
+                      title="Edit"
+                    >
+                      <Edit2
+                        className="h-4 w-4"
+                        style={{ color: brandColor }}
+                      />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(plan.uuid)}
+                      className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors border border-transparent hover:border-red-100"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && filteredPlans.length > 0 && (
+          <div className="mt-8 px-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-sm text-gray-500">
+              Showing{" "}
+              <span className="font-medium text-gray-900">
+                {startIndex + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-gray-900">
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredPlans.length)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-gray-900">
+                {filteredPlans.length}
+              </span>{" "}
+              results
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === i + 1
+                        ? "text-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                    style={
+                      currentPage === i + 1
+                        ? { backgroundColor: brandColor }
+                        : {}
+                    }
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <PlanCreateModal
