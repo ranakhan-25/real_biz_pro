@@ -48,16 +48,17 @@ async function handleRes(res: Response, action: string) {
   return json;
 }
 
-async function fetchShareConfigs(): Promise<{ data: ShareConfig[]; meta: any }> {
+async function fetchShareConfigs(): Promise<{
+  data: ShareConfig[];
+  meta: any;
+}> {
   const url = `${API_BASE}/realbizpro/api/v1/share-configuration?page=1&limit=100&skip=0&sortBy=createdAt&sortOrder=DESC&withDeleted=false`;
-  console.log("GET share-config →", url);
   const res = await fetch(url, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
   });
   const json = await handleRes(res, "fetch share configs");
-  console.log("GET share-config response →", json);
 
   const mapped: ShareConfig[] = (json?.data?.data || [])
     .map((item: any) => ({
@@ -73,18 +74,14 @@ async function fetchShareConfigs(): Promise<{ data: ShareConfig[]; meta: any }> 
       isProfitDistribute: Boolean(item.isProfitDistribute),
       status: item.status || "active",
     }))
-    // Only keep active records (backend soft-delete sets status = inactive)
     .filter((item: ShareConfig) => item.status?.toLowerCase() === "active");
 
   return { data: mapped, meta: json?.data?.meta };
 }
 
-// ---------- PROJECT dropdown ----------
 async function fetchProjects(): Promise<OptionItem[]> {
   try {
-    const url = `${API_BASE}/realbizpro/api/v1/project?page=1&limit=100&status=ACTIVE&sortOrder=DESC&withDeleted=false`;
-    console.log("GET projects →", url);
-
+    const url = `${API_BASE}/realbizpro/api/v1/project?page=1&limit=100`;
     const res = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -92,31 +89,28 @@ async function fetchProjects(): Promise<OptionItem[]> {
     });
 
     const json = await res.json().catch(() => ({}));
-
     if (!res.ok) {
-      console.error("Projects fetch failed:", res.status, json);
+      console.warn("Project fetch failed:", json?.message || res.status);
       return [];
     }
 
-    console.log("Projects response →", json);
-    const list = json?.data?.data || [];
+    const list: any[] =
+      json?.data?.data || (Array.isArray(json?.data) ? json.data : null) || [];
+
     return list.map((p: any) => ({
-      uuid: p.uuid,
+      uuid: p.uuid || p.id,
       name: p.name || p.code || "Unnamed",
       code: p.code,
     }));
   } catch (err) {
-    console.error("fetchProjects error →", err);
+    console.error("fetchProjects error:", err);
     return [];
   }
 }
 
-// ---------- INVESTOR dropdown ----------
 async function fetchInvestors(): Promise<OptionItem[]> {
   try {
-    const url = `${API_BASE}/realbizpro/api/v1/investor?page=1&limit=100&status=active&sortOrder=DESC&withDeleted=false`;
-    console.log("GET investors →", url);
-
+    const url = `${API_BASE}/realbizpro/api/v1/investor?page=1&limit=100&status=active&sortOrder=DESC`;
     const res = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -124,39 +118,32 @@ async function fetchInvestors(): Promise<OptionItem[]> {
     });
 
     const json = await res.json().catch(() => ({}));
+    if (!res.ok) return [];
 
-    if (!res.ok) {
-      console.error("Investors fetch failed:", res.status, json);
-      return [];
-    }
+    const list: any[] =
+      json?.data?.data || (Array.isArray(json?.data) ? json.data : null) || [];
 
-    console.log("Investors response →", json);
-    const list = json?.data?.data || [];
     return list.map((i: any) => ({
-      uuid: i.uuid,
+      uuid: i.uuid || i.id,
       name: i.name || i.code || "Unnamed",
       code: i.code,
     }));
   } catch (err) {
-    console.error("fetchInvestors error →", err);
+    console.error("fetchInvestors error:", err);
     return [];
   }
 }
 
 async function createShareConfig(payload: Record<string, any>) {
-  console.log("POST payload →", payload);
   const res = await fetch(`${API_BASE}/realbizpro/api/v1/share-configuration`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const json = await handleRes(res, "create share config");
-  console.log("POST response →", json);
-  return json;
+  return handleRes(res, "create share config");
 }
 
 async function updateShareConfig(uuid: string, payload: Record<string, any>) {
-  console.log("PATCH", uuid, "payload →", payload);
   const res = await fetch(
     `${API_BASE}/realbizpro/api/v1/share-configuration/${uuid}`,
     {
@@ -165,13 +152,10 @@ async function updateShareConfig(uuid: string, payload: Record<string, any>) {
       body: JSON.stringify(payload),
     },
   );
-  const json = await handleRes(res, "update share config");
-  console.log("PATCH response →", json);
-  return json;
+  return handleRes(res, "update share config");
 }
 
 async function softDeleteShareConfig(uuid: string) {
-  console.log("DELETE →", uuid);
   const res = await fetch(
     `${API_BASE}/realbizpro/api/v1/share-configuration/${uuid}`,
     {
@@ -179,9 +163,7 @@ async function softDeleteShareConfig(uuid: string) {
       headers: { "Content-Type": "application/json" },
     },
   );
-  const json = await handleRes(res, "delete share config");
-  console.log("DELETE response →", json);
-  return json;
+  return handleRes(res, "delete share config");
 }
 
 const toApiPayload = (data: {
@@ -443,14 +425,10 @@ export default function ShareConfigurationPage() {
         fetchInvestors(),
       ]);
 
-      console.log("Loaded projects →", projectList.length);
-      console.log("Loaded investors →", investorList.length);
-
       setConfigs(configRes.data);
       setProjects(projectList);
       setInvestors(investorList);
     } catch (err: any) {
-      console.error(err);
       setError(err.message || "Failed to load share configurations");
     } finally {
       setLoading(false);
@@ -486,21 +464,14 @@ export default function ShareConfigurationPage() {
 
     try {
       setActionLoading(true);
-
-      // 1. Call API
       await softDeleteShareConfig(uuidToDelete);
-
-      // 2. Optimistic UI update – remove the row instantly
       setConfigs((prev) =>
         prev.filter((item) => (item.uuid || String(item.id)) !== uuidToDelete),
       );
-
-      // 3. Adjust page if the last item on the page was deleted
       if (currentTableData.length === 1 && currentPage > 1) {
         setCurrentPage((p) => p - 1);
       }
     } catch (err: any) {
-      console.error(err);
       alert(err?.message || "Delete failed. Please try again.");
     } finally {
       setActionLoading(false);
@@ -581,7 +552,10 @@ export default function ShareConfigurationPage() {
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
             <span>{error}</span>
-            <button onClick={loadData} className="underline text-xs font-medium">
+            <button
+              onClick={loadData}
+              className="underline text-xs font-medium"
+            >
               Retry
             </button>
           </div>
@@ -667,8 +641,8 @@ export default function ShareConfigurationPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500">
               <div>
                 Showing {filteredConfigs.length > 0 ? startIndex + 1 : 0} to{" "}
-                {Math.min(startIndex + entriesPerPage, filteredConfigs.length)} of{" "}
-                {filteredConfigs.length} entries
+                {Math.min(startIndex + entriesPerPage, filteredConfigs.length)}{" "}
+                of {filteredConfigs.length} entries
               </div>
               <div className="inline-flex items-center gap-1">
                 <button

@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { crApi } from "@/lib/crApi";
 
 const flatLandMenu = ["Flat/Land", "Flat/Land Sale", "Flat/Land Sale Payment"];
 
@@ -34,129 +35,6 @@ const datePresets = [
   "This Month",
   "Last Month",
   "Custom Range",
-];
-
-const ALL_ROWS = [
-  {
-    id: 1,
-    customer: "Sagor kumar",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F2",
-    totalValue: "11570000.00",
-    totalReceive: "0.00",
-    due: "11570000.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Tazmul Reza",
-  },
-  {
-    id: 2,
-    customer: "Sagor kumar",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F 4",
-    totalValue: "11770000.00",
-    totalReceive: "200000.00",
-    due: "11570000.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Tazmul Reza",
-  },
-  {
-    id: 3,
-    customer: "Mr. Raju raz",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F2",
-    totalValue: "0.00",
-    totalReceive: "0.00",
-    due: "0.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Mohin Uddin",
-  },
-  {
-    id: 4,
-    customer: "Sagor kumar",
-    project: "Lake Garden",
-    flatNo: "C-9",
-    totalValue: "0.00",
-    totalReceive: "0.00",
-    due: "0.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Tazmul Reza",
-  },
-  {
-    id: 5,
-    customer: "Sagor kumar",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F 4",
-    totalValue: "73800.00",
-    totalReceive: "0.00",
-    due: "73800.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Tazmul Reza",
-  },
-  {
-    id: 6,
-    customer: "Mr. Raju raz",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F 4",
-    totalValue: "73800.00",
-    totalReceive: "0.00",
-    due: "73800.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Mohin Uddin",
-  },
-  {
-    id: 7,
-    customer: "Mr. Raju raz",
-    project: "Lake Garden",
-    flatNo: "C-9",
-    totalValue: "0.00",
-    totalReceive: "0.00",
-    due: "0.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Rifat Hosain",
-  },
-  {
-    id: 8,
-    customer: "Sagor kumar",
-    project: "Estern 19",
-    flatNo: "2",
-    totalValue: "0.00",
-    totalReceive: "0.00",
-    due: "0.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Tazmul Reza",
-  },
-  {
-    id: 9,
-    customer: "Mr. Raju raz",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F2",
-    totalValue: "0.00",
-    totalReceive: "0.00",
-    due: "0.00",
-    dueForRecovery: "0",
-    recovered: "0",
-    salesBy: "Mohin Uddin",
-  },
-  {
-    id: 10,
-    customer: "Sagor kumar",
-    project: "Sheba Eyecon Tower",
-    flatNo: "F 3",
-    totalValue: "10925000.00",
-    totalReceive: "122320.00",
-    due: "10802680.00",
-    dueForRecovery: "10802680",
-    recovered: "0",
-    salesBy: "Mohin Uddin",
-  },
 ];
 
 /* ── Reusable Searchable Select ── */
@@ -415,9 +293,50 @@ export default function SaleCollectionReportPage() {
   const [project, setProject] = useState("");
   const [dateRange, setDateRange] = useState("1 September, 2026 - 30 September, 2026");
 
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const agreements = await crApi.getAgreements();
+        if (!mounted) return;
+        const mapped = agreements.map((ag: any, idx: number) => {
+          const plans = ag.installment_plans || ag.schedule || [];
+          const totalVal = Number(ag.total_price || ag.agreed_price || 0);
+          const totalRec = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const dueVal = Math.max(0, totalVal - totalRec);
+          return {
+            id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
+            customer: ag.customer_name || "Customer",
+            project: ag.project_id || ag.project_name || "Purbachal Project",
+            flatNo: ag.unit_identifier || ag.unit_no || "Plot / Flat",
+            totalValue: totalVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            totalReceive: totalRec.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            due: dueVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            dueForRecovery: dueVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            recovered: totalRec.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
+          };
+        });
+        setRows(mapped);
+      } catch (err) {
+        console.error("Failed to load sale collection report:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ALL_ROWS.filter((r) => {
+    return rows.filter((r) => {
       const matchSearch =
         !q ||
         r.customer.toLowerCase().includes(q) ||
@@ -429,7 +348,7 @@ export default function SaleCollectionReportPage() {
       const matchProject = !project || r.project === project;
       return matchSearch && matchSalesBy && matchProject;
     });
-  }, [search, salesBy, project]);
+  }, [rows, search, salesBy, project]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / entries));
@@ -619,7 +538,16 @@ export default function SaleCollectionReportPage() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={10} className="px-2.5 py-10 text-center text-ink-muted">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <span>Loading live sale collection report...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : pageRows.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="px-2.5 py-10 text-center text-ink-faint">
                       No records found

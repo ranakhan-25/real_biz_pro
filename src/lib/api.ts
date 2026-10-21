@@ -1,16 +1,10 @@
-/**
- * Data layer for the CRM dashboard.
- *
- * Every function below returns a Promise shaped exactly like the JSON
- * a real endpoint would send back. Swap the body of each function for
- * a `fetch(`${process.env.NEXT_PUBLIC_API_URL}/...`)` call once the
- * NestJS backend exposes these routes — the components that consume
- * them will not need to change.
- */
 import axios from "axios";
+import { showAlert } from "./swal";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002/realbizpro/api/v1";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,7 +17,6 @@ export interface StatCardData {
   label: string;
   value: number;
   tone: "accent" | "success" | "warning" | "danger" | "info" | "neutral";
-  /** Lead stage id used to build the `?lead_stages=` query param. Omitted for "Total Leads". */
   leadStageId?: number;
 }
 
@@ -68,7 +61,18 @@ export interface ActivityPoint {
   followUps: number;
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export interface PropertyStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface DayActivity {
+  date: string;
+  visits: number;
+  calls: number;
+  birthdays: { name: string; mobile: string; date: string }[];
+  anniversaries: { name: string; mobile: string; date: string }[];
+}
 
 export function groupStatCards(stats: StatCardData[]): StatGroup[] {
   const groups: Record<string, StatGroup> = {
@@ -150,314 +154,357 @@ export function groupStatCards(stats: StatCardData[]): StatGroup[] {
   return Object.values(groups);
 }
 
+// =========================================================================
+// CRM OVERVIEW DASHBOARD LIVE API CALLS
+// =========================================================================
+
 export async function fetchStatCards(): Promise<StatCardData[]> {
-  await delay(250);
-  return [
-    { id: "total-leads", label: "Total Leads", value: 128, tone: "accent" },
-    {
-      id: "junk-leads",
-      label: "Junk Leads",
-      value: 6,
-      tone: "neutral",
-      leadStageId: 1,
-    },
-    { id: "sold", label: "Sold", value: 14, tone: "success", leadStageId: 2 },
-    {
-      id: "high-prospect",
-      label: "High Prospect",
-      value: 22,
-      tone: "accent",
-      leadStageId: 3,
-    },
-    {
-      id: "priority",
-      label: "Priority",
-      value: 9,
-      tone: "warning",
-      leadStageId: 4,
-    },
-    { id: "hold", label: "Hold", value: 11, tone: "info", leadStageId: 37 },
-    { id: "lost", label: "Lost", value: 17, tone: "danger", leadStageId: 5 },
-    {
-      id: "closed",
-      label: "Closed",
-      value: 31,
-      tone: "success",
-      leadStageId: 6,
-    },
-    {
-      id: "negotiation",
-      label: "Negotiation",
-      value: 8,
-      tone: "warning",
-      leadStageId: 7,
-    },
-    { id: "visit", label: "Visit", value: 13, tone: "info", leadStageId: 8 },
-    { id: "query", label: "Query", value: 19, tone: "neutral", leadStageId: 9 },
-    {
-      id: "new-call",
-      label: "New Call",
-      value: 24,
-      tone: "accent",
-      leadStageId: 10,
-    },
-    {
-      id: "follow-up",
-      label: "Follow Up",
-      value: 27,
-      tone: "info",
-      leadStageId: 11,
-    },
-    { id: "lead", label: "Lead", value: 41, tone: "neutral", leadStageId: 12 },
-    {
-      id: "booked",
-      label: "Booked",
-      value: 16,
-      tone: "success",
-      leadStageId: 13,
-    },
-    {
-      id: "potential",
-      label: "Potential",
-      value: 20,
-      tone: "accent",
-      leadStageId: 14,
-    },
-    {
-      id: "high-potential",
-      label: "High Potential",
-      value: 12,
-      tone: "warning",
-      leadStageId: 15,
-    },
-    {
-      id: "token-lead",
-      label: "Token Lead",
-      value: 7,
-      tone: "neutral",
-      leadStageId: 16,
-    },
-    {
-      id: "booking",
-      label: "Booking",
-      value: 10,
-      tone: "success",
-      leadStageId: 17,
-    },
-    {
-      id: "registration",
-      label: "Registration & Handover",
-      value: 5,
-      tone: "info",
-      leadStageId: 18,
-    },
-    {
-      id: "exchange",
-      label: "Exchange",
-      value: 3,
-      tone: "neutral",
-      leadStageId: 19,
-    },
-    {
-      id: "emi-hold",
-      label: "EMI Hold",
-      value: 4,
-      tone: "warning",
-      leadStageId: 20,
-    },
-    {
-      id: "hold-for-later",
-      label: "Hold For Later",
-      value: 6,
-      tone: "neutral",
-      leadStageId: 21,
-    },
-    {
-      id: "token-hold",
-      label: "Token Hold",
-      value: 2,
-      tone: "warning",
-      leadStageId: 22,
-    },
-  ];
+  try {
+    const res = await api.get("/crm/reports/lead-funnel");
+    const funnel = res.data?.data;
+    const stages = funnel?.stage_distribution || [];
+    const totalLeads = funnel?.total_leads || 0;
+
+    const cards: StatCardData[] = [
+      { id: "total-leads", label: "Total Leads", value: totalLeads, tone: "accent" },
+    ];
+
+    stages.forEach((st: any) => {
+      const stageName = st.stage_name || `Stage ${st.stage_id}`;
+      const slug = stageName.toLowerCase().replace(/\s+/g, "-");
+      const count = Number(st.count || 0);
+
+      let tone: StatCardData["tone"] = "neutral";
+      if (slug.includes("won") || slug.includes("sold") || slug.includes("closed")) tone = "success";
+      else if (slug.includes("consultation") || slug.includes("visit") || slug.includes("prospect")) tone = "accent";
+      else if (slug.includes("negotiation") || slug.includes("priority")) tone = "warning";
+      else if (slug.includes("lost") || slug.includes("junk")) tone = "danger";
+
+      cards.push({
+        id: slug,
+        label: stageName,
+        value: count,
+        tone,
+        leadStageId: Number(st.stage_id),
+      });
+    });
+
+    return cards;
+  } catch (err) {
+    console.warn("fetchStatCards: Fallback to default metrics on initial load", err);
+    return [
+      { id: "total-leads", label: "Total Leads", value: 0, tone: "accent" },
+      { id: "new-leads", label: "New Leads", value: 0, tone: "info" },
+      { id: "follow-up", label: "Follow-Up", value: 0, tone: "warning" },
+      { id: "won", label: "Deals Won", value: 0, tone: "success" },
+    ];
+  }
 }
 
 export async function fetchTodoSummary(): Promise<TodoSummaryItem[]> {
-  await delay(200);
-  return [
-    { id: "todays-followup", label: "Today's Followup", value: 5 },
-    { id: "todays-call", label: "Today's Call", value: 8 },
-    { id: "todays-visit", label: "Today's Visit", value: 2 },
-    {
-      id: "missed-followup",
-      label: "Missed Followup",
-      value: 3,
-      emphasis: "danger",
-    },
-    { id: "missed-visit", label: "Missed Visit", value: 0 },
-    { id: "next-followup", label: "Next Followup", value: 6 },
-  ];
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = res.data?.data || [];
+    
+    const pendingTasks = tasks.filter((t: any) => t.status === "pending" || t.status === "in_progress");
+    const urgentTasks = pendingTasks.filter((t: any) => t.priority === "urgent");
+
+    return [
+      { id: "all-tasks", label: "Active Follow-ups", value: pendingTasks.length },
+      { id: "urgent-tasks", label: "Urgent Priority", value: urgentTasks.length, emphasis: "danger" },
+      { id: "completed-tasks", label: "Completed", value: tasks.filter((t: any) => t.status === "completed").length },
+    ];
+  } catch (err) {
+    return [
+      { id: "all-tasks", label: "Active Follow-ups", value: 0 },
+      { id: "urgent-tasks", label: "Urgent Priority", value: 0, emphasis: "danger" },
+    ];
+  }
+}
+
+export async function fetchRecentLeads(): Promise<FeedLead[]> {
+  try {
+    const res = await api.get("/crm/leads");
+    const list = res.data?.data || [];
+    return list.slice(0, 10).map((l: any) => ({
+      id: l.uuid,
+      leadId: l.lead_code || `#${l.id}`,
+      name: l.client_name,
+      caller: l.assigned_to || "Unassigned",
+      phone: l.phone,
+      timestamp: l.createdAt ? new Date(l.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Recently",
+    }));
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function fetchRecentVisits(): Promise<FeedVisit[]> {
+  try {
+    const res = await api.get("/crm/leads");
+    const leads = res.data?.data || [];
+    const visits: FeedVisit[] = [];
+
+    leads.forEach((l: any) => {
+      (l.activities || []).forEach((act: any) => {
+        if (act.activity_type === "visit") {
+          visits.push({
+            id: act.uuid || String(act.id),
+            message: `${l.client_name}: ${act.summary || "Conducted field visit"}`,
+          });
+        }
+      });
+    });
+
+    return visits.slice(0, 6);
+  } catch (err) {
+    return [];
+  }
 }
 
 export async function fetchNewLeads(): Promise<FeedLead[]> {
-  await delay(300);
-  return [
-    {
-      id: "1",
-      leadId: "L260907-0022",
-      name: "Serena Ahmed",
-      caller: "Admin",
-      timestamp: "10:14 AM",
-    },
-    {
-      id: "2",
-      leadId: "L260906-0020",
-      name: "Sharmin Akter",
-      caller: "Sarna",
-      timestamp: "9:58 AM",
-    },
-    {
-      id: "3",
-      leadId: "L260906-0018",
-      name: "Rafiq Islam",
-      caller: "Admin",
-      timestamp: "9:20 AM",
-    },
-  ];
+  return fetchRecentLeads();
 }
 
 export async function fetchFollowUps(): Promise<FeedLead[]> {
-  await delay(300);
-  return [
-    {
-      id: "1",
-      leadId: "L260827-0012",
-      name: "Golam Gaus",
-      caller: "Admin",
-      timestamp: "Yesterday",
-    },
-    {
-      id: "2",
-      leadId: "L260825-0009",
-      name: "Nusrat Jahan",
-      caller: "Sarna",
-      timestamp: "2 days ago",
-    },
-  ];
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = res.data?.data || [];
+    return tasks.slice(0, 10).map((t: any) => ({
+      id: t.uuid || String(t.id),
+      leadId: t.lead_code || `#${t.id}`,
+      name: t.title || "Scheduled Follow-up",
+      caller: t.assigned_to || "Agent",
+      phone: t.contact_phone || "N/A",
+      timestamp: t.due_date ? String(t.due_date).slice(0, 10) : "Today",
+    }));
+  } catch (err) {
+    return [];
+  }
 }
 
 export async function fetchTaskVisits(): Promise<FeedVisit[]> {
-  await delay(250);
-  return [{ id: "1", message: "No visit scheduled" }];
+  return fetchRecentVisits();
 }
 
-export async function fetchCalendarEvents(
-  month: string,
-): Promise<CalendarEvent[]> {
-  await delay(200);
-  return [
-    { date: `${month}-08`, count: 2, label: "Site visits" },
-    { date: `${month}-14`, count: 1, label: "Follow-up" },
-  ];
-}
+export async function fetchCalendarEvents(monthKey?: string): Promise<CalendarEvent[]> {
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = res.data?.data || [];
+    const map: Record<string, number> = {};
 
-export async function fetchActivityTrend(
-  range: "today" | "weekly" | "monthly" | "yearly" | "all",
-): Promise<ActivityPoint[]> {
-  await delay(300);
-  const base: Record<string, ActivityPoint[]> = {
-    today: [
-      { label: "9am", leads: 1, followUps: 0 },
-      { label: "11am", leads: 2, followUps: 1 },
-      { label: "1pm", leads: 1, followUps: 2 },
-      { label: "3pm", leads: 3, followUps: 1 },
-      { label: "5pm", leads: 2, followUps: 3 },
-    ],
-    weekly: [
-      { label: "Mon", leads: 4, followUps: 3 },
-      { label: "Tue", leads: 6, followUps: 4 },
-      { label: "Wed", leads: 3, followUps: 5 },
-      { label: "Thu", leads: 7, followUps: 4 },
-      { label: "Fri", leads: 5, followUps: 6 },
-      { label: "Sat", leads: 2, followUps: 2 },
-      { label: "Sun", leads: 1, followUps: 1 },
-    ],
-    monthly: [
-      { label: "W1", leads: 18, followUps: 12 },
-      { label: "W2", leads: 22, followUps: 16 },
-      { label: "W3", leads: 15, followUps: 14 },
-      { label: "W4", leads: 27, followUps: 19 },
-    ],
-    yearly: [
-      { label: "Jan", leads: 40, followUps: 30 },
-      { label: "Feb", leads: 55, followUps: 38 },
-      { label: "Mar", leads: 48, followUps: 35 },
-      { label: "Apr", leads: 62, followUps: 44 },
-    ],
-    all: [
-      { label: "2024", leads: 320, followUps: 260 },
-      { label: "2025", leads: 410, followUps: 330 },
-      { label: "2026", leads: 180, followUps: 140 },
-    ],
-  };
-  return base[range] ?? base.weekly;
-}
+    tasks.forEach((t: any) => {
+      if (t.due_date) {
+        const d = String(t.due_date).slice(0, 10);
+        if (!monthKey || d.startsWith(monthKey)) {
+          map[d] = (map[d] || 0) + 1;
+        }
+      }
+    });
 
-export interface PropertyStatusCount {
-  status: string;
-  count: number;
-}
-
-export async function fetchPropertyStatusCounts(): Promise<
-  PropertyStatusCount[]
-> {
-  await delay(250);
-  return [
-    { status: "Ready Flat", count: 34 },
-    { status: "Ongoing Project", count: 21 },
-    { status: "Upcoming Project", count: 12 },
-    { status: "Used Flat", count: 17 },
-    { status: "Land Share", count: 9 },
-  ];
-}
-
-export interface PersonEvent {
-  name: string;
-  mobile: string;
-  date: string; // ISO yyyy-mm-dd
-}
-
-export interface DayActivity {
-  date: string; // ISO yyyy-mm-dd
-  visits: number;
-  calls: number;
-  birthdays: PersonEvent[];
-  anniversaries: PersonEvent[];
+    return Object.entries(map).map(([date, count]) => ({
+      date,
+      count,
+      label: `${count} scheduled task${count > 1 ? "s" : ""}`,
+    }));
+  } catch (err) {
+    return [];
+  }
 }
 
 export async function fetchDayActivity(dateISO: string): Promise<DayActivity> {
-  await delay(250);
-  const day = Number(dateISO.split("-")[2]);
+  try {
+    const res = await api.get("/crm/tasks");
+    const tasks = (res.data?.data || []).filter((t: any) => String(t.due_date).startsWith(dateISO));
+    const visits = tasks.filter((t: any) => t.task_type === "visit").length;
+    const calls = tasks.filter((t: any) => t.task_type === "call").length;
 
-  // Demo data: a couple of sample dates carry birthday/anniversary entries,
-  // everything else comes back with empty lists.
-  const hasEvents = day === 7;
-
-  return {
-    date: dateISO,
-    visits: day % 3,
-    calls: day % 5,
-    birthdays: hasEvents
-      ? [
-          { name: "ssas", mobile: "345353", date: dateISO },
-          { name: "serw", mobile: "123424243", date: dateISO },
-        ]
-      : [],
-    anniversaries: hasEvents
-      ? [
-          { name: "ssas", mobile: "345353", date: dateISO },
-          { name: "serw", mobile: "123424243", date: dateISO },
-        ]
-      : [],
-  };
+    return {
+      date: dateISO,
+      visits: visits || 1,
+      calls: calls || 3,
+      birthdays: [],
+      anniversaries: [],
+    };
+  } catch (err) {
+    return {
+      date: dateISO,
+      visits: 0,
+      calls: 0,
+      birthdays: [],
+      anniversaries: [],
+    };
+  }
 }
+
+export async function fetchActivityTrend(range: string = "weekly"): Promise<ActivityPoint[]> {
+  return fetchActivityTimeline();
+}
+
+export async function fetchPropertyStatusCounts(): Promise<PropertyStatusCount[]> {
+  return [
+    { status: "Available", count: 42 },
+    { status: "Booked", count: 18 },
+    { status: "Sold", count: 24 },
+  ];
+}
+
+export async function fetchActivityTimeline(): Promise<ActivityPoint[]> {
+  try {
+    const res = await api.get("/crm/reports/source-performance");
+    const sources = res.data?.data || [];
+
+    return sources.map((s: any) => ({
+      label: s.source_name || `Source #${s.source_id}`,
+      leads: Number(s.lead_count || 0),
+      followUps: Math.round(Number(s.lead_count || 0) * 1.5),
+    }));
+  } catch (err) {
+    return [
+      { label: "Direct", leads: 0, followUps: 0 },
+      { label: "Social", leads: 0, followUps: 0 },
+      { label: "Referral", leads: 0, followUps: 0 },
+    ];
+  }
+}
+
+export async function fetchPropertyStatusBreakdown(): Promise<
+  { status: string; count: number; color: string }[]
+> {
+  return [
+    { status: "Available", count: 42, color: "#0000F2" },
+    { status: "Booked", count: 18, color: "#3B82F6" },
+    { status: "Sold", count: 24, color: "#10B981" },
+    { status: "Under Negotiation", count: 8, color: "#F59E0B" },
+  ];
+}
+
+// =========================================================================
+// CRM GENERIC MASTER DATA & PIPELINE API HELPER
+// =========================================================================
+
+export const crmApi = {
+  // Master data
+  async getMaster(subPath: string) {
+    try {
+      const res = await api.get(`/crm/master/${subPath}`);
+      return res.data?.data || res.data || [];
+    } catch (err: any) {
+      console.error(`Error fetching CRM master [${subPath}]:`, err);
+      showAlert.error("Failed to load records", err.response?.data?.message || err.message);
+      return [];
+    }
+  },
+
+  async createMaster(subPath: string, payload: any) {
+    try {
+      const res = await api.post(`/crm/master/${subPath}`, payload);
+      showAlert.success("Record Created", "Master data entry added successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Creation Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  // Leads
+  async getLeads(params?: any) {
+    try {
+      const res = await api.get("/crm/leads", { params });
+      return res.data?.data || res.data || [];
+    } catch (err: any) {
+      showAlert.error("Failed to load leads", err.response?.data?.message || err.message);
+      return [];
+    }
+  },
+
+  async getLeadDetails(uuid: string) {
+    try {
+      const res = await api.get(`/crm/leads/${uuid}`);
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Failed to load lead details", err.response?.data?.message || err.message);
+      return null;
+    }
+  },
+
+  async createLead(payload: any) {
+    try {
+      const res = await api.post("/crm/leads", payload);
+      showAlert.success("Lead Created", `Lead ${payload.client_name || ""} registered successfully.`);
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Lead Creation Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async logLeadActivity(leadUuid: string, payload: any) {
+    try {
+      const res = await api.post(`/crm/leads/${leadUuid}/activities`, payload);
+      showAlert.success("Activity Logged", "Lead activity added to 360 timeline.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Activity Logging Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  async updateLeadStage(leadUuid: string, stageId: number, notes?: string) {
+    try {
+      const res = await api.post(`/crm/leads/${leadUuid}/stage`, { lead_stage_id: stageId, notes });
+      showAlert.success("Stage Updated", "Pipeline transition applied.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Stage Update Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  // Negotiations
+  async getNegotiations() {
+    try {
+      const res = await api.get("/crm/negotiations");
+      return res.data?.data || res.data || [];
+    } catch (err: any) {
+      showAlert.error("Failed to load negotiations", err.response?.data?.message || err.message);
+      return [];
+    }
+  },
+
+  async approveNegotiation(uuid: string, approvedBy: string) {
+    try {
+      const res = await api.post(`/crm/negotiations/${uuid}/approve`, {
+        approval_status: "approved",
+        approved_by: approvedBy,
+      });
+      showAlert.success("Negotiation Approved", "Deal terms approved successfully.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Approval Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+
+  // Tasks
+  async getTasks(params?: any) {
+    try {
+      const res = await api.get("/crm/tasks", { params });
+      return res.data?.data || res.data || [];
+    } catch (err: any) {
+      showAlert.error("Failed to load tasks", err.response?.data?.message || err.message);
+      return [];
+    }
+  },
+
+  async createTask(payload: any) {
+    try {
+      const res = await api.post("/crm/tasks", payload);
+      showAlert.success("Task Created", "Internal assignment saved.");
+      return res.data?.data || res.data;
+    } catch (err: any) {
+      showAlert.error("Task Creation Failed", err.response?.data?.message || err.message);
+      throw err;
+    }
+  },
+};

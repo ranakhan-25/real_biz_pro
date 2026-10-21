@@ -4,6 +4,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown, Search, CheckCircle2 } from "lucide-react";
 
+import { crApi } from "@/lib/crApi";
+
 const flatLandMenu = ["Flat/Land", "Flat/Land Sale", "Flat/Land Sale Payment"];
 
 const salesByOptions = ["Tazmul Reza", "Rifat Hosain", "Mohin Uddin"];
@@ -27,79 +29,6 @@ const datePresets = [
   "This Month",
   "Last Month",
   "Custom Range",
-];
-
-const ALL_ROWS = [
-  {
-    id: 1,
-    project: "",
-    flatLand: "",
-    customer: "",
-    totalValue: "",
-    paid: "0",
-    due: "0",
-    installmentDate: "2026-09-03",
-    installmentAmount: "73800",
-    recovered: "0",
-    installmentDue: "73800",
-    salesBy: "",
-  },
-  {
-    id: 2,
-    project: "",
-    flatLand: "",
-    customer: "",
-    totalValue: "",
-    paid: "0",
-    due: "0",
-    installmentDate: "2026-09-03",
-    installmentAmount: "73800",
-    recovered: "0",
-    installmentDue: "73800",
-    salesBy: "",
-  },
-  {
-    id: 3,
-    project: "Sheba Eyecon Tower",
-    flatLand: "F 3",
-    customer: "Sagor kumar",
-    totalValue: "10925000",
-    paid: "122320",
-    due: "10802680",
-    installmentDate: "2026-09-03",
-    installmentAmount: "10802680",
-    recovered: "0",
-    installmentDue: "10802680",
-    salesBy: "",
-  },
-  {
-    id: 4,
-    project: "Lake Garden",
-    flatLand: "A1",
-    customer: "Mr. Raju raz",
-    totalValue: "84200000",
-    paid: "28066666.66",
-    due: "56133333.34",
-    installmentDate: "2026-09-30",
-    installmentAmount: "28066666.66",
-    recovered: "28066666.66",
-    installmentDue: "0",
-    salesBy: "",
-  },
-  {
-    id: 5,
-    project: "Lake Garden",
-    flatLand: "C-10",
-    customer: "Abc",
-    totalValue: "15340000",
-    paid: "200000",
-    due: "13340000",
-    installmentDate: "2026-09-24",
-    installmentAmount: "277916.67",
-    recovered: "0",
-    installmentDue: "277916.67",
-    salesBy: "",
-  },
 ];
 
 /* ── Reusable Searchable Select ── */
@@ -354,9 +283,77 @@ export default function InstallmentReportPage() {
   const [project, setProject] = useState("");
   const [dateRange, setDateRange] = useState("1 September, 2026 - 30 September, 2026");
 
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const agreements = await crApi.getAgreements();
+        if (!mounted) return;
+        const transformed: any[] = [];
+        agreements.forEach((ag: any, idx: number) => {
+          const plans = ag.installment_plans || ag.schedule || [];
+          const totalVal = Number(ag.total_price || ag.agreed_price || 0);
+          const totalPaid = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const totalDue = Math.max(0, totalVal - totalPaid);
+
+          if (Array.isArray(plans) && plans.length > 0) {
+            plans.forEach((inst: any) => {
+              const instPayable = Number(inst.payable_amount || inst.due_amount || 0);
+              const instPaid = Number(inst.paid_amount || 0);
+              const instDue = Math.max(0, instPayable - instPaid);
+
+              transformed.push({
+                id: `${ag.agreement_number || ag.agreement_no || ag.id}-${inst.installment_no}`,
+                project: ag.project_id || ag.project_name || "Purbachal Project",
+                flatLand: ag.unit_identifier || ag.unit_no || "Plot / Flat",
+                customer: ag.customer_name || "Customer",
+                totalValue: totalVal.toLocaleString(),
+                paid: totalPaid.toLocaleString(),
+                due: totalDue.toLocaleString(),
+                installmentDate: inst.due_date ? String(inst.due_date).slice(0, 10) : "N/A",
+                installmentAmount: instPayable.toLocaleString(),
+                recovered: instPaid.toLocaleString(),
+                installmentDue: instDue.toLocaleString(),
+                salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
+              });
+            });
+          } else {
+            transformed.push({
+              id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
+              project: ag.project_id || ag.project_name || "Purbachal Project",
+              flatLand: ag.unit_identifier || ag.unit_no || "Plot / Flat",
+              customer: ag.customer_name || "Customer",
+              totalValue: totalVal.toLocaleString(),
+              paid: totalPaid.toLocaleString(),
+              due: totalDue.toLocaleString(),
+              installmentDate: ag.agreement_date || (ag.createdAt ? String(ag.createdAt).slice(0, 10) : "N/A"),
+              installmentAmount: totalVal.toLocaleString(),
+              recovered: totalPaid.toLocaleString(),
+              installmentDue: totalDue.toLocaleString(),
+              salesBy: ag.created_by || ag.sales_person_name || "Account Manager",
+            });
+          }
+        });
+        setRows(transformed);
+      } catch (err) {
+        console.error("Failed to load installment report:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ALL_ROWS.filter((r) => {
+    return rows.filter((r) => {
       const matchSearch =
         !q ||
         r.customer.toLowerCase().includes(q) ||
@@ -366,7 +363,7 @@ export default function InstallmentReportPage() {
       const matchProject = !project || r.project === project;
       return matchSearch && matchProject;
     });
-  }, [search, project]);
+  }, [rows, search, project]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / entries));
@@ -514,7 +511,16 @@ export default function InstallmentReportPage() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={13} className="px-2.5 py-10 text-center text-ink-muted">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <span>Loading live installment report...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : pageRows.length === 0 ? (
                   <tr>
                     <td colSpan={13} className="px-2.5 py-10 text-center text-ink-faint">
                       No records found

@@ -3,6 +3,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown, FileText, FileSpreadsheet, Search } from "lucide-react";
+import { crApi } from "@/lib/crApi";
 
 const realizationMenu = [
   "Realization Summary Report",
@@ -23,109 +24,6 @@ const customerOptions = [
 ];
 
 const flatOptions = ["A1", "C-10", "C-9", "E5", "F2", "F 3", "F 4", "56"];
-
-const ALL_ROWS = [
-  {
-    id: 1,
-    customer: "Sagor kumar",
-    flatNo: "F2",
-    saleValue: "11570000.00",
-    amountRealized: "0.00",
-    balanceDue: "11570000.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 2,
-    customer: "Sagor kumar",
-    flatNo: "F 4",
-    saleValue: "11770000.00",
-    amountRealized: "200000.00",
-    balanceDue: "11570000.00",
-    realization: "1.70",
-    lastPayment: "",
-  },
-  {
-    id: 3,
-    customer: "Mr. Raju raz",
-    flatNo: "F2",
-    saleValue: "0.00",
-    amountRealized: "0.00",
-    balanceDue: "0.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 4,
-    customer: "Sagor kumar",
-    flatNo: "C-9",
-    saleValue: "0.00",
-    amountRealized: "0.00",
-    balanceDue: "0.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 5,
-    customer: "Sagor kumar",
-    flatNo: "F 4",
-    saleValue: "73800.00",
-    amountRealized: "0.00",
-    balanceDue: "73800.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 6,
-    customer: "Mr. Raju raz",
-    flatNo: "F 4",
-    saleValue: "73800.00",
-    amountRealized: "0.00",
-    balanceDue: "73800.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 7,
-    customer: "Mr. Raju raz",
-    flatNo: "C-9",
-    saleValue: "0.00",
-    amountRealized: "0.00",
-    balanceDue: "0.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 8,
-    customer: "Sagor kumar",
-    flatNo: "2",
-    saleValue: "0.00",
-    amountRealized: "0.00",
-    balanceDue: "0.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 9,
-    customer: "Mr. Raju raz",
-    flatNo: "F2",
-    saleValue: "0.00",
-    amountRealized: "0.00",
-    balanceDue: "0.00",
-    realization: "0.00",
-    lastPayment: "",
-  },
-  {
-    id: 10,
-    customer: "Sagor kumar",
-    flatNo: "F 3",
-    saleValue: "10925000.00",
-    amountRealized: "122320.00",
-    balanceDue: "10802680.00",
-    realization: "1.12",
-    lastPayment: "",
-  },
-];
 
 /* ── Reusable Searchable Select ── */
 function SearchableSelect({
@@ -229,10 +127,49 @@ export default function RealizationSummaryReportPage() {
   const [page, setPage] = useState(1);
   const [customer, setCustomer] = useState("");
   const [flat, setFlat] = useState("");
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadData() {
+      try {
+        setLoading(true);
+        const agreements = await crApi.getAgreements();
+        if (!mounted) return;
+        const mapped = agreements.map((ag: any, idx: number) => {
+          const plans = ag.installment_plans || ag.schedule || [];
+          const saleVal = Number(ag.total_price || ag.agreed_price || 0);
+          const realized = plans.reduce((acc: number, p: any) => acc + Number(p.paid_amount || 0), Number(ag.booking_money || 0) + Number(ag.down_payment || 0));
+          const balance = Math.max(0, saleVal - realized);
+          const percent = saleVal > 0 ? ((realized / saleVal) * 100).toFixed(2) : "0.00";
+          return {
+            id: ag.agreement_number || ag.agreement_no || `#${ag.id || idx + 1}`,
+            customer: ag.customer_name || "Customer",
+            flatNo: ag.unit_identifier || ag.unit_no || "Plot / Flat",
+            saleValue: saleVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            amountRealized: realized.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            balanceDue: balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            realization: percent,
+            lastPayment: ag.agreement_date ? String(ag.agreement_date).slice(0, 10) : "",
+          };
+        });
+        setRows(mapped);
+      } catch (err) {
+        console.error("Failed to load realization summary:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ALL_ROWS.filter((r) => {
+    return rows.filter((r) => {
       const matchSearch =
         !q ||
         r.customer.toLowerCase().includes(q) ||
@@ -242,7 +179,7 @@ export default function RealizationSummaryReportPage() {
       const matchFlat = !flat || r.flatNo === flat;
       return matchSearch && matchCustomer && matchFlat;
     });
-  }, [search, customer, flat]);
+  }, [rows, search, customer, flat]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / entries));
@@ -428,7 +365,16 @@ export default function RealizationSummaryReportPage() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-2.5 py-10 text-center text-ink-muted">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                        <span>Loading live realization summary...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : pageRows.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-2.5 py-10 text-center text-ink-faint">
                       No records found

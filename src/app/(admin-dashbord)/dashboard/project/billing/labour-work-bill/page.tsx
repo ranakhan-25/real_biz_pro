@@ -1,954 +1,387 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useMemo } from "react";
-import Link from "next/link";
-import {
-  Home,
-  ChevronRight,
-  Plus,
-  FileSpreadsheet,
-  FileText,
-  Search,
-  Eye,
-  Edit,
-  Trash2,
-  Paperclip,
-  CheckCircle2,
-  Clock,
-  Filter,
-  Briefcase,
-  X,
-  Upload,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Plus, ArrowLeft, X, Eye, Printer, Mail, Edit, Trash2, Search, Loader2, Save } from "lucide-react";
 
-// TypeScript Interface for Labour/Worker Bill Data
-interface LabourBill {
-  id: string;
-  projectType: string;
-  project: string;
-  titleOfWork: string;
-  workerContractorSupplier: string;
-  drLedger: string;
-  creditLedger: string;
-  code: string;
-  date: string;
-  grandTotal: number;
-  paid: number;
-  due: number;
-  addedBy: string;
-  approveStatus: "Approved" | "Pending";
-  hasAttachment: boolean;
-}
+// ==================== API CONFIG ====================
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
+const API_PREFIX = "/realbizpro/api/v1";
 
-// Packed Dummy Content / Data matching exact columns (No empty spaces)
-const initialLabourBills: LabourBill[] = [
-  {
-    id: "LWB-501",
-    projectType: "Civil Construction",
-    project: "Skyline Tower Foundation",
-    titleOfWork: "Manual Excavation & Earthwork",
-    workerContractorSupplier: "Rahim Mia (Lead Mason)",
-    drLedger: "Labor Wages Expense",
-    creditLedger: "Cash/Bank Clearing Account",
-    code: "LAB-1001",
-    date: "2026-09-02",
-    grandTotal: 12500.0,
-    paid: 10000.0,
-    due: 2500.0,
-    addedBy: "Shamim Khan",
-    approveStatus: "Approved",
-    hasAttachment: true,
-  },
-  {
-    id: "LWB-502",
-    projectType: "Structural Engineering",
-    project: "Green Valley Substation",
-    titleOfWork: "Rod Binding & Framework Setup",
-    workerContractorSupplier: "Karim Uddin Group",
-    drLedger: "Subcontractor Labor Ledger",
-    creditLedger: "Accounts Payable",
-    code: "LAB-1024",
-    date: "2026-09-04",
-    grandTotal: 24000.5,
-    paid: 24000.5,
-    due: 0.0,
-    addedBy: "Tanvir Ahmed",
-    approveStatus: "Approved",
-    hasAttachment: true,
-  },
-  {
-    id: "LWB-503",
-    projectType: "Finishing & Painting",
-    project: "Corporate Headquarters",
-    titleOfWork: "Wall Putty, Sanding & Interior Paint",
-    workerContractorSupplier: "Jabbar Painters Crew",
-    drLedger: "Finishing Labor Account",
-    creditLedger: "Cash-in-Hand",
-    code: "LAB-1055",
-    date: "2026-09-06",
-    grandTotal: 15800.0,
-    paid: 8000.0,
-    due: 7800.0,
-    addedBy: "Shamim Khan",
-    approveStatus: "Pending",
-    hasAttachment: false,
-  },
-  {
-    id: "LWB-504",
-    projectType: "Plumbing & Drainage",
-    project: "Metro Commercial Complex",
-    titleOfWork: "Underground Sewer Line Fitting",
-    workerContractorSupplier: "Belal Plumbing Crew",
-    drLedger: "Utility Labor Expense",
-    creditLedger: "Bank Operating Account",
-    code: "LAB-1089",
-    date: "2026-09-08",
-    grandTotal: 19200.0,
-    paid: 12000.0,
-    due: 7200.0,
-    addedBy: "Rahim Uddin",
-    approveStatus: "Approved",
-    hasAttachment: true,
-  },
-  {
-    id: "LWB-505",
-    projectType: "Electrical Works",
-    project: "Skyline Tower Foundation",
-    titleOfWork: "Pipe Laying & Cable Pulling",
-    workerContractorSupplier: "Salim Electricians Team",
-    drLedger: "Electrical Wages Ledger",
-    creditLedger: "Cash Clearing Account",
-    code: "LAB-1120",
-    date: "2026-09-10",
-    grandTotal: 14500.0,
-    paid: 5000.0,
-    due: 9500.0,
-    addedBy: "Shamim Khan",
-    approveStatus: "Pending",
-    hasAttachment: true,
-  },
-];
+export default function LabourWorkerBillPage() {
+  const [bills, setBills] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-export default function LabourWorkerBillList() {
-  const [bills, setBills] = useState<LabourBill[]>(initialLabourBills);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProject, setSelectedProject] = useState("All");
-  const [selectedTitle, setSelectedTitle] = useState("All");
-  const [selectedEntity, setSelectedEntity] = useState("All");
-  const [selectedLedger, setSelectedLedger] = useState("All");
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  // Modals
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [editingBillUuid, setEditingBillUuid] = useState<string | null>(null);
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Dropdown Data (API theke asbe)
+  const [contractors, setContractors] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [projectTypes, setProjectTypes] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<any[]>([]);
+  const [workNames, setWorkNames] = useState<any[]>([]);
+  const [sites, setSites] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [newItem, setNewItem] = useState({ workerId: "", workerName: "", description: "", unit: "Day", qtyDays: 1, rate: 0, security: 0 });
+
+  // Form State
   const [formData, setFormData] = useState({
-    projectType: "Civil Construction",
-    project: "Skyline Tower Foundation",
+    date: new Date().toISOString().slice(0, 10),
+    code: `LW000${Math.floor(10 + Math.random() * 90)}`,
+    contractorId: "",
+    projectId: "",
+    projectTypeId: "",
     titleOfWork: "",
-    workerContractorSupplier: "",
-    drLedger: "Labor Wages Expense",
-    creditLedger: "Cash/Bank Clearing Account",
-    code: `LAB-${Math.floor(1000 + Math.random() * 9000)}`,
-    date: new Date().toISOString().split("T")[0],
-    grandTotal: "",
-    paid: "",
-    approveStatus: "Pending" as "Approved" | "Pending",
-    hasAttachment: false,
+    site: "",
+    refWoNo: "",
+    taskId: "",
+    categoryId: "",
+    itemId: "",
+    paymentMethod: "Cash",
+    paidAmount: 0,
   });
 
-  // Handle Form Input Changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      const { checked } = e.target as HTMLInputElement;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+  const [billItems, setBillItems] = useState<any[]>([]);
+
+  // ==================== API CALLS ====================
+  const fetchOptions = async (endpoint: string) => {
+    try {
+      const res = await fetch(`${API_BASE}${API_PREFIX}${endpoint}?page=1&limit=100`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      const rows = Array.isArray(json?.data?.data) ? json.data.data : Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+      return rows.map((r: any) => ({
+        ...r,
+        uuid: r.uuid || r.id,
+        name: r.name || r.workerName || r.projectName || r.title || r.itemName || r.code || "Unnamed",
+      }));
+    } catch (err) {
+      console.error(`Error fetching ${endpoint}:`, err);
+      return [];
     }
   };
 
-  // Handle New Bill Form Submission
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const grandTotalNum = parseFloat(formData.grandTotal) || 0;
-    const paidNum = parseFloat(formData.paid) || 0;
-    const dueNum = Math.max(0, grandTotalNum - paidNum);
+  const loadDropdowns = useCallback(async () => {
+    const [cust, proj, types, itms, workerList, workList, siteList, taskList, cats] = await Promise.all([
+      fetchOptions("/contractor"),
+      fetchOptions("/project"),
+      fetchOptions("/project-type"),
+      fetchOptions("/project-billing/bill-items"),
+      fetchOptions("/labour-work-bank"),
+      fetchOptions("/project-billing/service-work-names"),
+      fetchOptions("/project-sites"),
+      fetchOptions("/task"),
+      fetchOptions("/category"),
+    ]);
+    setContractors(cust);
+    setProjects(proj);
+    setProjectTypes(types);
+    setItems(itms);
+    setWorkers(workerList);
+    setWorkNames(workList);
+    setSites(siteList);
+    setTasks(taskList);
+    setCategories(cats);
+  }, []);
 
-    const newBill: LabourBill = {
-      id: `LWB-${Math.floor(506 + bills.length)}`,
-      projectType: formData.projectType,
-      project: formData.project,
-      titleOfWork: formData.titleOfWork || "General Labor Work",
-      workerContractorSupplier:
-        formData.workerContractorSupplier || "Independent Contractor",
-      drLedger: formData.drLedger,
-      creditLedger: formData.creditLedger,
-      code: formData.code,
-      date: formData.date,
-      grandTotal: grandTotalNum,
-      paid: paidNum,
-      due: dueNum,
-      addedBy: "Shamim Khan",
-      approveStatus: formData.approveStatus,
-      hasAttachment: formData.hasAttachment,
-    };
+  const loadBills = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // ⚠️ API endpoint ta apnar backend onujayi change korun
+      const res = await fetch(`${API_BASE}${API_PREFIX}/project-billing/labour-work-bills?page=1&limit=100`);
+      if (!res.ok) throw new Error("Failed to load labour work bills");
+      const json = await res.json();
+      const rows = json?.data?.data || json?.data || [];
+      setBills(rows.map((row: any) => ({ ...row, ...(row.details || {}), uuid: row.uuid, code: row.code, date: row.recordDate, grandTotal: Number(row.amount || 0), projectName: row.project?.name || row.details?.projectName, workerName: row.details?.workerName || row.details?.items?.map((item: any) => item.workerName).filter(Boolean).join(", ") || row.details?.contractorName })));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    setBills([newBill, ...bills]);
-    setIsModalOpen(false);
-    // Reset Form
-    setFormData({
-      projectType: "Civil Construction",
-      project: "Skyline Tower Foundation",
-      titleOfWork: "",
-      workerContractorSupplier: "",
-      drLedger: "Labor Wages Expense",
-      creditLedger: "Cash/Bank Clearing Account",
-      code: `LAB-${Math.floor(1000 + Math.random() * 9000)}`,
-      date: new Date().toISOString().split("T")[0],
-      grandTotal: "",
-      paid: "",
-      approveStatus: "Pending",
-      hasAttachment: false,
-    });
+  useEffect(() => {
+    loadBills();
+    loadDropdowns();
+  }, [loadBills, loadDropdowns]);
+
+  // ==================== CREATE ====================
+  const handleCreateBill = async () => {
+    try {
+      const project = projects.find((row) => row.uuid === formData.projectId);
+      const contractor = contractors.find((row) => row.uuid === formData.contractorId);
+      if (!project || !formData.contractorId) throw new Error("Project and Contractor are required.");
+      if (!billItems.length) throw new Error("Add at least one labour/worker row.");
+      setLoading(true);
+      setError(null);
+      const total = billItems.reduce((sum, row) => sum + Number(row.netPayable || 0), 0);
+      const details = { ...formData, projectName: project.name, contractorName: contractor?.name || "", projectTypeName: projectTypes.find((row) => row.uuid === formData.projectTypeId)?.name || "", workName: workNames.find((row) => row.uuid === formData.titleOfWork)?.name || "", siteName: sites.find((row) => row.uuid === formData.site)?.name || "", items: billItems, grandTotal: total, paidAmount: Number(formData.paidAmount || 0), dueAmount: Math.max(total - Number(formData.paidAmount || 0), 0) };
+      const payload = {
+        projectId: project.uuid,
+        title: details.workName || `Labour Work Bill ${formData.code}`,
+        code: formData.code,
+        recordDate: formData.date,
+        amount: total,
+        status: "active",
+        description: formData.refWoNo || "",
+        details,
+      };
+      const res = await fetch(`${API_BASE}${API_PREFIX}/project-billing/labour-work-bills${editingBillUuid ? `/${editingBillUuid}` : ""}`, {
+        method: editingBillUuid ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) { const body = await res.json().catch(() => ({})); throw new Error(body.message || "Failed to save labour work bill"); }
+      setIsAddOpen(false);
+      setEditingBillUuid(null);
+      setBillItems([]);
+      await loadBills();
+    } catch (err: any) {
+      setError(err.message || "Failed to save bill");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Filter and Search Logic
-  const filteredBills = useMemo(() => {
-    return bills.filter((bill) => {
-      const matchesSearch =
-        bill.workerContractorSupplier
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        bill.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bill.titleOfWork.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bill.project.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        bill.id.toLowerCase().includes(searchQuery.toLowerCase());
+  // ==================== ADD ITEM LOGIC ====================
+  const handleAddItem = () => {
+    const worker = workers.find((row) => row.uuid === newItem.workerId);
+    const gross = Number(newItem.qtyDays || 0) * Number(newItem.rate || 0);
+    setBillItems((rows) => [...rows, { ...newItem, id: String(Date.now()), workerName: worker?.name || newItem.workerName, gross, netPayable: Math.max(gross - Number(newItem.security || 0), 0) }]);
+    setNewItem({ workerId: "", workerName: "", description: "", unit: "Day", qtyDays: 1, rate: 0, security: 0 });
+    setIsItemModalOpen(false);
+  };
 
-      const matchesProject =
-        selectedProject === "All" || bill.project === selectedProject;
-      const matchesTitle =
-        selectedTitle === "All" || bill.titleOfWork === selectedTitle;
-      const matchesEntity =
-        selectedEntity === "All" ||
-        bill.workerContractorSupplier === selectedEntity;
-      const matchesLedger =
-        selectedLedger === "All" || bill.drLedger === selectedLedger;
+  // ==================== ACTION DROPDOWN HANDLERS ====================
+  const handleView = (bill: any) => { console.log("View:", bill); setActiveDropdown(null); };
+  const handlePrint = (bill: any) => { console.log("Print:", bill); setActiveDropdown(null); window.print(); };
+  const handleSendMail = (bill: any) => { console.log("Mail:", bill); setActiveDropdown(null); alert("Mail sent"); };
+  const handleEdit = (bill: any) => { setActiveDropdown(null); setEditingBillUuid(bill.uuid); setIsAddOpen(true); setError(null); setFormData((previous) => ({ ...previous, ...(bill.details || bill), date: bill.recordDate || bill.date || previous.date, code: bill.code || previous.code })); setBillItems(Array.isArray(bill.details?.items) ? bill.details.items : Array.isArray(bill.items) ? bill.items : []); };
+  const handleDelete = async (bill: any) => {
+    if (!confirm("Are you sure?")) return;
+    setActiveDropdown(null);
+    try { const res = await fetch(`${API_BASE}${API_PREFIX}/project-billing/labour-work-bills/${bill.uuid}`, { method: "DELETE" }); if (!res.ok) throw new Error("Failed to delete bill"); await loadBills(); } catch (err: any) { setError(err.message || "Failed to delete bill"); }
+  };
 
-      return (
-        matchesSearch &&
-        matchesProject &&
-        matchesTitle &&
-        matchesEntity &&
-        matchesLedger
-      );
-    });
-  }, [
-    bills,
-    searchQuery,
-    selectedProject,
-    selectedTitle,
-    selectedEntity,
-    selectedLedger,
-  ]);
-
-  // Total Calculations
-  const totals = useMemo(() => {
-    return filteredBills.reduce(
-      (acc, curr) => {
-        acc.grandTotal += curr.grandTotal;
-        acc.paid += curr.paid;
-        acc.due += curr.due;
-        return acc;
-      },
-      { grandTotal: 0, paid: 0, due: 0 },
-    );
-  }, [filteredBills]);
-
+  // ==================== RENDER ====================
   return (
-    <div className="min-h-screen bg-slate-50/70 p-6 lg:p-8 font-sans relative">
-      {/* Top Header & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <nav className="flex items-center text-sm text-slate-500 space-x-2 mb-1">
-            <Link
-              href="/"
-              className="flex items-center hover:text-indigo-600 transition-colors"
-            >
-              <Home className="w-4 h-4 mr-1" /> Home
-            </Link>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-            <span className="hover:text-indigo-600 cursor-pointer">
-              Labour/Worker
-            </span>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-            <span className="font-semibold text-slate-800">
-              Labour/Worker Bill List
-            </span>
-          </nav>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Labour & Worker Bill Management
-          </h1>
-        </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 font-sans">
 
-        {/* Action Button to Open Modal */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 px-4 rounded-xl shadow-sm hover:shadow transition-all"
-          >
-            <Plus className="w-4 h-4" /> New Labour/Worker Bill
-          </button>
-        </div>
-      </div>
-
-      {/* Main Container Card */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
-        {/* Filters Section */}
-        <div className="p-5 border-b border-slate-100 bg-slate-50/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Select Date */}
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              Select Date
-            </label>
-            <input
-              type="text"
-              defaultValue="1 September, 2026 - 30 September, 2026"
-              className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-            />
-          </div>
-
-          {/* Project */}
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              Project
-            </label>
-            <div className="relative">
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm appearance-none cursor-pointer"
-              >
-                <option value="All">Select value</option>
-                <option value="Skyline Tower Foundation">
-                  Skyline Tower Foundation
-                </option>
-                <option value="Green Valley Substation">
-                  Green Valley Substation
-                </option>
-                <option value="Corporate Headquarters">
-                  Corporate Headquarters
-                </option>
-                <option value="Metro Commercial Complex">
-                  Metro Commercial Complex
-                </option>
-              </select>
-              <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+      {/* ==================== LIST VIEW ==================== */}
+      {!isAddOpen && (
+        <div className="max-w-[1600px] mx-auto space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs text-slate-500 mb-1">Home / Labour/Worker / Labour/Worker Bill List</div>
+              <h1 className="text-xl font-bold">Labour/Worker Bill List</h1>
             </div>
+            <button onClick={() => { setEditingBillUuid(null); setError(null); setBillItems([]); setFormData({ date: new Date().toISOString().slice(0, 10), code: `LW000${Math.floor(10 + Math.random() * 90)}`, contractorId: "", projectId: "", projectTypeId: "", titleOfWork: "", site: "", refWoNo: "", taskId: "", categoryId: "", itemId: "", paymentMethod: "Cash", paidAmount: 0 }); setIsAddOpen(true); }} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm">
+              <Plus className="w-4 h-4" /> +New Labour/Worker Bill
+            </button>
           </div>
 
-          {/* Title/Name of Work */}
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              Title/Name of Work
-            </label>
-            <div className="relative">
-              <select
-                value={selectedTitle}
-                onChange={(e) => setSelectedTitle(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm appearance-none cursor-pointer"
-              >
-                <option value="All">Select Title/Name of Work</option>
-                <option value="Manual Excavation & Earthwork">
-                  Manual Excavation & Earthwork
-                </option>
-                <option value="Rod Binding & Framework Setup">
-                  Rod Binding & Framework Setup
-                </option>
-                <option value="Wall Putty, Sanding & Interior Paint">
-                  Wall Putty, Sanding & Interior Paint
-                </option>
-                <option value="Underground Sewer Line Fitting">
-                  Underground Sewer Line Fitting
-                </option>
-                <option value="Pipe Laying & Cable Pulling">
-                  Pipe Laying & Cable Pulling
-                </option>
-              </select>
-              <Filter className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-            </div>
-          </div>
+          {loading && <div className="text-center py-10"><Loader2 className="animate-spin inline mr-2"/>Loading...</div>}
+          {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-lg">{error}</div>}
 
-          {/* Contractor/Supplier/Worker */}
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              Contractor/Supplier/Worker
-            </label>
-            <div className="relative">
-              <select
-                value={selectedEntity}
-                onChange={(e) => setSelectedEntity(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm appearance-none cursor-pointer"
-              >
-                <option value="All">Select One Option</option>
-                <option value="Rahim Mia (Lead Mason)">
-                  Rahim Mia (Lead Mason)
-                </option>
-                <option value="Karim Uddin Group">Karim Uddin Group</option>
-                <option value="Jabbar Painters Crew">
-                  Jabbar Painters Crew
-                </option>
-                <option value="Belal Plumbing Crew">Belal Plumbing Crew</option>
-                <option value="Salim Electricians Team">
-                  Salim Electricians Team
-                </option>
-              </select>
-              <Filter className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Ledger (Full Width Row) */}
-          <div className="flex flex-col sm:col-span-2 lg:col-span-4">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              Ledger
-            </label>
-            <div className="relative">
-              <select
-                value={selectedLedger}
-                onChange={(e) => setSelectedLedger(e.target.value)}
-                className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm appearance-none cursor-pointer"
-              >
-                <option value="All">Select Chart Of Account</option>
-                <option value="Labor Wages Expense">Labor Wages Expense</option>
-                <option value="Subcontractor Labor Ledger">
-                  Subcontractor Labor Ledger
-                </option>
-                <option value="Finishing Labor Account">
-                  Finishing Labor Account
-                </option>
-                <option value="Utility Labor Expense">
-                  Utility Labor Expense
-                </option>
-                <option value="Electrical Wages Ledger">
-                  Electrical Wages Ledger
-                </option>
-              </select>
-              <Filter className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Controls & Export Bar */}
-        <div className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 bg-white">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <button className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition-colors">
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-              </button>
-              <button className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition-colors">
-                <FileText className="w-3.5 h-3.5" /> PDF
-              </button>
+          <div className="bg-white border rounded-xl shadow-sm overflow-visible">
+            <div className="p-3 bg-slate-50 border-b flex justify-between items-center">
+               <div className="flex gap-2">
+                 <button className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Excel</button>
+                 <button className="bg-rose-600 text-white px-3 py-1.5 rounded text-xs font-semibold">PDF</button>
+               </div>
+               <div className="relative w-64">
+                 <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400" />
+                 <input type="text" placeholder="Search..." className="border pl-9 pr-3 py-1.5 rounded-lg text-sm w-full" />
+               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-slate-600 ml-4">
-              <span>Show</span>
-              <select
-                value={entriesPerPage}
-                onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-              <span>entries</span>
-            </div>
-          </div>
-
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="text"
-              placeholder="Search labour bills..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-            />
-          </div>
-        </div>
-
-        {/* Responsive Table Component with Packed Content matching all columns */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-indigo-600 text-white text-xs uppercase tracking-wider font-semibold">
-                <th className="py-3.5 px-3">ID</th>
-                <th className="py-3.5 px-3">Project Type</th>
-                <th className="py-3.5 px-3">Project</th>
-                <th className="py-3.5 px-3">Title/Name of Work</th>
-                <th className="py-3.5 px-3">Worker/Contractor/Supplier</th>
-                <th className="py-3.5 px-3">Dr Ledger</th>
-                <th className="py-3.5 px-3">Credit Ledger</th>
-                <th className="py-3.5 px-3">Code</th>
-                <th className="py-3.5 px-3">Date</th>
-                <th className="py-3.5 px-3">Grand Total</th>
-                <th className="py-3.5 px-3">Paid</th>
-                <th className="py-3.5 px-3">Due</th>
-                <th className="py-3.5 px-3">Added By</th>
-                <th className="py-3.5 px-3">Approve</th>
-                <th className="py-3.5 px-3">Attachment</th>
-                <th className="py-3.5 px-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {filteredBills.length > 0 ? (
-                filteredBills.map((bill) => (
-                  <tr
-                    key={bill.id}
-                    className="hover:bg-slate-50/80 transition-colors"
-                  >
-                    <td className="py-3.5 px-3 font-medium text-indigo-600">
-                      {bill.id}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-600">
-                      {bill.projectType}
-                    </td>
-                    <td className="py-3.5 px-3 font-medium text-slate-900">
-                      {bill.project}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-800">
-                      {bill.titleOfWork}
-                    </td>
-                    <td className="py-3.5 px-3 font-medium text-slate-900">
-                      {bill.workerContractorSupplier}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-600">
-                      {bill.drLedger}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-600">
-                      {bill.creditLedger}
-                    </td>
-                    <td className="py-3.5 px-3 font-mono text-xs text-slate-500">
-                      {bill.code}
-                    </td>
-                    <td className="py-3.5 px-3 whitespace-nowrap text-slate-600">
-                      {bill.date}
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold text-slate-900">
-                      ${bill.grandTotal.toFixed(2)}
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold text-emerald-600">
-                      ${bill.paid.toFixed(2)}
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold text-rose-600">
-                      ${bill.due.toFixed(2)}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-600">
-                      {bill.addedBy}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      {bill.approveStatus === "Approved" ? (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3" /> Approved
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs font-medium px-2.5 py-1 rounded-full border border-amber-200">
-                          <Clock className="w-3 h-3" /> Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-3 text-center">
-                      {bill.hasAttachment ? (
-                        <span
-                          className="inline-flex items-center justify-center w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg shadow-sm"
-                          title="View Attachment"
-                        >
-                          <Paperclip className="w-3.5 h-3.5" />
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          className="p-1.5 hover:bg-slate-200/70 text-slate-600 rounded-lg transition-colors"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 hover:bg-indigo-50 text-indigo-600 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-indigo-600 text-white uppercase tracking-wider">
+                  <tr>
+                    <th className="py-2 px-3">ID</th>
+                    <th className="py-2 px-3">Project</th>
+                    <th className="py-2 px-3">Worker</th>
+                    <th className="py-2 px-3">Code</th>
+                    <th className="py-2 px-3">Date</th>
+                    <th className="py-2 px-3 text-right">Grand Total</th>
+                    <th className="py-2 px-3 text-center">Action</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={16} className="py-12 text-center text-slate-400">
-                    No data available in table matching your criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            {/* Table Footer Totals Bar */}
-            <tfoot>
-              <tr className="bg-slate-100/80 border-t border-slate-200 font-bold text-slate-900 text-sm">
-                <td
-                  colSpan={9}
-                  className="py-3.5 px-3 text-right uppercase tracking-wider text-xs text-slate-600"
-                >
-                  TOTAL:
-                </td>
-                <td className="py-3.5 px-3 text-slate-900">
-                  ${totals.grandTotal.toFixed(2)}
-                </td>
-                <td className="py-3.5 px-3 text-emerald-600">
-                  ${totals.paid.toFixed(2)}
-                </td>
-                <td className="py-3.5 px-3 text-rose-600">
-                  ${totals.due.toFixed(2)}
-                </td>
-                <td colSpan={4}></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {bills.map((bill, index) => (
+                    <tr key={bill.uuid || index}>
+                      <td className="py-2 px-3">{index + 1}</td>
+                      <td className="py-2 px-3">{bill.project?.name || bill.projectName || "-"}</td>
+                      <td className="py-2 px-3">{bill.workerName || bill.contractorName || "-"}</td>
+                      <td className="py-2 px-3">{bill.code || "-"}</td>
+                      <td className="py-2 px-3">{bill.date || "-"}</td>
+                      <td className="py-2 px-3 text-right">{Number(bill.grandTotal || 0).toFixed(2)}</td>
+                      <td className="py-2 px-3 text-center relative">
+                        <button onClick={() => setActiveDropdown(activeDropdown === (bill.uuid || String(index)) ? null : (bill.uuid || String(index)))} className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded inline-flex items-center gap-1">
+                          Action <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
 
-        {/* Pagination Footer */}
-        <div className="p-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/60">
-          <p className="text-sm text-slate-500">
-            Showing <span className="font-medium text-slate-800">1</span> to{" "}
-            <span className="font-medium text-slate-800">
-              {filteredBills.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-slate-800">
-              {filteredBills.length}
-            </span>{" "}
-            entries
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              disabled={currentPage === 1}
-              className="px-3.5 py-1.5 border border-slate-200 bg-white text-slate-400 text-sm font-medium rounded-lg cursor-not-allowed disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button className="px-3.5 py-1.5 border border-indigo-600 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-sm">
-              1
-            </button>
-            <button
-              disabled={true}
-              className="px-3.5 py-1.5 border border-slate-200 bg-white text-slate-400 text-sm font-medium rounded-lg cursor-not-allowed disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* MODERN MODAL FOR NEW LABOUR/WORKER BILL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
-                  +
-                </div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Add New Labour / Worker Bill
-                </h2>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-full hover:bg-slate-200/60 flex items-center justify-center text-slate-500 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+                        {activeDropdown === (bill.uuid || String(index)) && (
+                          <div className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-2 px-1 text-left text-xs">
+                            <button onClick={() => handleView(bill)} className="w-full px-3 py-2 text-white bg-[#6c5ce7] hover:bg-[#5f4dd0] rounded-md flex items-center justify-center gap-2 font-semibold mb-1"><Eye className="w-4 h-4" /> View</button>
+                            <button onClick={() => handlePrint(bill)} className="w-full px-3 py-2 text-white bg-[#6c5ce7] hover:bg-[#5f4dd0] rounded-md flex items-center justify-center gap-2 font-semibold mb-1"><Printer className="w-4 h-4" /> Print</button>
+                            <button onClick={() => handleSendMail(bill)} className="w-full px-3 py-2 text-white bg-[#6c5ce7] hover:bg-[#5f4dd0] rounded-md flex items-center justify-center gap-2 font-semibold mb-1"><Mail className="w-4 h-4" /> Send Mail</button>
+                            <button onClick={() => handleEdit(bill)} className="w-full px-3 py-2 text-white bg-[#00d2d3] hover:bg-[#00b8b9] rounded-md flex items-center justify-center gap-2 font-semibold mb-1"><Edit className="w-4 h-4" /> Edit</button>
+                            <button onClick={() => handleDelete(bill)} className="w-full px-3 py-2 text-white bg-[#ff6b6b] hover:bg-[#ee5253] rounded-md flex items-center justify-center gap-2 font-semibold"><Trash2 className="w-4 h-4" /> Delete</button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {bills.length === 0 && !loading && (
+                    <tr><td colSpan={7} className="text-center py-10 text-slate-400">No data available</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-
-            {/* Modal Body Form */}
-            <form
-              onSubmit={handleFormSubmit}
-              className="p-6 overflow-y-auto space-y-5 flex-1"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Project Type */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Project Type
-                  </label>
-                  <select
-                    name="projectType"
-                    value={formData.projectType}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  >
-                    <option value="Civil Construction">
-                      Civil Construction
-                    </option>
-                    <option value="Structural Engineering">
-                      Structural Engineering
-                    </option>
-                    <option value="Finishing & Painting">
-                      Finishing & Painting
-                    </option>
-                    <option value="Plumbing & Drainage">
-                      Plumbing & Drainage
-                    </option>
-                    <option value="Electrical Works">Electrical Works</option>
-                  </select>
-                </div>
-
-                {/* Project */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Project
-                  </label>
-                  <select
-                    name="project"
-                    value={formData.project}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  >
-                    <option value="Skyline Tower Foundation">
-                      Skyline Tower Foundation
-                    </option>
-                    <option value="Green Valley Substation">
-                      Green Valley Substation
-                    </option>
-                    <option value="Corporate Headquarters">
-                      Corporate Headquarters
-                    </option>
-                    <option value="Metro Commercial Complex">
-                      Metro Commercial Complex
-                    </option>
-                  </select>
-                </div>
-
-                {/* Title/Name of Work */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Title/Name of Work
-                  </label>
-                  <input
-                    type="text"
-                    name="titleOfWork"
-                    required
-                    placeholder="e.g. Manual Excavation & Earthwork"
-                    value={formData.titleOfWork}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  />
-                </div>
-
-                {/* Worker / Contractor / Supplier */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Worker/Contractor/Supplier
-                  </label>
-                  <input
-                    type="text"
-                    name="workerContractorSupplier"
-                    required
-                    placeholder="e.g. Rahim Mia (Lead Mason)"
-                    value={formData.workerContractorSupplier}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  />
-                </div>
-
-                {/* Dr Ledger */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Dr Ledger (Expense)
-                  </label>
-                  <select
-                    name="drLedger"
-                    value={formData.drLedger}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  >
-                    <option value="Labor Wages Expense">
-                      Labor Wages Expense
-                    </option>
-                    <option value="Subcontractor Labor Ledger">
-                      Subcontractor Labor Ledger
-                    </option>
-                    <option value="Finishing Labor Account">
-                      Finishing Labor Account
-                    </option>
-                    <option value="Utility Labor Expense">
-                      Utility Labor Expense
-                    </option>
-                    <option value="Electrical Wages Ledger">
-                      Electrical Wages Ledger
-                    </option>
-                  </select>
-                </div>
-
-                {/* Credit Ledger */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Credit Ledger (Source)
-                  </label>
-                  <select
-                    name="creditLedger"
-                    value={formData.creditLedger}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  >
-                    <option value="Cash/Bank Clearing Account">
-                      Cash/Bank Clearing Account
-                    </option>
-                    <option value="Accounts Payable">Accounts Payable</option>
-                    <option value="Cash-in-Hand">Cash-in-Hand</option>
-                    <option value="Bank Operating Account">
-                      Bank Operating Account
-                    </option>
-                  </select>
-                </div>
-
-                {/* Code */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Bill Code
-                  </label>
-                  <input
-                    type="text"
-                    name="code"
-                    required
-                    value={formData.code}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 border border-slate-200 text-slate-600 font-mono text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none shadow-sm"
-                  />
-                </div>
-
-                {/* Date */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    required
-                    value={formData.date}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  />
-                </div>
-
-                {/* Grand Total */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Grand Total ($)
-                  </label>
-                  <div className="relative">
-                    <DollarSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="grandTotal"
-                      required
-                      placeholder="0.00"
-                      value={formData.grandTotal}
-                      onChange={handleInputChange}
-                      className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl pl-9 pr-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Paid Amount */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Paid Amount ($)
-                  </label>
-                  <div className="relative">
-                    <DollarSign className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <input
-                      type="number"
-                      step="0.01"
-                      name="paid"
-                      required
-                      placeholder="0.00"
-                      value={formData.paid}
-                      onChange={handleInputChange}
-                      className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl pl-9 pr-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Approval Status */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-slate-500 mb-1.5">
-                    Approval Status
-                  </label>
-                  <select
-                    name="approveStatus"
-                    value={formData.approveStatus}
-                    onChange={handleInputChange}
-                    className="bg-white border border-slate-200 text-slate-800 text-sm rounded-xl px-3.5 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                  </select>
-                </div>
-
-                {/* Attachment Toggle */}
-                <div className="flex items-center pt-6">
-                  <label className="relative flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="hasAttachment"
-                      checked={formData.hasAttachment}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                    />
-                    <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
-                      <Upload className="w-4 h-4 text-slate-400" /> Include
-                      Supporting Voucher / Attachment
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Modal Footer Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition-colors shadow-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all"
-                >
-                  Save Labour Bill
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
+
+      {/* ==================== ADD VIEW ==================== */}
+      {isAddOpen && (
+        <div className="max-w-[1600px] mx-auto bg-white border border-slate-200 rounded-xl shadow-lg p-6 space-y-6">
+          <div className="flex justify-between items-center border-b pb-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setIsAddOpen(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"><ArrowLeft className="w-5 h-5 text-slate-700" /></button>
+              <h2 className="text-lg font-bold text-slate-800">Labour/Worker Bill Add</h2>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setIsItemModalOpen(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Item Add</button>
+              <button onClick={() => setIsAddOpen(false)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold">Labour/Worker Bill List</button>
+            </div>
+          </div>
+
+          {error && <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700">{error}</div>}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label className="block font-semibold text-slate-600 mb-1">Date</label>
+              <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-600 mb-1">Contractor</label>
+              <select value={formData.contractorId} onChange={(e) => setFormData({...formData, contractorId: e.target.value})} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Select One Option</option>
+                {contractors.map(c => <option key={c.uuid} value={c.uuid}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-600 mb-1">Project</label>
+              <select value={formData.projectId} onChange={(e) => setFormData({...formData, projectId: e.target.value})} className="w-full border rounded-lg px-3 py-2">
+                <option value="">Select Project</option>
+                {projects.map(p => <option key={p.uuid} value={p.uuid}>{p.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <label className="font-semibold text-slate-600">Project Type<select value={formData.projectTypeId} onChange={(e) => setFormData({...formData, projectTypeId: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Project Type</option>{projectTypes.map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+            <label className="font-semibold text-slate-600">Title/Name of Work<select value={formData.titleOfWork} onChange={(e) => setFormData({...formData, titleOfWork: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Work</option>{workNames.filter((row) => !row.projectId || row.projectId === formData.projectId).map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+            <label className="font-semibold text-slate-600">Site<select value={formData.site} onChange={(e) => setFormData({...formData, site: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Site</option>{sites.filter((row) => !row.projectId || row.projectId === formData.projectId).map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+            <label className="font-semibold text-slate-600">Ref WO No.<input value={formData.refWoNo} onChange={(e) => setFormData({...formData, refWoNo: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal" /></label>
+            <label className="font-semibold text-slate-600">If Task<select value={formData.taskId} onChange={(e) => setFormData({...formData, taskId: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Task</option>{tasks.map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+            <label className="font-semibold text-slate-600">Category<select value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Category</option>{categories.map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+            <label className="font-semibold text-slate-600">Select Item<select value={formData.itemId} onChange={(e) => setFormData({...formData, itemId: e.target.value})} className="mt-1 w-full border rounded-lg px-3 py-2 font-normal"><option value="">Select Item</option>{items.map((row) => <option key={row.uuid} value={row.uuid}>{row.name}</option>)}</select></label>
+          </div>
+
+          <div className="overflow-x-auto border rounded-xl">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-indigo-600 text-white">
+                <tr>
+                  <th className="py-3 px-3">Labour/Worker</th>
+                  <th className="py-3 px-3">Description</th>
+                  <th className="py-3 px-3">Unit</th>
+                  <th className="py-3 px-3">Qty/Days</th>
+                  <th className="py-3 px-3 text-right">Rate</th>
+                  <th className="py-3 px-3 text-right">Gross</th>
+                  <th className="py-3 px-3 text-right">Security</th>
+                  <th className="py-3 px-3 text-right">Net Payable</th>
+                  <th className="py-3 px-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {billItems.map((item, index) => (
+                  <tr key={item.id}>
+                    <td className="py-2 px-3"><select value={item.workerId || ""} onChange={(e) => { const worker = workers.find((row) => row.uuid === e.target.value); setBillItems((rows) => rows.map((r, i) => i === index ? {...r, workerId: e.target.value, workerName: worker?.name || ""} : r)); }} className="w-full border rounded px-2 py-1"><option value="">Select Worker</option>{workers.map((worker) => <option key={worker.uuid} value={worker.uuid}>{worker.name}</option>)}</select></td>
+                    <td className="py-2 px-3"><input value={item.description || ""} onChange={(e) => setBillItems((rows) => rows.map((r, i) => i === index ? {...r, description: e.target.value} : r))} type="text" className="w-full border rounded px-2 py-1" /></td>
+                    <td className="py-2 px-3"><select value={item.unit || "Day"} onChange={(e) => setBillItems((rows) => rows.map((r, i) => i === index ? {...r, unit: e.target.value} : r))} className="w-full border rounded px-2 py-1"><option>Day</option><option>Hour</option><option>Shift</option><option>Piece</option></select></td>
+                    <td className="py-2 px-3"><input value={item.qtyDays ?? 1} min="0" type="number" onChange={(e) => setBillItems((rows) => rows.map((r, i) => { if (i !== index) return r; const qtyDays = Number(e.target.value); const gross = qtyDays * Number(r.rate || 0); return {...r, qtyDays, gross, netPayable: Math.max(gross - Number(r.security || 0), 0)}; }))} className="w-full border rounded px-2 py-1" /></td>
+                    <td className="py-2 px-3 text-right"><input value={item.rate ?? 0} min="0" type="number" onChange={(e) => setBillItems((rows) => rows.map((r, i) => { if (i !== index) return r; const rate = Number(e.target.value); const gross = Number(r.qtyDays || 0) * rate; return {...r, rate, gross, netPayable: Math.max(gross - Number(r.security || 0), 0)}; }))} className="w-full border rounded px-2 py-1" /></td>
+                    <td className="py-2 px-3 text-right">{Number(item.gross || 0).toFixed(2)}</td>
+                    <td className="py-2 px-3"><input value={item.security ?? 0} min="0" type="number" onChange={(e) => setBillItems((rows) => rows.map((r, i) => { if (i !== index) return r; const security = Number(e.target.value); return {...r, security, netPayable: Math.max(Number(r.gross || 0) - security, 0)}; }))} className="w-full border rounded px-2 py-1" /></td>
+                    <td className="py-2 px-3 text-right">{Number(item.netPayable || 0).toFixed(2)}</td>
+                    <td className="py-2 px-3 text-center"><button onClick={() => setBillItems((rows) => rows.filter((_, i) => i !== index))} className="text-rose-600"><X className="w-4 h-4"/></button></td>
+                  </tr>
+                ))}
+                {billItems.length === 0 && <tr><td colSpan={9} className="text-center py-6 text-slate-400">No items added yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="md:col-span-2 space-y-2">
+              <div className="flex justify-between border-b pb-1"><span>Gross Total:</span><span>{billItems.reduce((sum, row) => sum + Number(row.gross || 0), 0).toFixed(2)}</span></div>
+              <div className="flex justify-between border-b pb-1"><span>Security:</span><span>{billItems.reduce((sum, row) => sum + Number(row.security || 0), 0).toFixed(2)}</span></div>
+              <div className="flex justify-between font-bold text-indigo-700"><span>Grand Total / Net Payable:</span><span>{billItems.reduce((sum, row) => sum + Number(row.netPayable || 0), 0).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Due:</span><span>{Math.max(billItems.reduce((sum, row) => sum + Number(row.netPayable || 0), 0) - Number(formData.paidAmount || 0), 0).toFixed(2)}</span></div>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-xl border space-y-2">
+              <label className="block font-semibold">Payment Method</label>
+              <select value={formData.paymentMethod} onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})} className="w-full border rounded px-2 py-1"><option>Cash</option><option>Bank</option><option>Cheque</option><option>Mobile Banking</option></select>
+              <label className="block font-semibold">Paid Amount</label>
+              <input type="number" min="0" value={formData.paidAmount} onChange={(e) => setFormData({...formData, paidAmount: Number(e.target.value)})} className="w-full border rounded px-2 py-1" />
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-4">
+             <button onClick={handleCreateBill} disabled={loading} className="px-8 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold shadow-sm flex items-center gap-2">
+               {loading ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4"/>}
+               Submit
+             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL: NEW ITEM ==================== */}
+      {isItemModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="flex justify-between items-center bg-slate-50 px-5 py-3 border-b">
+              <h3 className="font-bold text-slate-800">New Item</h3>
+              <button onClick={() => setIsItemModalOpen(false)} className="text-slate-500 hover:text-slate-700"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="sm:col-span-2"><label className="block font-semibold mb-1">Worker Name</label><select value={newItem.workerId} onChange={(e) => setNewItem({...newItem, workerId: e.target.value})} className="w-full border rounded px-2 py-1.5"><option value="">Select Worker</option>{workers.map((worker) => <option key={worker.uuid} value={worker.uuid}>{worker.name}</option>)}</select></div>
+              <div className="sm:col-span-2"><label className="block font-semibold mb-1">Description</label><input value={newItem.description} onChange={(e) => setNewItem({...newItem, description: e.target.value})} className="w-full border rounded px-2 py-1.5" /></div>
+              <div><label className="block font-semibold mb-1">Unit</label><select value={newItem.unit} onChange={(e) => setNewItem({...newItem, unit: e.target.value})} className="w-full border rounded px-2 py-1.5"><option>Day</option><option>Hour</option><option>Shift</option><option>Piece</option></select></div>
+              <div><label className="block font-semibold mb-1">Qty/Days</label><input type="number" min="0" value={newItem.qtyDays} onChange={(e) => setNewItem({...newItem, qtyDays: Number(e.target.value)})} className="w-full border rounded px-2 py-1.5" /></div>
+              <div><label className="block font-semibold mb-1">Rate</label><input type="number" min="0" value={newItem.rate} onChange={(e) => setNewItem({...newItem, rate: Number(e.target.value)})} className="w-full border rounded px-2 py-1.5" /></div>
+              <div><label className="block font-semibold mb-1">Security</label><input type="number" min="0" value={newItem.security} onChange={(e) => setNewItem({...newItem, security: Number(e.target.value)})} className="w-full border rounded px-2 py-1.5" /></div>
+            </div>
+            <div className="bg-slate-50 px-5 py-3 border-t flex justify-end gap-2">
+              <button onClick={() => setIsItemModalOpen(false)} className="px-4 py-2 border rounded-lg text-xs font-semibold">Close</button>
+              <button onClick={handleAddItem} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold">Add to Table</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

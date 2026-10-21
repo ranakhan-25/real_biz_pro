@@ -1,383 +1,1243 @@
-'use client';
-
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Plus, 
-  Edit3, 
-  User, 
-  Trash2, 
-  X, 
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Edit3,
+  Trash2,
+  X,
   FileText,
-  Layers
-} from 'lucide-react';
+  Check,
+  Loader2,
+  Users,
+} from "lucide-react";
 
-// Type definitions matching the Assign Share schema structure
-export interface AssignShare {
-  id: number;
-  project: string;
-  projectType: string;
+// ---------- Types ----------
+export interface ShareAssignment {
+  id: number | string;
+  uuid: string;
+  projectId: string;
+  projectName: string;
+  projectTypeId: string;
+  projectTypeName: string;
+  siteId: string;
+  siteName: string;
   code: string;
   shareCode: string;
-  name: string;
-  noOfShare: string;
+  customerName: string;
+  noOfShares: number;
   flatLand: string;
-  site?: string;
-  customer?: string;
   note?: string;
   email?: string;
   mobile?: string;
   nid?: string;
   address?: string;
   image?: string;
+  shareAmount: number;
+  paidAmount: number;
+  totalCost: number;
+  balance: number;
+  due: number;
+  penaltyAmount: number;
+  points: number;
+  assignedAt: string;
+  status: string;
 }
 
-// Comprehensive mock data containing plenty of entries to ensure tables are completely filled without empty spaces
-const initialAssignShares: AssignShare[] = [
-  {
-    id: 1,
-    project: 'Alpha Heights',
-    projectType: 'Residential',
-    code: 'PRJ-101',
-    shareCode: 'SHR-173719',
-    name: 'Tanvir Ahmed',
-    noOfShare: '50',
-    flatLand: 'Flat 4B (Tower A)',
-    site: 'Site North',
-    customer: 'Tanvir Ahmed',
-    note: 'First installment cleared',
-    email: 'tanvir.ahmed@gmail.com',
-    mobile: '01811223344',
-    nid: '1992837465012',
-    address: 'House 42, Road 11, Banani, Dhaka',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
-  },
-  {
-    id: 2,
-    project: 'Beta Commercial Complex',
-    projectType: 'Commercial',
-    code: 'PRJ-102',
-    shareCode: 'SHR-173720',
-    name: 'Farhana Sultana',
-    noOfShare: '120',
-    flatLand: 'Shop 12 (Ground Floor)',
-    site: 'Downtown Hub',
-    customer: 'Farhana Sultana',
-    note: 'Commercial allotment verified',
-    email: 'farhana.s@yahoo.com',
-    mobile: '01711556677',
-    nid: '1988554433221',
-    address: 'Flat 5A, Uttara Heights, Dhaka',
-    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150'
-  },
-  {
-    id: 3,
-    project: 'Gamma Green Valley',
-    projectType: 'Land Project',
-    code: 'PRJ-103',
-    shareCode: 'SHR-173721',
-    name: 'Mahbub Alam',
-    noOfShare: '200',
-    flatLand: 'Plot 45 (Block C)',
-    site: 'East Extension',
-    customer: 'Mahbub Alam',
-    note: 'Full payment received',
-    email: 'mahbub.alam@outlook.com',
-    mobile: '01922334455',
-    nid: '1975443322119',
-    address: 'GEC Circle, Chattogram',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
-  },
-  {
-    id: 4,
-    project: 'Delta Residency',
-    projectType: 'Residential',
-    code: 'PRJ-104',
-    shareCode: 'SHR-173722',
-    name: 'Sharmin Akter',
-    noOfShare: '75',
-    flatLand: 'Flat 7A (Tower B)',
-    site: 'Site South',
-    customer: 'Sharmin Akter',
-    note: 'Pending documentation',
-    email: 'sharmin.akter@gmail.com',
-    mobile: '01655443322',
-    nid: '1990112233445',
-    address: 'Zindabazar, Sylhet',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'
-  },
-  {
-    id: 5,
-    project: 'Omega Silicon City',
-    projectType: 'Commercial',
-    code: 'PRJ-105',
-    shareCode: 'SHR-173723',
-    name: 'Golam Mostafa',
-    noOfShare: '150',
-    flatLand: 'Office 302 (Block D)',
-    site: 'Tech Park Zone',
-    customer: 'Golam Mostafa',
-    note: 'Agreement signed',
-    email: 'golam.mostafa@enterprise.com',
-    mobile: '01533221100',
-    nid: '1982998877665',
-    address: 'Station Road, Rajshahi',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
-  },
-  {
-    id: 6,
-    project: 'Sigma Tower',
-    projectType: 'Residential',
-    code: 'PRJ-106',
-    shareCode: 'SHR-173724',
-    name: 'Nazmul Hossain',
-    noOfShare: '90',
-    flatLand: 'Flat 2C (Tower A)',
-    site: 'Site North',
-    customer: 'Nazmul Hossain',
-    note: 'Advance paid',
-    email: 'nazmul.hossain@gmail.com',
-    mobile: '01899887766',
-    nid: '1993445566778',
-    address: 'CDA Avenue, Chattogram',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'
-  },
-  {
-    id: 7,
-    project: 'Theta Agro Farm',
-    projectType: 'Land Project',
-    code: 'PRJ-107',
-    shareCode: 'SHR-173725',
-    name: 'Rubina Yasmin',
-    noOfShare: '300',
-    flatLand: 'Plot 12 (Sector 1)',
-    site: 'Agro Zone',
-    customer: 'Rubina Yasmin',
-    note: 'Installment 2 due next month',
-    email: 'rubina.yasmin@gmail.com',
-    mobile: '01744556688',
-    nid: '1987778899001',
-    address: 'Baliapara, Dinajpur',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'
-  },
-  {
-    id: 8,
-    project: 'Kappa Plaza',
-    projectType: 'Commercial',
-    code: 'PRJ-108',
-    shareCode: 'SHR-173726',
-    name: 'Moniruzzaman Khan',
-    noOfShare: '110',
-    flatLand: 'Shop 04 (Ground Floor)',
-    site: 'Downtown Hub',
-    customer: 'Moniruzzaman Khan',
-    note: 'Fully paid',
-    email: 'monir.khan@corporate.net',
-    mobile: '01311224466',
-    nid: '1979332211445',
-    address: 'Taltola, Sylhet',
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150'
-  },
-  {
-    id: 9,
-    project: 'Lambda Heights',
-    projectType: 'Residential',
-    code: 'PRJ-109',
-    shareCode: 'SHR-173727',
-    name: 'Asif Mahmud',
-    noOfShare: '60',
-    flatLand: 'Flat 5C (Tower B)',
-    site: 'Site South',
-    customer: 'Asif Mahmud',
-    note: 'Verified account',
-    email: 'asif.mahmud@tech.io',
-    mobile: '01855443322',
-    nid: '1996221144556',
-    address: 'Dhanmondi 27, Dhaka',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150'
-  },
-  {
-    id: 10,
-    project: 'Zeta Gardens',
-    projectType: 'Land Project',
-    code: 'PRJ-110',
-    shareCode: 'SHR-173728',
-    name: 'Nayeem Islam',
-    noOfShare: '250',
-    flatLand: 'Plot 88 (Block F)',
-    site: 'East Extension',
-    customer: 'Nayeem Islam',
-    note: 'Processing deed',
-    email: 'nayeem.islam@invest.org',
-    mobile: '01677889900',
-    nid: '1991665544332',
-    address: 'Sholashahar, Chattogram',
-    image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150'
+interface OptionItem {
+  uuid: string;
+  name: string;
+  code?: string;
+}
+
+// ---------- API helpers ----------
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5002";
+const API_PREFIX = "/realbizpro/api/v1";
+
+const SHARE_ASSIGNMENT_API = `${API_BASE}${API_PREFIX}/project-share-assignments`;
+const PROJECT_API = `${API_BASE}${API_PREFIX}/project`;
+const PROJECT_TYPE_API = `${API_BASE}${API_PREFIX}/project-type`;
+const SITE_API = `${API_BASE}${API_PREFIX}/project-sites`;
+const FLAT_LAND_API = `${API_BASE}${API_PREFIX}/flat-land`;
+
+async function handleRes(res: Response, action: string) {
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg =
+      json?.message || json?.error || `Failed to ${action} (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
   }
-];
+  return json;
+}
 
-export default function AssignSharePage() {
-  const [shares, setShares] = useState<AssignShare[]>(initialAssignShares);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProjectFilter, setSelectedProjectFilter] = useState('');
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+// ---------- Share Code generator ----------
+function generateShareCode(): string {
+  const year = new Date().getFullYear();
+  const rand = Math.floor(100000 + Math.random() * 900000);
+  return `SHR-${year}-${rand}`;
+}
 
-  // Modals state
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isBulkOpen, setIsBulkOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [selectedShare, setSelectedShare] = useState<AssignShare | null>(null);
+// ---------- Share Assignments ----------
+async function fetchShareAssignments(projectId?: string): Promise<{
+  data: ShareAssignment[];
+  meta: any;
+}> {
+  let url = `${SHARE_ASSIGNMENT_API}?page=1&limit=100`;
+  if (projectId) {
+    url += `&projectId=${projectId}`;
+  }
+  console.log("GET share-assignments →", url);
 
-  // Form state for Add / Bulk / Edit
-  const [formData, setFormData] = useState<Partial<AssignShare>>({
-    projectType: '',
-    project: '',
-    code: 'PRJ-' + Math.floor(100 + Math.random() * 900),
-    shareCode: 'SHR-' + Math.floor(10000 + Math.random() * 90000),
-    site: '',
-    flatLand: '',
-    customer: '',
-    noOfShare: '',
-    note: ''
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
+    console.log("GET share-assignments status →", res.status);
+
+    const json = await handleRes(res, "fetch share assignments");
+    console.log("GET share-assignments response →", json);
+
+    const rawList = json?.data?.data || [];
+    console.log("RAW list from API (before mapping):", rawList.length);
+
+    const mapped: ShareAssignment[] = rawList.map((item: any) => ({
+      id: item.id ?? item.uuid,
+      uuid: item.uuid,
+      projectId: item.projectId || item.project?.uuid || "",
+      projectName: item.project?.name || item.projectName || "",
+      projectTypeId: item.projectTypeId || item.projectType?.uuid || "",
+      projectTypeName: item.projectType?.name || item.projectTypeName || "",
+      siteId: item.siteId || item.site?.uuid || "",
+      siteName: item.site?.name || item.siteName || "",
+      code: item.code || item.customerCode || item.project?.code || "",
+      shareCode: item.shareCode || "",
+      customerName: item.customerName || item.customer?.name || item.name || "",
+      noOfShares: Number(item.noOfShares ?? item.noOfShare ?? 0),
+      flatLand: item.flatLand || item.flatLandNo || item.landNo || "",
+      note: item.note || "",
+      email: item.email || item.customer?.email || "",
+      mobile: item.mobile || item.customer?.mobile || "",
+      nid: item.nid || item.customer?.nid || "",
+      address: item.address || item.customer?.address || "",
+      image: item.image || item.customer?.image || "",
+      shareAmount: Number(item.shareAmount || 0),
+      paidAmount: Number(item.paidAmount || 0),
+      totalCost: Number(item.totalCost || 0),
+      balance: Number(item.balance || 0),
+      due: Number(item.due || 0),
+      penaltyAmount: Number(item.penaltyAmount || 0),
+      points: Number(item.points || 0),
+      assignedAt: item.assignedAt || "",
+      status: item.status || "active",
+    }));
+
+    console.log("After mapping count:", mapped.length);
+
+    // ✅ Filter — shudhu inactive/deleted bad
+    const filtered = mapped.filter((item) => {
+      if (!item.status) return true;
+      const status = item.status.toLowerCase();
+      return status !== "inactive" && status !== "deleted";
+    });
+
+    console.log("After filter count:", filtered.length);
+
+    return { data: filtered, meta: json?.data?.meta };
+  } catch (err) {
+    console.error("❌ fetchShareAssignments ERROR →", err);
+    throw err;
+  }
+}
+
+// ---------- PROJECT dropdown ----------
+async function fetchProjects(): Promise<OptionItem[]> {
+  try {
+    const url = `${PROJECT_API}?page=1&limit=100`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return [];
+    const list = json?.data?.data || json?.data || [];
+    return list.map((p: any) => ({
+      uuid: p.uuid,
+      name: p.name || p.code || "Unnamed",
+      code: p.code,
+    }));
+  } catch (err) {
+    console.error("fetchProjects error →", err);
+    return [];
+  }
+}
+
+// ---------- PROJECT TYPE dropdown ----------
+async function fetchProjectTypes(): Promise<OptionItem[]> {
+  try {
+    const url = `${PROJECT_TYPE_API}?page=1&limit=100`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return [];
+    const list: any[] =
+      json?.data?.data || (Array.isArray(json?.data) ? json.data : null) || [];
+    return list.map((t: any) => ({
+      uuid: t.uuid || t.id,
+      name: t.name || t.title || t.typeName || t.code || "Unnamed",
+      code: t.code,
+    }));
+  } catch (err) {
+    console.error("fetchProjectTypes error →", err);
+    return [];
+  }
+}
+
+// ---------- SITES dropdown ----------
+async function fetchProjectSites(): Promise<OptionItem[]> {
+  try {
+    const url = `${SITE_API}?page=1&limit=100`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return [];
+    const list: any[] =
+      json?.data?.data || (Array.isArray(json?.data) ? json.data : null) || [];
+    return list.map((s: any) => ({
+      uuid: s.uuid || s.id,
+      name: s.name || s.siteName || s.title || s.code || "Unnamed",
+      code: s.code,
+    }));
+  } catch (err) {
+    console.error("fetchProjectSites error →", err);
+    return [];
+  }
+}
+
+// ---------- FLAT/LAND dropdown ----------
+async function fetchFlatLands(): Promise<OptionItem[]> {
+  try {
+    const url = `${FLAT_LAND_API}?page=1&limit=100`;
+    console.log("GET flat-lands →", url);
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      console.error("Flat/Land fetch failed:", res.status, json);
+      return [];
+    }
+
+    console.log("Flat/Land response →", json);
+
+    const list: any[] =
+      json?.data?.data ||
+      (Array.isArray(json?.data) ? json.data : null) ||
+      json?.flatLands ||
+      json?.lands ||
+      json?.rows ||
+      [];
+
+    return list.map((f: any) => ({
+      uuid: f.uuid || f.id,
+      name:
+        f.name ||
+        f.title ||
+        f.flatNo ||
+        f.landNo ||
+        f.flatLandNo ||
+        f.code ||
+        "Unnamed",
+      code: f.code,
+    }));
+  } catch (err) {
+    console.error("fetchFlatLands error →", err);
+    return [];
+  }
+}
+
+async function createShareAssignment(payload: Record<string, any>) {
+  console.log("POST payload →", payload);
+  const res = await fetch(SHARE_ASSIGNMENT_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
+  const json = await handleRes(res, "create share assignment");
+  console.log("POST response →", json);
+  return json;
+}
 
-  // Filtered data based on project selection & search query
-  const filteredShares = shares.filter(item => {
-    const matchesProject = selectedProjectFilter ? item.project === selectedProjectFilter : true;
-    const matchesSearch = 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.shareCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.flatLand.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesProject && matchesSearch;
+async function updateShareAssignment(
+  uuid: string,
+  payload: Record<string, any>,
+) {
+  console.log("PATCH", uuid, "payload →", payload);
+  const res = await fetch(`${SHARE_ASSIGNMENT_API}/${uuid}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
+  const json = await handleRes(res, "update share assignment");
+  console.log("PATCH response →", json);
+  return json;
+}
 
-  // Submit Handler for Add
-  const handleAddSubmit = (e: React.FormEvent) => {
+async function softDeleteShareAssignment(uuid: string) {
+  const res = await fetch(`${SHARE_ASSIGNMENT_API}/${uuid}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleRes(res, "delete share assignment");
+}
+
+// ---------- Form → API payload ----------
+const toApiPayload = (data: {
+  projectId: string;
+  projectTypeId: string;
+  siteId: string;
+  shareCode: string;
+  customerName: string;
+  noOfShares: string | number;
+  flatLand: string;
+  note?: string;
+  email?: string;
+  mobile?: string;
+  nid?: string;
+  address?: string;
+  image?: string;
+  shareAmount: string | number;
+  paidAmount: string | number;
+  totalCost: string | number;
+  balance: string | number;
+  due: string | number;
+  penaltyAmount: string | number;
+  points: string | number;
+  assignedAt: string;
+  status: string;
+}) => ({
+  projectId: data.projectId,
+  projectTypeId: data.projectTypeId,
+  siteId: data.siteId,
+  shareCode: data.shareCode,
+  customerName: data.customerName,
+  noOfShares: Number(data.noOfShares) || 0,
+  flatLand: data.flatLand,
+  note: data.note || "",
+  email: data.email || "",
+  mobile: data.mobile || "",
+  nid: data.nid || "",
+  address: data.address || "",
+  image: data.image || "",
+  shareAmount: Number(data.shareAmount) || 0,
+  paidAmount: Number(data.paidAmount) || 0,
+  totalCost: Number(data.totalCost) || 0,
+  balance: Number(data.balance) || 0,
+  due: Number(data.due) || 0,
+  penaltyAmount: Number(data.penaltyAmount) || 0,
+  points: Number(data.points) || 0,
+  assignedAt: data.assignedAt,
+  status: data.status || "active",
+});
+
+// ---------- Single Assign Share Modal ----------
+function AssignShareFormModal({
+  title,
+  initialData,
+  projects,
+  projectTypes,
+  projectSites,
+  flatLands,
+  onClose,
+  onSubmit,
+}: {
+  title: string;
+  initialData?: ShareAssignment;
+  projects: OptionItem[];
+  projectTypes: OptionItem[];
+  projectSites: OptionItem[];
+  flatLands: OptionItem[];
+  onClose: () => void;
+  onSubmit: (data: any) => Promise<void>;
+}) {
+  const [formData, setFormData] = useState({
+    projectId: initialData?.projectId || "",
+    projectTypeId: initialData?.projectTypeId || "",
+    siteId: initialData?.siteId || "",
+    shareCode: initialData?.shareCode || generateShareCode(),
+    customerName: initialData?.customerName || "",
+    noOfShares: initialData?.noOfShares?.toString() || "0",
+    flatLand: initialData?.flatLand || "",
+    note: initialData?.note || "",
+    email: initialData?.email || "",
+    mobile: initialData?.mobile || "",
+    nid: initialData?.nid || "",
+    address: initialData?.address || "",
+    image: initialData?.image || "",
+    shareAmount: initialData?.shareAmount?.toString() || "0",
+    paidAmount: initialData?.paidAmount?.toString() || "0",
+    totalCost: initialData?.totalCost?.toString() || "0",
+    balance: initialData?.balance?.toString() || "0",
+    due: initialData?.due?.toString() || "0",
+    penaltyAmount: initialData?.penaltyAmount?.toString() || "0",
+    points: initialData?.points?.toString() || "0",
+    assignedAt:
+      initialData?.assignedAt?.slice(0, 10) ||
+      new Date().toISOString().slice(0, 10),
+    status: initialData?.status || "active",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newShare: AssignShare = {
-      id: shares.length + 1,
-      project: formData.project || 'Alpha Heights',
-      projectType: formData.projectType || 'Residential',
-      code: formData.code || 'PRJ-101',
-      shareCode: formData.shareCode || 'SHR-' + Math.floor(10000 + Math.random() * 90000),
-      name: formData.customer || 'Tanvir Ahmed',
-      noOfShare: formData.noOfShare || '10',
-      flatLand: formData.flatLand || 'Flat 1A',
-      site: formData.site || 'Site North',
-      customer: formData.customer || 'Tanvir Ahmed',
-      note: formData.note || '',
-      email: 'customer@gmail.com',
-      mobile: '01800000000',
-      nid: '1990000000000',
-      address: 'Dhaka, Bangladesh',
-      image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'
-    };
-    setShares([newShare, ...shares]);
-    setIsAddOpen(false);
-    resetFormState();
-  };
-
-  // Submit Handler for Bulk Add
-  const handleBulkSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const bulkShare: AssignShare = {
-      id: shares.length + 1,
-      project: formData.project || 'Alpha Heights',
-      projectType: 'Bulk Allocation',
-      code: 'PRJ-BULK',
-      shareCode: 'SHR-' + Math.floor(10000 + Math.random() * 90000),
-      name: formData.customer || 'Corporate Client',
-      noOfShare: formData.noOfShare || '100',
-      flatLand: 'Multiple Units',
-      site: 'Main Branch',
-      customer: formData.customer || 'Corporate Client',
-      note: formData.note || 'Bulk assign',
-      email: 'corporate@gmail.com',
-      mobile: '01700000000',
-      nid: '1980000000000',
-      address: 'Gulshan, Dhaka',
-      image: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150'
-    };
-    setShares([bulkShare, ...shares]);
-    setIsBulkOpen(false);
-    resetFormState();
-  };
-
-  // Submit Handler for Edit
-  const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedShare) return;
-    setShares(shares.map(item => item.id === selectedShare.id ? { ...item, ...formData } as AssignShare : item));
-    setIsEditOpen(false);
-    setSelectedShare(null);
-  };
-
-  // Delete Handler
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this assigned share record?')) {
-      setShares(shares.filter(item => item.id !== id));
+    if (!formData.projectId || !formData.customerName) {
+      setFormError("Please select Project and enter Customer Name");
+      return;
+    }
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await onSubmit(formData);
+    } catch (err: any) {
+      setFormError(err?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const openEditModal = (share: AssignShare) => {
-    setSelectedShare(share);
-    setFormData({
-      projectType: share.projectType,
-      project: share.project,
-      code: share.code,
-      shareCode: share.shareCode,
-      site: share.site,
-      flatLand: share.flatLand,
-      customer: share.customer,
-      noOfShare: share.noOfShare,
-      note: share.note
-    });
-    setIsEditOpen(true);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden my-8">
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-600" />
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 max-h-[80vh] overflow-y-auto"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Project */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Project <span className="text-rose-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.projectId}
+                onChange={(e) =>
+                  setFormData({ ...formData, projectId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">Select Project</option>
+                {projects.map((p) => (
+                  <option key={p.uuid} value={p.uuid}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Project Type */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Project Type <span className="text-rose-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.projectTypeId}
+                onChange={(e) =>
+                  setFormData({ ...formData, projectTypeId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">Select Project Type</option>
+                {projectTypes.map((t) => (
+                  <option key={t.uuid} value={t.uuid}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Site */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Site <span className="text-rose-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.siteId}
+                onChange={(e) =>
+                  setFormData({ ...formData, siteId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">Select Site</option>
+                {projectSites.map((s) => (
+                  <option key={s.uuid} value={s.uuid}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Flat/Land */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Flat/Land
+              </label>
+              <select
+                value={formData.flatLand}
+                onChange={(e) =>
+                  setFormData({ ...formData, flatLand: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">Select Flat/Land</option>
+                {flatLands.length === 0 ? (
+                  <option value="" disabled>
+                    Loading flat/lands...
+                  </option>
+                ) : (
+                  flatLands.map((f) => (
+                    <option key={f.uuid} value={f.name}>
+                      {f.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Share Code */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Share Code <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.shareCode}
+                onChange={(e) =>
+                  setFormData({ ...formData, shareCode: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono"
+              />
+            </div>
+
+            {/* Customer Name */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Customer Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Customer Name"
+                value={formData.customerName}
+                onChange={(e) =>
+                  setFormData({ ...formData, customerName: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* No Of Shares */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                No Of Shares <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="1"
+                value={formData.noOfShares}
+                onChange={(e) =>
+                  setFormData({ ...formData, noOfShares: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="user@example.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Mobile */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Mobile
+              </label>
+              <input
+                type="text"
+                placeholder="Mobile"
+                value={formData.mobile}
+                onChange={(e) =>
+                  setFormData({ ...formData, mobile: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* NID */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                NID
+              </label>
+              <input
+                type="text"
+                placeholder="NID"
+                value={formData.nid}
+                onChange={(e) =>
+                  setFormData({ ...formData, nid: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Address
+              </label>
+              <input
+                type="text"
+                placeholder="Address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Image */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Image URL
+              </label>
+              <input
+                type="text"
+                placeholder="Image URL"
+                value={formData.image}
+                onChange={(e) =>
+                  setFormData({ ...formData, image: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Share Amount */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Share Amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.shareAmount}
+                onChange={(e) =>
+                  setFormData({ ...formData, shareAmount: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Paid Amount */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Paid Amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.paidAmount}
+                onChange={(e) =>
+                  setFormData({ ...formData, paidAmount: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Total Cost */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Total Cost
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.totalCost}
+                onChange={(e) =>
+                  setFormData({ ...formData, totalCost: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Balance */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Balance
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.balance}
+                onChange={(e) =>
+                  setFormData({ ...formData, balance: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Due */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Due
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.due}
+                onChange={(e) =>
+                  setFormData({ ...formData, due: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Penalty Amount */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Penalty Amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.penaltyAmount}
+                onChange={(e) =>
+                  setFormData({ ...formData, penaltyAmount: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Points */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Points
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={formData.points}
+                onChange={(e) =>
+                  setFormData({ ...formData, points: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Assigned At */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Assigned At
+              </label>
+              <input
+                type="date"
+                value={formData.assignedAt}
+                onChange={(e) =>
+                  setFormData({ ...formData, assignedAt: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+
+            {/* Note */}
+            <div className="sm:col-span-2 lg:col-span-3">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Note
+              </label>
+              <input
+                type="text"
+                placeholder="Note"
+                value={formData.note}
+                onChange={(e) =>
+                  setFormData({ ...formData, note: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {formError && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-xs">
+              {formError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-1.5"
+            >
+              {submitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Bulk Assign Share Modal ----------
+function BulkAssignShareModal({
+  projects,
+  projectTypes,
+  projectSites,
+  flatLands,
+  onClose,
+  onSubmit,
+}: {
+  projects: OptionItem[];
+  projectTypes: OptionItem[];
+  projectSites: OptionItem[];
+  flatLands: OptionItem[];
+  onClose: () => void;
+  onSubmit: (data: any) => Promise<void>;
+}) {
+  const [formData, setFormData] = useState({
+    projectId: "",
+    projectTypeId: "",
+    siteId: "",
+    flatLand: "",
+    customerName: "",
+    noOfShares: "",
+    note: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.projectId || !formData.customerName) {
+      setFormError("Please select Project and enter Customer Name");
+      return;
+    }
+    if (!formData.noOfShares || Number(formData.noOfShares) <= 0) {
+      setFormError("Please enter a valid number of shares");
+      return;
+    }
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await onSubmit(formData);
+    } catch (err: any) {
+      setFormError(err?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const openProfileModal = (share: AssignShare) => {
-    setSelectedShare(share);
-    setIsProfileOpen(true);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="bg-white border border-slate-200 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-8">
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
+            <Users className="w-4 h-4 text-indigo-600" />
+            Bulk Assign Share
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Project <span className="text-rose-500">*</span>
+              </label>
+              <select
+                required
+                value={formData.projectId}
+                onChange={(e) =>
+                  setFormData({ ...formData, projectId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Select Project</option>
+                {projects.map((p) => (
+                  <option key={p.uuid} value={p.uuid}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Project Type
+              </label>
+              <select
+                value={formData.projectTypeId}
+                onChange={(e) =>
+                  setFormData({ ...formData, projectTypeId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Select Project Type</option>
+                {projectTypes.map((t) => (
+                  <option key={t.uuid} value={t.uuid}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Site
+              </label>
+              <select
+                value={formData.siteId}
+                onChange={(e) =>
+                  setFormData({ ...formData, siteId: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Select Site</option>
+                {projectSites.map((s) => (
+                  <option key={s.uuid} value={s.uuid}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Flat/Land
+              </label>
+              <select
+                value={formData.flatLand}
+                onChange={(e) =>
+                  setFormData({ ...formData, flatLand: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Select Flat/Land</option>
+                {flatLands.map((f) => (
+                  <option key={f.uuid} value={f.name}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Customer Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Customer Name"
+                value={formData.customerName}
+                onChange={(e) =>
+                  setFormData({ ...formData, customerName: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                No Of Shares <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                step="1"
+                value={formData.noOfShares}
+                onChange={(e) =>
+                  setFormData({ ...formData, noOfShares: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Note
+              </label>
+              <input
+                type="text"
+                value={formData.note}
+                onChange={(e) =>
+                  setFormData({ ...formData, note: e.target.value })
+                }
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+
+          {formError && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-lg text-xs">
+              {formError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm"
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg text-sm flex items-center gap-1.5"
+            >
+              {submitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Main Page ----------
+export default function AssignShareListPage() {
+  const [assignments, setAssignments] = useState<ShareAssignment[]>([]);
+  const [projects, setProjects] = useState<OptionItem[]>([]);
+  const [projectTypes, setProjectTypes] = useState<OptionItem[]>([]);
+  const [projectSites, setProjectSites] = useState<OptionItem[]>([]);
+  const [flatLands, setFlatLands] = useState<OptionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShareAssignment | null>(null);
+
+  const loadData = async (projectId?: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [assignmentRes, projectList, typeList, siteList, flatLandList] =
+        await Promise.all([
+          fetchShareAssignments(projectId || selectedProjectId || undefined),
+          fetchProjects(),
+          fetchProjectTypes(),
+          fetchProjectSites(),
+          fetchFlatLands(),
+        ]);
+
+      console.log(
+        "✅ loadData success — assignments:",
+        assignmentRes.data.length,
+      );
+      console.log("Loaded projects →", projectList.length);
+      console.log("Loaded project types →", typeList.length);
+      console.log("Loaded project sites →", siteList.length);
+      console.log("Loaded flat lands →", flatLandList.length);
+
+      setAssignments(assignmentRes.data);
+      setProjects(projectList);
+      setProjectTypes(typeList);
+      setProjectSites(siteList);
+      setFlatLands(flatLandList);
+    } catch (err: any) {
+      console.error("❌ loadData ERROR →", err);
+      setError(err.message || "Failed to load share assignments");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const resetFormState = () => {
-    setFormData({
-      projectType: '',
-      project: '',
-      code: 'PRJ-' + Math.floor(100 + Math.random() * 900),
-      shareCode: 'SHR-' + Math.floor(10000 + Math.random() * 90000),
-      site: '',
-      flatLand: '',
-      customer: '',
-      noOfShare: '',
-      note: ''
-    });
+  // ✅ Initial load — shudhu ekbar
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ Project filter change hole — shudhu selectedProjectId thakle call
+  useEffect(() => {
+    if (!loading && selectedProjectId) {
+      loadData(selectedProjectId);
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProjectId]);
+
+  const filteredAssignments = assignments.filter(
+    (item) =>
+      item.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.shareCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(item.noOfShares).includes(searchQuery),
+  );
+
+  const totalPages =
+    Math.ceil(filteredAssignments.length / entriesPerPage) || 1;
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const currentTableData = filteredAssignments.slice(
+    startIndex,
+    startIndex + entriesPerPage,
+  );
+
+  const handleDelete = async (item: ShareAssignment) => {
+    if (!confirm(`Delete share assignment for "${item.customerName}"?`)) return;
+    const uuidToDelete = item.uuid || String(item.id);
+    if (!uuidToDelete) {
+      alert("UUID is missing – cannot delete");
+      return;
+    }
+    try {
+      setActionLoading(true);
+      await softDeleteShareAssignment(uuidToDelete);
+      setAssignments((prev) =>
+        prev.filter((a) => (a.uuid || String(a.id)) !== uuidToDelete),
+      );
+      if (currentTableData.length === 1 && currentPage > 1) {
+        setCurrentPage((p) => p - 1);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || "Delete failed. Please try again.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white text-slate-900 p-4 sm:p-6 flex flex-col justify-between">
       <div className="space-y-4">
-        {/* Breadcrumb and Top Bar */}
+        {/* Breadcrumb & Top Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
           <div>
             <div className="text-xs text-slate-500 flex items-center gap-1 mb-1">
-              <span>Home</span> / <span>Share Project</span> / <span className="text-indigo-600 font-medium">Assign Share List</span>
+              <span>Home</span> / <span>Share Project</span> /{" "}
+              <span className="text-indigo-600 font-medium">
+                Assign Share List
+              </span>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">Assign Share Management</h1>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              Assign Share List
+            </h1>
           </div>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { resetFormState(); setIsAddOpen(true); }}
+              onClick={() => setIsAddOpen(true)}
               className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
               Add Assign Share
             </button>
             <button
-              onClick={() => { resetFormState(); setIsBulkOpen(true); }}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-all"
+              onClick={() => setIsBulkOpen(true)}
+              className="inline-flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
               Bulk Assign Share
@@ -385,37 +1245,41 @@ export default function AssignSharePage() {
           </div>
         </div>
 
-        {/* Project Selector Filter Bar */}
-        <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/60 space-y-2">
-          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Select Project</label>
-          <select
-            value={selectedProjectFilter}
-            onChange={(e) => setSelectedProjectFilter(e.target.value)}
-            className="w-full sm:w-80 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          >
-            <option value="">All Projects (Select Project)</option>
-            <option value="Alpha Heights">Alpha Heights</option>
-            <option value="Beta Commercial Complex">Beta Commercial Complex</option>
-            <option value="Gamma Green Valley">Gamma Green Valley</option>
-            <option value="Delta Residency">Delta Residency</option>
-            <option value="Omega Silicon City">Omega Silicon City</option>
-          </select>
-        </div>
+        {/* Filter + Controls */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50/70 p-3 rounded-xl border border-slate-200/60">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="whitespace-nowrap">Select Project</span>
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="border border-slate-300 rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]"
+              >
+                <option value="">Select Project</option>
+                {projects.map((p) => (
+                  <option key={p.uuid} value={p.uuid}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Controls: Show Entries & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/70 p-3 rounded-xl border border-slate-200/60">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <span>Show</span>
-            <select
-              value={entriesPerPage}
-              onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-              className="border border-slate-300 rounded-md px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <span>entries</span>
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span>Show</span>
+              <select
+                value={entriesPerPage}
+                onChange={(e) => {
+                  setEntriesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-slate-300 rounded-md px-2 py-1 text-sm bg-white"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span>entries</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -425,489 +1289,213 @@ export default function AssignSharePage() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search assigned shares..."
-                className="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search..."
+                className="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg"
               />
             </div>
           </div>
         </div>
 
-        {/* Modern Data Table (Matching headers from Image 1st: SL, PROJECT, CODE, SHARE CODE, NAME, NO OF SHARE, FLAT/LAND, ACTION) */}
-        <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-indigo-600 text-white font-medium text-xs tracking-wider uppercase">
-                  <th className="py-3 px-4">SL</th>
-                  <th className="py-3 px-4">Project</th>
-                  <th className="py-3 px-4">Code</th>
-                  <th className="py-3 px-4">Share Code</th>
-                  <th className="py-3 px-4">Name</th>
-                  <th className="py-3 px-4">No Of Share</th>
-                  <th className="py-3 px-4">Flat/Land</th>
-                  <th className="py-3 px-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredShares.length > 0 ? (
-                  filteredShares.slice(0, entriesPerPage).map((item, index) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-medium text-slate-600">{index + 1}</td>
-                      <td className="py-3 px-4 font-medium text-slate-900">{item.project}</td>
-                      <td className="py-3 px-4 font-mono text-xs text-slate-600">{item.code}</td>
-                      <td className="py-3 px-4 font-mono text-xs text-indigo-600 font-semibold">{item.shareCode}</td>
-                      <td className="py-3 px-4 font-medium text-slate-900">{item.name}</td>
-                      <td className="py-3 px-4 font-semibold text-slate-700">{item.noOfShare}</td>
-                      <td className="py-3 px-4 text-slate-600">{item.flatLand}</td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="inline-flex items-center justify-center gap-1.5">
-                          {/* Profile Action Button (Human Icon) */}
-                          <button
-                            onClick={() => openProfileModal(item)}
-                            title="View Profile / Details"
-                            className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md transition-colors"
-                          >
-                            <User className="w-4 h-4" />
-                          </button>
-                          {/* Edit Action Button */}
-                          <button
-                            onClick={() => openEditModal(item)}
-                            title="Edit Assigned Share"
-                            className="p-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-md transition-colors"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          {/* Delete Action Button */}
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            title="Delete Assigned Share"
-                            className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+        {loading && (
+          <div className="flex items-center justify-center py-16 text-slate-500">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+            Loading share assignments...
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={() => loadData()}
+              className="underline text-xs font-medium"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-indigo-600 text-white font-medium text-xs tracking-wider uppercase">
+                    <th className="py-3 px-4">SL</th>
+                    <th className="py-3 px-4">PROJECT</th>
+                    <th className="py-3 px-4">SHARE CODE</th>
+                    <th className="py-3 px-4">CUSTOMER NAME</th>
+                    <th className="py-3 px-4">NO OF SHARES</th>
+                    <th className="py-3 px-4">FLAT/LAND</th>
+                    <th className="py-3 px-4 text-center">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {currentTableData.length > 0 ? (
+                    currentTableData.map((item, index) => (
+                      <tr
+                        key={item.uuid || item.id}
+                        className="hover:bg-slate-50/80 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-medium text-slate-600">
+                          {startIndex + index + 1}
+                        </td>
+                        <td className="py-3 px-4 font-medium text-slate-900">
+                          {item.projectName || "—"}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs text-slate-700">
+                          {item.shareCode || "—"}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-indigo-600">
+                          {item.customerName || "—"}
+                        </td>
+                        <td className="py-3 px-4 text-slate-700">
+                          {item.noOfShares}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {item.flatLand || "—"}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="inline-flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => setEditingItem(item)}
+                              title="Edit"
+                              className="p-1.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-md transition-colors"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item)}
+                              title="Delete"
+                              disabled={actionLoading}
+                              className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="text-center py-10 text-slate-400 font-medium"
+                      >
+                        No matching records found
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="text-center py-10 text-slate-400 font-medium">
-                      No data available in table
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Table Footer / Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500">
-            <div>Showing 1 to {Math.min(entriesPerPage, filteredShares.length)} of {filteredShares.length} entries</div>
-            <div className="inline-flex items-center gap-1">
-              <button disabled className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">Previous</button>
-              <button className="px-3 py-1 rounded border border-indigo-600 bg-indigo-600 text-white font-medium">1</button>
-              <button disabled className="px-3 py-1 rounded border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed">Next</button>
+            <div className="flex flex-col sm:flex-row items-center justify-between p-3 border-t border-slate-200 bg-white gap-2 text-xs text-slate-500">
+              <div>
+                Showing {filteredAssignments.length > 0 ? startIndex + 1 : 0} to{" "}
+                {Math.min(
+                  startIndex + entriesPerPage,
+                  filteredAssignments.length,
+                )}{" "}
+                of {filteredAssignments.length} entries
+              </div>
+              <div className="inline-flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded border border-slate-200 ${
+                    currentPage === 1
+                      ? "bg-slate-50 text-slate-400 cursor-not-allowed"
+                      : "hover:bg-slate-50 text-slate-600"
+                  }`}
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded font-medium ${
+                        currentPage === page
+                          ? "border border-indigo-600 bg-indigo-600 text-white"
+                          : "border border-slate-200 hover:bg-slate-50 text-slate-600"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className={`px-3 py-1 rounded border border-slate-200 ${
+                    currentPage === totalPages || totalPages === 0
+                      ? "bg-slate-50 text-slate-400 cursor-not-allowed"
+                      : "hover:bg-slate-50 text-slate-600"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ================= MODAL: ADD ASSIGN SHARE (Exact Spec matching Image 2nd) ================= */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden my-8">
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
-              <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-600" /> Assign Share
-              </h3>
-              <button onClick={() => setIsAddOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Project Type <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.projectType || ''}
-                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Project Type</option>
-                    <option value="Residential">Residential</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Land Project">Land Project</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Project <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.project || ''}
-                    onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Project</option>
-                    <option value="Alpha Heights">Alpha Heights</option>
-                    <option value="Beta Commercial Complex">Beta Commercial Complex</option>
-                    <option value="Gamma Green Valley">Gamma Green Valley</option>
-                    <option value="Delta Residency">Delta Residency</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Share Code <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.shareCode || ''}
-                    onChange={(e) => setFormData({ ...formData, shareCode: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Site</label>
-                  <select
-                    value={formData.site || ''}
-                    onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Site</option>
-                    <option value="Site North">Site North</option>
-                    <option value="Site South">Site South</option>
-                    <option value="Downtown Hub">Downtown Hub</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Flat/Land No</label>
-                  <input
-                    type="text"
-                    placeholder="Select Flat/Land No"
-                    value={formData.flatLand || ''}
-                    onChange={(e) => setFormData({ ...formData, flatLand: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Customer <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.customer || ''}
-                    onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Customer</option>
-                    <option value="Tanvir Ahmed">Tanvir Ahmed</option>
-                    <option value="Farhana Sultana">Farhana Sultana</option>
-                    <option value="Mahbub Alam">Mahbub Alam</option>
-                    <option value="Sharmin Akter">Sharmin Akter</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">No Of Share <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="0"
-                    value={formData.noOfShare || ''}
-                    onChange={(e) => setFormData({ ...formData, noOfShare: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Note</label>
-                  <input
-                    type="text"
-                    placeholder="Note"
-                    value={formData.note || ''}
-                    onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Form Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(false)}
-                  className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AssignShareFormModal
+          title="Assign Share"
+          projects={projects}
+          projectTypes={projectTypes}
+          projectSites={projectSites}
+          flatLands={flatLands}
+          onClose={() => setIsAddOpen(false)}
+          onSubmit={async (data) => {
+            await createShareAssignment(toApiPayload(data));
+            setIsAddOpen(false);
+            await loadData();
+          }}
+        />
       )}
 
-      {/* ================= MODAL: BULK ASSIGN SHARE (Exact Spec matching Screenshot 3rd) ================= */}
+      {editingItem && (
+        <AssignShareFormModal
+          title="Edit Assign Share"
+          initialData={editingItem}
+          projects={projects}
+          projectTypes={projectTypes}
+          projectSites={projectSites}
+          flatLands={flatLands}
+          onClose={() => setEditingItem(null)}
+          onSubmit={async (data) => {
+            if (!editingItem.uuid) throw new Error("UUID is missing");
+            await updateShareAssignment(editingItem.uuid, toApiPayload(data));
+            setEditingItem(null);
+            await loadData();
+          }}
+        />
+      )}
+
       {isBulkOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden my-8">
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
-              <h3 className="font-semibold text-slate-900 text-base flex items-center gap-2">
-                <Layers className="w-4 h-4 text-emerald-600" /> Bulk Assign Share
-              </h3>
-              <button onClick={() => setIsBulkOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleBulkSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Project <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.project || ''}
-                    onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Project</option>
-                    <option value="Alpha Heights">Alpha Heights</option>
-                    <option value="Beta Commercial Complex">Beta Commercial Complex</option>
-                    <option value="Gamma Green Valley">Gamma Green Valley</option>
-                    <option value="Delta Residency">Delta Residency</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Customer <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.customer || ''}
-                    onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Customer</option>
-                    <option value="Tanvir Ahmed">Tanvir Ahmed</option>
-                    <option value="Farhana Sultana">Farhana Sultana</option>
-                    <option value="Mahbub Alam">Mahbub Alam</option>
-                    <option value="Sharmin Akter">Sharmin Akter</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">No Of Share <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="No Of Share"
-                    value={formData.noOfShare || ''}
-                    onChange={(e) => setFormData({ ...formData, noOfShare: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Note</label>
-                  <input
-                    type="text"
-                    placeholder="Note"
-                    value={formData.note || ''}
-                    onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Form Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsBulkOpen(false)}
-                  className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: EDIT ASSIGN SHARE ================= */}
-      {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden my-8">
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
-              <h3 className="font-semibold text-slate-900 text-base">Edit Assign Share</h3>
-              <button onClick={() => setIsEditOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Project Type <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.projectType || ''}
-                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Project Type</option>
-                    <option value="Residential">Residential</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Land Project">Land Project</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Project <span className="text-rose-500">*</span></label>
-                  <select
-                    required
-                    value={formData.project || ''}
-                    onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Select Project</option>
-                    <option value="Alpha Heights">Alpha Heights</option>
-                    <option value="Beta Commercial Complex">Beta Commercial Complex</option>
-                    <option value="Gamma Green Valley">Gamma Green Valley</option>
-                    <option value="Delta Residency">Delta Residency</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Share Code <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.shareCode || ''}
-                    onChange={(e) => setFormData({ ...formData, shareCode: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Flat/Land No</label>
-                  <input
-                    type="text"
-                    value={formData.flatLand || ''}
-                    onChange={(e) => setFormData({ ...formData, flatLand: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1">No Of Share <span className="text-rose-500">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.noOfShare || ''}
-                    onChange={(e) => setFormData({ ...formData, noOfShare: e.target.value })}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="px-5 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: PROFILE DETAILS (Human Icon Click Modal) ================= */}
-      {isProfileOpen && selectedShare && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
-              <span className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-600" /> Customer & Share Assignment Profile
-              </span>
-              <button onClick={() => setIsProfileOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-6 bg-white">
-              {/* Profile Card Header */}
-              <div className="flex flex-col sm:flex-row items-center gap-6 bg-slate-50 border border-slate-200 p-6 rounded-2xl">
-                <img 
-                  src={selectedShare.image} 
-                  alt={selectedShare.name} 
-                  className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md" 
-                />
-                <div className="space-y-1 text-center sm:text-left">
-                  <h2 className="text-xl font-bold text-slate-900">{selectedShare.name}</h2>
-                  <p className="text-xs font-mono text-indigo-600 font-semibold">Share Code: {selectedShare.shareCode}</p>
-                  <p className="text-xs text-slate-500">{selectedShare.address}</p>
-                  <div className="pt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                      Project: {selectedShare.project}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Shares: {selectedShare.noOfShare}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Details Grid Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white text-xs">
-                <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 font-bold text-slate-700 uppercase tracking-wider">
-                  Assignment Specification & Contact
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between"><span className="text-slate-500">Project Type:</span><span className="font-medium text-slate-800">{selectedShare.projectType}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Project Code:</span><span className="font-mono font-medium text-slate-800">{selectedShare.code}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Flat / Land:</span><span className="font-medium text-slate-800">{selectedShare.flatLand}</span></div>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between"><span className="text-slate-500">Mobile:</span><span className="font-medium text-slate-800">{selectedShare.mobile}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">Email:</span><span className="font-medium text-slate-800">{selectedShare.email}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-500">NID:</span><span className="font-mono font-medium text-slate-800">{selectedShare.nid}</span></div>
-                  </div>
-                </div>
-                {selectedShare.note && (
-                  <div className="p-4 border-t border-slate-200 bg-slate-50/50">
-                    <span className="text-slate-500 font-medium">Note: </span>
-                    <span className="text-slate-700">{selectedShare.note}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <BulkAssignShareModal
+          projects={projects}
+          projectTypes={projectTypes}
+          projectSites={projectSites}
+          flatLands={flatLands}
+          onClose={() => setIsBulkOpen(false)}
+          onSubmit={async (data) => {
+            await createShareAssignment(toApiPayload(data as any));
+            setIsBulkOpen(false);
+            await loadData();
+          }}
+        />
       )}
     </div>
   );
