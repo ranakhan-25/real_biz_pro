@@ -29,13 +29,76 @@ interface Supplier {
 }
 
 const initialSupplierData: Supplier[] = [
-  { id: 1, code: "SUP2733131", name: "Riva Steel Mils", company: "-", phone: "-", email: "-", address: "-", under: "Sundry Creditors" },
-  { id: 2, code: "SUP8286898", name: "Rifat Thai House", company: "Rifat Thai House", phone: "-", email: "-", address: "-", under: "Sundry Creditors" },
-  { id: 3, code: "SUP8103073", name: "Mohin Business solution", company: "-", phone: "-", email: "-", address: "-", under: "Sundry Creditors" },
-  { id: 4, code: "SUP8191957", name: "Safety First Suppliers", company: "-", phone: "01312345695", email: "-", address: "Motijheel", under: "Sundry Creditors" },
-  { id: 5, code: "SUP6544555", name: "Delta Glass & Aluminium", company: "-", phone: "01312345694", email: "-", address: "Mirpur", under: "Sundry Creditors" },
-  { id: 6, code: "SUP8156944", name: "Prime Tiles", company: "-", phone: "01312345693", email: "-", address: "Mohakhali", under: "Sundry Creditors" },
-  { id: 7, code: "SUP7215205", name: "Modern Sanitary", company: "-", phone: "01312345692", email: "-", address: "Paltan", under: "Sundry Creditors" },
+  {
+    id: 1,
+    code: "SUP2733131",
+    name: "Riva Steel Mils",
+    company: "-",
+    phone: "-",
+    email: "-",
+    address: "-",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 2,
+    code: "SUP8286898",
+    name: "Rifat Thai House",
+    company: "Rifat Thai House",
+    phone: "-",
+    email: "-",
+    address: "-",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 3,
+    code: "SUP8103073",
+    name: "Mohin Business solution",
+    company: "-",
+    phone: "-",
+    email: "-",
+    address: "-",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 4,
+    code: "SUP8191957",
+    name: "Safety First Suppliers",
+    company: "-",
+    phone: "01312345695",
+    email: "-",
+    address: "Motijheel",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 5,
+    code: "SUP6544555",
+    name: "Delta Glass & Aluminium",
+    company: "-",
+    phone: "01312345694",
+    email: "-",
+    address: "Mirpur",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 6,
+    code: "SUP8156944",
+    name: "Prime Tiles",
+    company: "-",
+    phone: "01312345693",
+    email: "-",
+    address: "Mohakhali",
+    under: "Sundry Creditors",
+  },
+  {
+    id: 7,
+    code: "SUP7215205",
+    name: "Modern Sanitary",
+    company: "-",
+    phone: "01312345692",
+    email: "-",
+    address: "Paltan",
+    under: "Sundry Creditors",
+  },
 ];
 
 // --- SUPPLIER ADD MODAL COMPONENT ---
@@ -60,7 +123,7 @@ function SupplierModal({ isOpen, onClose }: SupplierModalProps) {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -76,7 +139,6 @@ function SupplierModal({ isOpen, onClose }: SupplierModalProps) {
     <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 transition-all duration-200 overflow-y-auto">
       {/* Modal Container */}
       <div className="w-full max-w-2xl bg-slate-50 dark:bg-[#080d1a] rounded-xl shadow-2xl border border-slate-200 dark:border-[#1e293b] overflow-hidden flex flex-col transition-all my-auto">
-        
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#030712]">
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -94,7 +156,6 @@ function SupplierModal({ isOpen, onClose }: SupplierModalProps) {
         {/* Modal Body / Form */}
         <form onSubmit={handleSubmit} className="p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            
             {/* Left Column Fields */}
             <div>
               <label className="block text-slate-700 dark:text-slate-200 font-medium mb-1">
@@ -221,7 +282,6 @@ function SupplierModal({ isOpen, onClose }: SupplierModalProps) {
                 <option value="Sundry Creditors">Sundry Creditors</option>
               </select>
             </div>
-
           </div>
 
           {/* Action Buttons */}
@@ -257,11 +317,17 @@ export default function SupplierListPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 p-4 md:p-6 transition-colors duration-200">
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2 font-medium">
-        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">Home</span>
+        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+          Home
+        </span>
         <span>&gt;</span>
-        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">Contact</span>
+        <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+          Contact
+        </span>
         <span>&gt;</span>
-        <span className="text-slate-400 dark:text-slate-500">Supplier List</span>
+        <span className="text-slate-400 dark:text-slate-500">
+          Supplier List
+        </span>
       </nav>
 
       {/* Main Content Card */}
@@ -273,8 +339,12 @@ export default function SupplierListPage() {
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Supplier List</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Manage your suppliers and their information</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                Supplier List
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Manage your suppliers and their information
+              </p>
             </div>
           </div>
 
@@ -330,7 +400,9 @@ export default function SupplierListPage() {
           </div>
 
           <div className="relative flex items-center gap-2">
-            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Search:</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              Search:
+            </span>
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
@@ -407,27 +479,53 @@ export default function SupplierListPage() {
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#131c31]/80 bg-white dark:bg-[#080d1a]">
               {initialSupplierData.map((supplier) => (
-                <tr key={supplier.id} className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors">
-                  <td className="p-3 text-slate-600 dark:text-slate-400 font-medium">{supplier.id}</td>
-                  <td className="p-3 font-medium text-slate-800 dark:text-slate-200">{supplier.code}</td>
+                <tr
+                  key={supplier.id}
+                  className="hover:bg-slate-50 dark:hover:bg-[#0e1628] transition-colors"
+                >
+                  <td className="p-3 text-slate-600 dark:text-slate-400 font-medium">
+                    {supplier.id}
+                  </td>
+                  <td className="p-3 font-medium text-slate-800 dark:text-slate-200">
+                    {supplier.code}
+                  </td>
                   <td className="p-3 text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium">
                     {supplier.name}
                   </td>
-                  <td className="p-3 text-slate-600 dark:text-slate-300">{supplier.company}</td>
-                  <td className="p-3 text-slate-700 dark:text-slate-300">{supplier.phone}</td>
-                  <td className="p-3 text-slate-500 dark:text-slate-400">{supplier.email}</td>
-                  <td className="p-3 text-slate-700 dark:text-slate-300">{supplier.address}</td>
-                  <td className="p-3 text-slate-700 dark:text-slate-300">{supplier.under}</td>
+                  <td className="p-3 text-slate-600 dark:text-slate-300">
+                    {supplier.company}
+                  </td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">
+                    {supplier.phone}
+                  </td>
+                  <td className="p-3 text-slate-500 dark:text-slate-400">
+                    {supplier.email}
+                  </td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">
+                    {supplier.address}
+                  </td>
+                  <td className="p-3 text-slate-700 dark:text-slate-300">
+                    {supplier.under}
+                  </td>
                   <td className="p-3">
                     <div className="flex items-center justify-center gap-1">
-                      <button className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm" title="Edit">
+                      <button
+                        className="p-1.5 rounded bg-cyan-500 hover:bg-cyan-600 text-white transition-colors shadow-sm"
+                        title="Edit"
+                      >
                         <Pencil className="w-3 h-3" />
                       </button>
-                      <button className="p-1.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm" title="View Details">
+                      <button
+                        className="p-1.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-sm"
+                        title="View Details"
+                      >
                         <User className="w-3 h-3" />
                       </button>
                       {supplier.id === 5 && (
-                        <button className="p-1.5 rounded bg-rose-600 hover:bg-rose-700 text-white transition-colors shadow-sm" title="Delete">
+                        <button
+                          className="p-1.5 rounded bg-rose-600 hover:bg-rose-700 text-white transition-colors shadow-sm"
+                          title="Delete"
+                        >
                           <Trash2 className="w-3 h-3" />
                         </button>
                       )}
@@ -441,13 +539,24 @@ export default function SupplierListPage() {
 
         {/* Pagination Footer */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
-          <div>Showing 1 to {initialSupplierData.length} of {initialSupplierData.length} entries</div>
+          <div>
+            Showing 1 to {initialSupplierData.length} of{" "}
+            {initialSupplierData.length} entries
+          </div>
           <div className="flex items-center gap-1">
-            <button className="p-1 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40" disabled>
+            <button
+              className="p-1 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
+              disabled
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="px-3 py-1 rounded bg-blue-600 text-white font-medium">1</button>
-            <button className="p-1 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40" disabled>
+            <button className="px-3 py-1 rounded bg-blue-600 text-white font-medium">
+              1
+            </button>
+            <button
+              className="p-1 rounded border border-slate-200 dark:border-[#1e293b] text-slate-400 dark:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40"
+              disabled
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
